@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: cloud-gateway
+  # Redis 配置
+  redis:
+    host: localhost
+    port: 6379
+    password: 123456
+    pool:
+      max-idle: 8
+      min-idle: 0
+      max-active: 8
+      max-wait: -1
+    timeout: 5000
+  cloud:
+    #配置路由
+    gateway:
+      #这里可以配置多个路由
+      routes:
+        - id: common #路由的id
+          uri: lb://infocommon #匹配后提供服务的路由地址
+          predicates:
+            - Path=/common/** #断言 路径相匹配的进行路由
+          filters:
+            - StripPrefix=1,
+        - id: admin #路由的id
+          uri: lb://admin #匹配后提供服务的路由地址
+          predicates:
+            - Path=/admin/** #断言 路径相匹配的进行路由
+          filters:
+            - StripPrefix=1
+
+passjava:
+  jwt:
+    enabled: true   # 是否开启JWT登录认证功能
+    secret: passjava  # JWT 私钥，用于校验JWT令牌的合法性
+    expiration: 3600000 # JWT 令牌的有效期，用于校验JWT令牌的合法性，一个小时
+    header: Authorization # HTTP 请求的 Header 名称，该 Header作为参数传递 JWT 令牌
+    userParamName: userName  # 用户登录认证用户名参数名称
+    pwdParamName: password  # 用户登录认证密码参数名称
+    useDefaultController: true # 是否使用默认的JwtAuthController
+    skipValidUrl: /auth/login,/renren-fast/captcha.jpg,/renren-fast/sys/login
