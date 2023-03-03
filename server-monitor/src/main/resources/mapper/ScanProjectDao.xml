@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lyc.emcommon.dao.ScanProjectDao">
+
+    <sql id="baseColumn">
+                    id,
+                    user_id,
+                    name,
+                    appoint_port_type,
+                    is_single_scan,
+                    scan_begin_time,
+                    scan_end_time,
+                    scan_interval,
+                    remark,
+                    create_time,
+                    update_time,
+                    del_flg,
+                    create_id,
+                    update_id
+            </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lyc.emcommon.entity.ScanProjectEntity" id="scanProjectMap">
+                    <result property="id" column="id"/>
+                    <result property="userId" column="user_id"/>
+                    <result property="name" column="name"/>
+                    <result property="appointPortType" column="appoint_port_type"/>
+                    <result property="isSingleScan" column="is_single_scan"/>
+                    <result property="scanBeginTime" column="scan_begin_time"/>
+                    <result property="scanEndTime" column="scan_end_time"/>
+                    <result property="scanInterval" column="scan_interval"/>
+                    <result property="remark" column="remark"/>
+                    <result property="createTime" column="create_time"/>
+                    <result property="updateTime" column="update_time"/>
+                    <result property="delFlg" column="del_flg"/>
+                    <result property="createId" column="create_id"/>
+                    <result property="updateId" column="update_id"/>
+            </resultMap>
+
+    <select id="queryPage" resultType="com.lyc.emcommon.entity.ScanProjectEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_project
+    </select>
+
+    <select id="queryList" resultType="com.lyc.emcommon.entity.ScanProjectEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_project
+    </select>
+
+
+</mapper>

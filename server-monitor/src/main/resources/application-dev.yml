@@ -39,6 +39,9 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.cloud.client.ip-address}:${server.port}
 
-ribbon:
-  ReadTimeout: 600000
-  ConnectTimeout: 600000
+server-setting:
+  host_name: 49.235.104.19
+  user_name: root
+  pwd: Lhh110112
+  exec_timeout: 60
+

@@ -2,6 +2,14 @@ package com.lhh.serverbase.utils;
 
 public class Const {
     /**
+     * 字符串：""
+     */
+    public final static String STR_EMPTY = "";
+    /**
+     * 字符串：. 逗号
+     */
+    public final static String STR_COMMA = ",";
+    /**
      * 字符串：. 字符点
      */
     public final static String STR_SPOT = ".";
@@ -22,4 +30,10 @@ public class Const {
      * 字符串: /
      */
     public final static String STR_SLASH = "/";
+
+    public static String STR_COLON = ":";
+
+    public static String STR_BLANK = " ";
+
+    public static String STR_MASSCAN_PORT = "cd /mnt/webSafe/utils/masscan/;masscan %s -p%s --rate %s --wait 0";
 }

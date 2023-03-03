@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lyc.emcommon.dao.ScanHostDao">
+
+    <sql id="baseColumn">
+                    id,
+                    project_id,
+                    host,
+                    domain_name,
+                    parent_id,
+                    create_time,
+                    update_time,
+                    del_flg,
+                    create_id,
+                    update_id
+            </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lyc.emcommon.entity.ScanHostEntity" id="scanHostMap">
+                    <result property="id" column="id"/>
+                    <result property="projectId" column="project_id"/>
+                    <result property="host" column="host"/>
+                    <result property="domainName" column="domain_name"/>
+                    <result property="parentId" column="parent_id"/>
+                    <result property="createTime" column="create_time"/>
+                    <result property="updateTime" column="update_time"/>
+                    <result property="delFlg" column="del_flg"/>
+                    <result property="createId" column="create_id"/>
+                    <result property="updateId" column="update_id"/>
+            </resultMap>
+
+    <select id="queryPage" resultType="com.lyc.emcommon.entity.ScanHostEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host
+    </select>
+
+    <select id="queryList" resultType="com.lyc.emcommon.entity.ScanHostEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host
+    </select>
+
+
+</mapper>
