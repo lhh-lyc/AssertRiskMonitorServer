@@ -4,7 +4,7 @@ public enum ResponseCodeEnum {
     /**
      *
      */
-    SUCCESS("0", "成功"),
+    SUCCESS("200", "成功"),
     FAIL("-1", "失败"),
     LOGIN_ERROR("A1000", "用户名或密码错误"),
     LOGIN_EMPTY_ERROR("A1001", "用户名或者密码不能为空"),

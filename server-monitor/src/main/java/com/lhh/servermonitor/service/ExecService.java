@@ -1,9 +1,11 @@
 package com.lhh.servermonitor.service;
 
+import cn.hutool.poi.excel.ExcelUtil;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.Const;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.RexpUtil;
+import com.lhh.servermonitor.utils.SshConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -55,7 +57,7 @@ public class ExecService {
             }
         }
         Long time2 = System.currentTimeMillis();
-        System.out.println(time2-time1);
+        System.out.println(time2 - time1);
 
         Long time3 = System.currentTimeMillis();
         List<Integer> portList = new ArrayList<>();
@@ -65,7 +67,7 @@ public class ExecService {
             }
         }
         Long time4 = System.currentTimeMillis();
-        System.out.println(time4-time3);
+        System.out.println(time4 - time3);
     }
 
     /**
@@ -87,8 +89,8 @@ public class ExecService {
                 e.printStackTrace();
             }
             System.out.println("=================");
-            System.out.println(response.getOutl());
-            subdomainList = Arrays.asList(response.getOutl().split("\n"));
+            System.out.println(response.getOut());
+            subdomainList = Arrays.asList(response.getOut().split("\n"));
         }
 
         // 子域名解析ip
@@ -134,7 +136,7 @@ public class ExecService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<String> portStrList = Arrays.asList(response.getOutl().split("\n"));
+        List<String> portStrList = Arrays.asList(response.getOut().split("\n"));
         if (!CollectionUtils.isEmpty(portStrList)) {
             for (String port : portStrList) {
                 port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH));
@@ -163,7 +165,7 @@ public class ExecService {
             e.printStackTrace();
         }
         List<String> portList = Arrays.asList(ports.split(Const.STR_COMMA));
-        List<String> responseLineList = Arrays.asList(response.getOutl().split("\n"));
+        List<String> responseLineList = Arrays.asList(response.getOut().split("\n"));
         List<String> serverLineList = responseLineList.stream().filter(r -> !StringUtils.isEmpty(r) && r.contains(Const.STR_SLASH) && portList.contains(r.substring(0, r.indexOf(Const.STR_SLASH)))).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(serverLineList)) {
             for (String server : serverLineList) {
@@ -171,6 +173,35 @@ public class ExecService {
             }
         }
         return serverLineList;
+    }
+
+    /**
+     * 利用工具查询子域名
+     */
+    public Integer getCpuNum() {
+        if (SshConnection.getIsProd()) {
+            String cmd = "grep 'physical id' /proc/cpuinfo | sort -u | wc -l";
+            cmd = String.format(cmd);
+            SshResponse response = null;
+            try {
+                response = ExecUtil.runCommand(cmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Integer cpuNum = Integer.valueOf(response.getOutList().get(0));
+            cmd = "grep 'core id' /proc/cpuinfo | sort -u | wc -l";
+            cmd = String.format(cmd);
+            response = null;
+            try {
+                response = ExecUtil.runCommand(cmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Integer nuclearNum = Integer.valueOf(response.getOutList().get(0));
+            return cpuNum * nuclearNum;
+        } else {
+            return Runtime.getRuntime().availableProcessors();
+        }
     }
 
 }

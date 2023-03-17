@@ -12,10 +12,17 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "server-setting")
 public class SshConnection {
 
+    private static Boolean isProd;
     private static String hostName;
     private static String userName;
     private static String pwd;
     private static Long execTimeout;
+    @Value("${server-setting.is_prod}")
+    private Boolean isProdY;
+    @PostConstruct
+    public void setIsProd() {
+        isProd=this.isProdY;
+    }
     @Value("${server-setting.host_name}")
     private String hostNameY;
     @PostConstruct
@@ -39,6 +46,10 @@ public class SshConnection {
     @PostConstruct
     public void setTimeout(){
         execTimeout = timeoutY;
+    }
+
+    public static Boolean getIsProd() {
+        return isProd;
     }
 
     public static String getHostName() {

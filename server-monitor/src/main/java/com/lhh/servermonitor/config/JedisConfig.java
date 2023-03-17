@@ -1,4 +1,4 @@
-package com.lhh.servermonitor.utils;
+package com.lhh.servermonitor.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.servermonitor.dao.ScanHostIpDao">
+
+    <sql id="baseColumn">
+        id,
+                    host,
+                    ip
+    </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.serverbase.entity.ScanHostIpEntity" id="scanHostIpMap">
+        <result property="id" column="id"/>
+        <result property="host" column="host"/>
+        <result property="ip" column="ip"/>
+    </resultMap>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanHostIpEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host_ip
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanHostIpEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host_ip
+    </select>
+
+
+</mapper>

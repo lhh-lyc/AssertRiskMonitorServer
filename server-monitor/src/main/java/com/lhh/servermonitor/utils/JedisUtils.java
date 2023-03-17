@@ -403,7 +403,7 @@ public class JedisUtils {
     public static Map<String, String> getPipeJson(List<String> keyList) {
         Jedis jedis = null;
         if (CollectionUtils.isEmpty(keyList)) {
-            return null;
+            return new HashMap<>();
         }
         HashMap<String, Response<String>> intrmMap = new HashMap<String, Response<String>>();
         Map<String, String> map = new HashMap<>();
@@ -429,4 +429,54 @@ public class JedisUtils {
         }
         return map;
     }
+
+    /**
+     * 设置redis键值-Json
+     *
+     * @return java.lang.String
+     * @author Wang926454
+     * @date 2018/9/4 15:49
+     */
+    public static String setPipeJson(Map<String, String> map) {
+        Jedis jedis = null;
+        if (CollectionUtils.isEmpty(map)) {
+            return null;
+        }
+        try {
+            jedis = jedisPool.getResource();
+            Pipeline pipeline = jedis.pipelined();
+            for (String key : map.keySet()) {
+                pipeline.set(key, map.get(key));
+            }
+            pipeline.sync();
+        } catch (Exception e) {
+            log.error("设置Redis键值setPipeJson方法异常 cause=" + e.getMessage());
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+        return null;
+    }
+
+    public static boolean pipeDel(List<String> list){
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            Pipeline pipeline = jedis.pipelined();
+            for (String key : list) {
+                //批量删除
+                pipeline.del(key);
+            }
+            pipeline.sync();//同步
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally{
+            if (jedis != null) {
+                jedis.close();
+            }
+            return false;
+        }
+    }
+
 }

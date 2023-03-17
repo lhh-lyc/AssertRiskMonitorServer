@@ -32,5 +32,7 @@ public interface ScanProjectService extends IService<ScanProjectEntity> {
     */
     List<ScanProjectEntity> list(Map<String, Object> params);
 
+    void saveProject(ScanProjectEntity project);
+
 }
 

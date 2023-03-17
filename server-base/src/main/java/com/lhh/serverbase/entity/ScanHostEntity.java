@@ -1,6 +1,7 @@
 package com.lhh.serverbase.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,41 +26,31 @@ public class ScanHostEntity extends BaseEntity {
      * ID
      */
     @TableId(type = IdType.AUTO)
-    private Long id;
+    private Long hostId;
     /**
-     * 项目ID
-     */
-    private Long projectId;
-    /**
-     * 主机ip
+     * 域名或ip
      */
     private String host;
     /**
-     * 域名
+     * 父级域名
      */
-    private String domainName;
+    private String parentHost;
     /**
-     * 父级域名id
+     * 扫描的端口
      */
-    private Long parentId;
+    private String scanPorts;
     /**
-     * 创建时间
+     * host类型 1.录入域名 2.录入ip 3.子域名
      */
-    private Date createTime;
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-    /**
-     * 删除标识（0 正常 1 删除）
-     */
-    private Integer delFlg;
-    /**
-     *
-     */
-    private Long createId;
-    /**
-     *
-     */
-    private Long updateId;
+    private Integer type;
+
+    @TableField(exist = false)
+    private String ports;
+
+    @TableField(exist = false)
+    private List<String> subIpList;
+
+    @TableField(exist = false)
+    private List<Integer> scanPortList;
+
 }

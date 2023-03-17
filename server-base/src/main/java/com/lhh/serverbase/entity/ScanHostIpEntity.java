@@ -9,34 +9,29 @@ import lombok.NoArgsConstructor;
 import com.baomidou.mybatisplus.annotation.*;
 
 /**
- * 系统_用户表
+ * 系统_用户角色表
  *
  * @author lyc
- * @date 2023-02-23 19:21:07
+ * @date 2023-03-16 17:05:59
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("scan_port")
-public class ScanPortEntity extends BaseEntity {
+@TableName("scan_host_ip")
+public class ScanHostIpEntity {
 
     /**
-     * 项目ID
+     * 主键ID
      */
     @TableId(type = IdType.AUTO)
-    private Long portId;
+    private Long id;
+    /**
+     * host
+     */
+    private String host;
     /**
      * ip
      */
     private String ip;
-    /**
-     * port
-     */
-    private Integer port;
-    /**
-     * 端口对应的server
-     */
-    private String serverName;
-
 }

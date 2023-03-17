@@ -21,6 +21,18 @@ public class RexpUtil {
     }
 
     /**
+     * 验证是否为一级域名
+     * @param domain
+     * @return
+     */
+    public static boolean isDomain(String domain) {
+        if (domain.matches(RexpConst.domainRex)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 验证二级域名是否合法
      * @param domain
      * @return

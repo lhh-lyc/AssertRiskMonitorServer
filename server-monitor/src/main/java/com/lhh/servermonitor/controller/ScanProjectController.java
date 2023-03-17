@@ -19,10 +19,16 @@ import java.util.Map;
  * @date 2023-02-23 19:29:15
  */
 @RestController
-@RequestMapping("scanproject")
+@RequestMapping("scan/project")
 public class ScanProjectController {
     @Autowired
     private ScanProjectService scanProjectService;
+
+    @PostMapping("saveProject")
+    public void saveProject(@RequestBody ScanProjectEntity project) {
+        scanProjectService.save(project);
+        scanProjectService.saveProject(project);
+    }
 
     /**
      * 保存

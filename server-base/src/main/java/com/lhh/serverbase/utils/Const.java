@@ -1,6 +1,11 @@
 package com.lhh.serverbase.utils;
 
 public class Const {
+
+    /**
+     * 字符串："0"
+     */
+    public final static String STR_0 = "0";
     /**
      * 字符串：""
      */
@@ -35,5 +40,21 @@ public class Const {
 
     public static String STR_BLANK = " ";
 
-    public static String STR_MASSCAN_PORT = "cd /mnt/webSafe/utils/masscan/;masscan %s -p%s --rate %s --wait 0";
+    public static Long LONG_0 = 0L;
+
+    public static Integer INTEGER_0 = 0;
+
+    public static Integer INTEGER_1 = 1;
+
+    public static Integer INTEGER_2 = 2;
+
+    public static Integer INTEGER_3 = 3;
+
+    public static Integer INTEGER_4 = 4;
+
+    // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
+    public static String STR_SUBFINDER_SUBDOMAIN = "cd /mnt/webSafe/utils/subfinder&&./subfinder -d %s -silent";
+
+    public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate %s --wait 0";
+
 }

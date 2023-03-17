@@ -36,9 +36,9 @@ public class ScanProjectEntity extends BaseEntity {
      */
     private String name;
     /**
-     * 特定扫描的端口
+     * 扫描的端口
      */
-    private Integer appointPortType;
+    private String scanPorts;
     /**
      * 是否为单次探测（0.否 1.是）
      */

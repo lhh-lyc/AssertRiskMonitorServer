@@ -10,6 +10,7 @@ import com.lhh.servermonitor.dao.ScanHostDao;
 import com.lhh.servermonitor.service.ScanHostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,19 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         QueryWrapper wrapper = Wrappers.query();
         List<ScanHostEntity> list = list(wrapper);
         return list;
+    }
+
+    /**
+     * 查询列表数据
+     * @param host
+     * @return
+     */
+    @Override
+    public ScanHostEntity getByHost(String host) {
+        QueryWrapper wrapper = Wrappers.query().eq("host", host);
+        List<ScanHostEntity> list = list(wrapper);
+        ScanHostEntity result = CollectionUtils.isEmpty(list) ? null : list.get(0);
+        return result;
     }
 
 }
