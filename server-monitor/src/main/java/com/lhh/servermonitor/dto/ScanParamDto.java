@@ -19,13 +19,13 @@ public class ScanParamDto {
 
     private String host;
 
-    private String parentDomain;
+    private String domain;
 
     private String subDomain;
 
     private String subIp;
 
-    private String ports;
+    private String scanPorts;
 
     private List<String> subIpList;
 

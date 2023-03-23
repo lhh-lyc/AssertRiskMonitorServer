@@ -20,6 +20,7 @@ import com.lhh.servermonitor.utils.JedisUtils;
 import com.lhh.servermonitor.utils.PortUtils;
 import com.lhh.servermonitor.utils.RexpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -75,141 +77,92 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         return list;
     }
 
+    @Async
     @Override
     public void saveProject(ScanProjectEntity project) {
+        JedisUtils.setJson(String.format(CacheConst.REDIS_TASK_PROJECT, project.getUserId() + Const.STR_TITLE + project.getName()), JSON.toJSONString(project));
         if (!CollectionUtils.isEmpty(project.getHostList())) {
             List<String> ipList = project.getHostList().stream().filter(i -> RexpUtil.isIP(i)).collect(Collectors.toList());
             List<String> domainList = project.getHostList().stream().filter(item -> !ipList.contains(item)).collect(Collectors.toList());
 
-            // 已扫描过的域名和ip
+            // 已扫描过且端口也扫描一致的域名和ip
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
-            // 过滤redis扫描过且端口也扫描一致的域名和ip
-            List<String> sameIpList = new ArrayList<>();
-            List<String> exitIpList = ipList.stream().filter(i -> JedisUtils.exists(String.format(CacheConst.REDIS_IP_INFO, i)))
-                    .map(i -> String.format(CacheConst.REDIS_IP_INFO, i)).collect(Collectors.toList());
-            Map<String, String> exitIpInfoList = JedisUtils.getPipeJson(exitIpList);
-            if (!CollectionUtils.isEmpty(exitIpInfoList)) {
-                for (String key : exitIpInfoList.keySet()) {
-                    JSONObject obj = JSON.parseObject(exitIpInfoList.get(key));
-                    if (PortUtils.portEquals(MapUtil.getStr(obj, "ports"), project.getPorts())) {
-                        sameIpList.add(MapUtil.getStr(obj, "host"));
-                    }
-                }
-            }
-            List<String> sameDomainList = new ArrayList<>();
-            List<String> exitDomainList = domainList.stream().filter(i -> JedisUtils.exists(String.format(CacheConst.REDIS_IP_INFO, i)))
-                    .map(i -> String.format(CacheConst.REDIS_IP_INFO, i)).collect(Collectors.toList());
-            Map<String, String> exitDomainInfoList = JedisUtils.getPipeJson(exitDomainList);
-            if (!CollectionUtils.isEmpty(exitDomainInfoList)) {
-                for (String key : exitDomainInfoList.keySet()) {
-                    JSONObject obj = JSON.parseObject(exitDomainInfoList.get(key));
-                    if (PortUtils.portEquals(MapUtil.getStr(obj, "ports"), project.getPorts())) {
-                        sameDomainList.add(MapUtil.getStr(obj, "host"));
-                    }
+            List<ScanHostEntity> exitHostInfoList = scanHostService.getByDomainList(project.getHostList());
+            if (!CollectionUtils.isEmpty(exitHostInfoList)) {
+                for (ScanHostEntity host : exitHostInfoList) {
+                    ScanProjectHostEntity item = ScanProjectHostEntity.builder()
+                            .projectId(project.getId()).host(host.getDomain())
+                            .build();
+                    projectHostList.add(item);
                 }
             }
 
-            sameIpList.addAll(sameDomainList);
-            Map<String, String> exitValueMap = JedisUtils.getPipeJson(sameIpList);
-            if (!CollectionUtils.isEmpty(exitValueMap)) {
-                for (String key : exitValueMap.keySet()) {
-                    Map<String, String> hostMap = JSON.parseObject(exitValueMap.get(key), Map.class);
-                    if (!CollectionUtils.isEmpty(hostMap)) {
-                        ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                                .projectId(project.getId()).host(String.valueOf(hostMap.get("host")))
-                                .build();
-                        projectHostList.add(item);
-                    }
-                }
-            }
             if (!CollectionUtils.isEmpty(projectHostList)) {
                 scanProjectHostService.saveBatch(projectHostList);
                 projectHostList.clear();
             }
 
+            // 过滤掉以前扫描端口不同的数据
+            exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts())).collect(Collectors.toList());
+            List<String> sameHostList = exitHostInfoList.stream().map(ScanHostEntity::getDomain).collect(Collectors.toList());
+
             //扫描新的ip
-            List<String> newIpList = ipList.stream().filter(item -> !sameIpList.contains(item)).collect(Collectors.toList());
-            List<String> ipKeyList = ipList.stream().map(i -> String.format(CacheConst.REDIS_IP_INFO, i)).collect(Collectors.toList());
-            Map<String, String> ipInfoMap = JedisUtils.getPipeJson(ipKeyList);
+            Map<String, String> redisMap = new HashMap<>();
+            List<String> newIpList = ipList.stream().filter(item -> !sameHostList.contains(item)).collect(Collectors.toList());
             List<ScanHostEntity> scanIpList = new ArrayList<>();
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newIpList)) {
-                for (String host : newIpList) {
+                for (String ip : newIpList) {
                     ScanHostEntity scanHost = ScanHostEntity.builder()
-                            .host(host)
-                            .parentHost(Const.STR_0).type(Const.INTEGER_2)
+                            .domain(ip).ip(ip).parentDomain(ip)
+                            .scanPorts(project.getScanPorts()).type(Const.INTEGER_2)
                             .build();
                     scanIpList.add(scanHost);
-                }
-                scanHostService.saveBatch(scanIpList);
 
-                // 保存项目-host关联关系
-                for (ScanHostEntity scanHost : scanIpList) {
-                    String oldPorts = Const.STR_EMPTY;
-                    String info = ipInfoMap.get(String.format(CacheConst.REDIS_IP_INFO, scanHost.getHost()));
-                    if (!StringUtils.isEmpty(info)) {
-                        oldPorts = MapUtil.getStr(JSONObject.parseObject(info), "ports");
-                    }
+                    // 保存项目-host关联关系
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .host(scanHost.getHost()).projectId(project.getId())
-                            .ports(PortUtils.getNewPorts(oldPorts, project.getPorts()))
+                            .host(ip).projectId(project.getId())
                             .build();
                     projectHostList.add(item);
 
                     ScanParamDto dto = ScanParamDto.builder()
-                            .projectId(project.getId())
-                            .host(scanHost.getHost())
-                            .ports(project.getPorts())
+                            .subIp(ip)
+                            .scanPorts(project.getScanPorts())
                             .build();
                     scanPortParamList.add(dto);
+                    redisMap.put(String.format(CacheConst.REDIS_TASK_IP, ip), project.getScanPorts());
                 }
-                if (!CollectionUtils.isEmpty(projectHostList)) {
-                    scanProjectHostService.saveBatch(projectHostList);
-                    projectHostList.clear();
-                }
+                scanHostService.saveBatch(scanIpList);
+                scanProjectHostService.saveBatch(projectHostList);
             }
+            JedisUtils.setPipeJson(redisMap);
+            redisMap.clear();
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
-                for (ScanParamDto dto : scanPortParamList) {
-                    scanPortInfoService.scanPortList(dto);
-                }
+                scanPortInfoService.scanPortList(scanPortParamList);
             }
 
             // 扫描新的域名
-            List<String> newDomainList = domainList.stream().filter(item -> !sameDomainList.contains(item)).collect(Collectors.toList());
-            List<String> domainKeyList = ipList.stream().map(i -> String.format(CacheConst.REDIS_IP_INFO, i)).collect(Collectors.toList());
-            Map<String, String> domainInfoMap = JedisUtils.getPipeJson(domainKeyList);
+            List<String> newDomainList = domainList.stream().filter(item -> !sameHostList.contains(item)).collect(Collectors.toList());
             List<ScanParamDto> scanDomainParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newDomainList)) {
                 for (String host : newDomainList) {
-                    // 保存项目-host关联关系
-                    String oldPorts = Const.STR_EMPTY;
-                    String info = domainInfoMap.get(String.format(CacheConst.REDIS_IP_INFO, host));
-                    if (!StringUtils.isEmpty(info)) {
-                        oldPorts = MapUtil.getStr(JSONObject.parseObject(info), "ports");
-                    }
-                    ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .host(host).projectId(project.getId())
-                            .ports(PortUtils.getNewPorts(oldPorts, project.getPorts()))
-                            .build();
-                    projectHostList.add(item);
-
                     ScanParamDto dto = ScanParamDto.builder()
                             .projectId(project.getId())
                             .host(host)
-                            .ports(project.getPorts())
+                            .scanPorts(project.getScanPorts())
                             .build();
                     scanDomainParamList.add(dto);
-                }
-                if (!CollectionUtils.isEmpty(projectHostList)) {
-                    scanProjectHostService.saveBatch(projectHostList);
+//                    redisMap.put(String.format(CacheConst.REDIS_TASK_DOMAIN, host), Const.STR_1);
                 }
             }
+            JedisUtils.setPipeJson(redisMap);
             if (!CollectionUtils.isEmpty(scanDomainParamList)) {
                 for (ScanParamDto dto : scanDomainParamList) {
                     scanService.scanDomainList(dto);
                 }
             }
         }
+        JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_PROJECT, project.getUserId() + Const.STR_TITLE + project.getName()));
     }
 
 }

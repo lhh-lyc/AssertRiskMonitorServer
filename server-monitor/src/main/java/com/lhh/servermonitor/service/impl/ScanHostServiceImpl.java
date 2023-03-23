@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,17 +49,26 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         return list;
     }
 
-    /**
-     * 查询列表数据
-     * @param host
-     * @return
-     */
     @Override
-    public ScanHostEntity getByHost(String host) {
-        QueryWrapper wrapper = Wrappers.query().eq("host", host);
+    public List<ScanHostEntity> getByDomainList(List<String> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper wrapper = Wrappers.query()
+                .in("domain", hostList);
         List<ScanHostEntity> list = list(wrapper);
-        ScanHostEntity result = CollectionUtils.isEmpty(list) ? null : list.get(0);
-        return result;
+        return list;
+    }
+
+    @Override
+    public List<ScanHostEntity> getByIpList(List<String> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper wrapper = Wrappers.query()
+                .in("ip", hostList);
+        List<ScanHostEntity> list = list(wrapper);
+        return list;
     }
 
 }

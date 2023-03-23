@@ -8,6 +8,7 @@ import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
 import com.lhh.servermonitor.service.ScanProjectHostService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,22 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
     @Override
     public List<ScanProjectHostEntity> list(Map<String, Object> params) {
         QueryWrapper wrapper = Wrappers.query();
+        wrapper.eq(params.get("projectId") != null, "project_id", params.get("projectId"));
+        wrapper.eq(params.get("host") != null, "host", params.get("host"));
+        List<ScanProjectHostEntity> list = list(wrapper);
+        return list;
+    }
+
+    /**
+     * 查询列表数据
+     * @param projectId, host
+     * @return
+     */
+    @Override
+    public List<ScanProjectHostEntity> selByProIdAndHost(Long projectId, String host) {
+        QueryWrapper wrapper = Wrappers.query();
+        wrapper.eq(projectId != null, "project_id", projectId);
+        wrapper.eq(!StringUtils.isEmpty(host), "host", host);
         List<ScanProjectHostEntity> list = list(wrapper);
         return list;
     }

@@ -17,19 +17,23 @@ public class PortUtils {
         List<String> oldPortList = getPortList(oldPorts);
         List<String> newPortList = getPortList(newPorts);
         oldPortList.addAll(newPortList);
+        if (CollectionUtils.isEmpty(oldPortList)) {
+            return Const.STR_EMPTY;
+        }
         List<Integer> list = oldPortList.stream().distinct().map(Integer::parseInt).collect(Collectors.toList());
         List<List<Integer>> resultList = new ArrayList<>();
         List<Integer> arrList = new ArrayList<>();
         if (list.size() == 1) {
-            resultList.get(resultList.size() - 1).add(list.get(0));
+            arrList.add(list.get(0));
+            resultList.add(arrList);
         } else {
             for (int i = 0; i < list.size(); i++) {
                 Integer nextNum = list.get(i + 1);
                 Integer nowNum = list.get(i);
                 if (nextNum - nowNum != 1) {
-                    resultList.get(resultList.size() - 1).add(nowNum);
-                    arrList = new ArrayList<>();
+                    arrList.add(nowNum);
                     resultList.add(arrList);
+                    arrList = new ArrayList<>();
                 } else {
                     arrList.add(nowNum);
                 }
@@ -44,7 +48,7 @@ public class PortUtils {
         if (!CollectionUtils.isEmpty(resultList)) {
             for (List<Integer> i : resultList) {
                 if (Const.INTEGER_1.equals(i.size())) {
-                    portList.add(String.valueOf(i));
+                    portList.add(String.valueOf(i.get(0)));
                 } else {
                     portList.add(i.get(0) + Const.STR_CROSSBAR + i.get(i.size() - 1));
                 }
@@ -58,7 +62,16 @@ public class PortUtils {
         List<String> newPortList = getPortList(newPorts);
         oldPortList.sort(Comparator.comparing(String::hashCode));
         newPortList.sort(Comparator.comparing(String::hashCode));
-        return oldPortList.toString().equals(newPortList.toString());
+        if (oldPortList.toString().equals(newPortList.toString())) {
+            return true;
+        } else {
+            newPortList.removeAll(oldPortList);
+            if (CollectionUtils.isEmpty(newPortList)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public static List<String> getPortList(String ports) {
@@ -79,10 +92,6 @@ public class PortUtils {
             }
         }
         return portList;
-    }
-
-    public static void main(String[] args) {
-        System.out.println("65535-".matches("^([0-9]*-[1-9]*$)"));
     }
 
 }

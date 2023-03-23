@@ -96,7 +96,12 @@
             <artifactId>eddsa</artifactId>
             <version>0.3.0</version>
         </dependency>
-
+        <!--hutool工具包-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.3.9</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -29,35 +29,29 @@ public class ScanPortInfoService {
 
     @Autowired
     ScanPortService scanPortService;
+    @Autowired
+    ScanHostService scanHostService;
 
     /**
      * java代码获取开放端口
-     * todo redis增加portList,只增加新出现的port
      */
-//    @Async
-    public void scanPortList(ScanParamDto dto) {
-        Map<String, String> redisMap = new HashMap<>();
-        if (!CollectionUtils.isEmpty(dto.getSubIpList())) {
-            for (String ip : dto.getSubIpList()) {
-                String oldPorts = Const.STR_EMPTY;
-                String key = String.format(CacheConst.REDIS_IP_INFO, ip);
-                String info = JedisUtils.getStr(key);
-                if (!StringUtils.isEmpty(info)) {
-                    JSONObject obj = JSONObject.parseObject(info);
-                    oldPorts = MapUtil.getStr(obj, "ports");
-                    // 判断是否扫描过相同端口，不相同则合并
-                    if (PortUtils.portEquals(oldPorts, dto.getPorts())) {
-                        log.info(ip + "端口已扫描");
-                        return;
-                    } else {
-                        obj.put("ports", PortUtils.getNewPorts(oldPorts, dto.getPorts()));
-                        JedisUtils.setJson(key, JSONObject.toJSONString(obj));
-                    }
+    @Async
+    public void scanPortList(List<ScanParamDto> dtoList) {
+        if (!CollectionUtils.isEmpty(dtoList)) {
+            for (ScanParamDto dto : dtoList) {
+                String ip = dto.getSubIp();
+                List<ScanPortEntity> hostList = scanPortService.getByIpList(Arrays.asList(ip));
+                // 已扫描的不再扫描
+                if (!CollectionUtils.isEmpty(hostList)) {
+                    JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_IP, ip));
+                    log.info("" + ip + "端口已扫描");
+                    continue;
                 }
+                List<Integer> ports = hostList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
 
                 log.info("开始扫描" + ip + "端口");
                 List<ScanPortEntity> portList = new ArrayList<>();
-                String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getPorts(), 5000);
+                String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts(), 5000);
                 SshResponse response = null;
                 try {
                     response = ExecUtil.runCommand(cmd);
@@ -70,29 +64,22 @@ public class ScanPortInfoService {
                     for (String port : portStrList) {
                         if (!StringUtils.isEmpty(port)) {
                             port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH));
-                            ScanPortEntity scanPort = ScanPortEntity.builder()
-                                    .ip(ip).port(Integer.valueOf(port))
-                                    .build();
-                            portList.add(scanPort);
-                            scanPortList.add(Integer.valueOf(port));
+                            if (!ports.contains(Integer.valueOf(port))) {
+                                ScanPortEntity scanPort = ScanPortEntity.builder()
+                                        .ip(ip).port(Integer.valueOf(port))
+                                        .build();
+                                portList.add(scanPort);
+                                scanPortList.add(Integer.valueOf(port));
+                            }
                         }
                     }
                     // todo 保存端口可以延后步骤
                     scanPortService.saveBatch(portList);
                 }
-                // todo 缓存可以延后步骤
-                ScanHostEntity scanIp = ScanHostEntity.builder()
-                        .host(ip)
-                        .type(Const.INTEGER_4)
-                        .hostId(dto.getHostId())
-                        .ports(PortUtils.getNewPorts(oldPorts, dto.getPorts()))
-                        .scanPortList(scanPortList)
-                        .build();
-                redisMap.put(String.format(CacheConst.REDIS_IP_INFO, ip), JSON.toJSONString(scanIp));
+                JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_IP, ip));
                 log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出端口" : ip + "扫描出端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i->String.valueOf(i)).collect(Collectors.toList())));
             }
         }
-        JedisUtils.setPipeJson(redisMap);
     }
 
 }

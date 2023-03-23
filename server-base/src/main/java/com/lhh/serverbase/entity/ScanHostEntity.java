@@ -28,24 +28,29 @@ public class ScanHostEntity extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Long hostId;
     /**
-     * 域名或ip
-     */
-    private String host;
-    /**
      * 父级域名
      */
-    private String parentHost;
+    private String parentDomain;
+    /**
+     * 域名
+     */
+    private String domain;
+    /**
+     * ip
+     */
+    private String ip;
     /**
      * 扫描的端口
      */
     private String scanPorts;
     /**
+     * 域名所属单位
+     */
+    private String company;
+    /**
      * host类型 1.录入域名 2.录入ip 3.子域名
      */
     private Integer type;
-
-    @TableField(exist = false)
-    private String ports;
 
     @TableField(exist = false)
     private List<String> subIpList;

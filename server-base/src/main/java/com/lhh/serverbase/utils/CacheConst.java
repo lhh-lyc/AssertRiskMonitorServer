@@ -3,18 +3,18 @@ package com.lhh.serverbase.utils;
 public class CacheConst {
 
     /**
-     * redis key: domain_info:
+     * redis key: TASK_PROJECT:
      */
-    public final static String REDIS_DOMAIN_INFO = "domain_info:%s";
+    public final static String REDIS_TASK_PROJECT = "TASK_PROJECT:%s";
 
     /**
-     * redis key: ip_info:
+     * redis key: TASK_DOMAIN:
      */
-    public final static String REDIS_IP_INFO = "IP_INFO:%s";
+    public final static String REDIS_TASK_DOMAIN = "TASK_DOMAIN:%s";
 
     /**
-     * redis key: ip_exit:
+     * redis key: TASK_IP:
      */
-    public final static String REDIS_IP_EXIT = "IP_EXIT:%s";
+    public final static String REDIS_TASK_IP = "TASK_IP:%s";
 
 }

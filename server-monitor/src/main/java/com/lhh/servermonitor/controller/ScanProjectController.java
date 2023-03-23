@@ -1,6 +1,7 @@
 package com.lhh.servermonitor.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.servermonitor.service.ScanProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,10 @@ public class ScanProjectController {
     private ScanProjectService scanProjectService;
 
     @PostMapping("saveProject")
-    public void saveProject(@RequestBody ScanProjectEntity project) {
+    public R saveProject(@RequestBody ScanProjectEntity project) {
         scanProjectService.save(project);
         scanProjectService.saveProject(project);
+        return R.ok();
     }
 
     /**

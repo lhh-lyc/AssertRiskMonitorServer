@@ -1,9 +1,8 @@
 package com.lhh.servermonitor.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.Query;
@@ -11,7 +10,9 @@ import com.lhh.servermonitor.dao.ScanPortDao;
 import com.lhh.servermonitor.service.ScanPortService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,17 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     @Override
     public List<ScanPortEntity> list(Map<String, Object> params) {
         QueryWrapper wrapper = Wrappers.query();
+        List<ScanPortEntity> list = list(wrapper);
+        return list;
+    }
+
+    @Override
+    public List<ScanPortEntity> getByIpList(List<String> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper wrapper = Wrappers.query()
+                .in("ip", hostList);
         List<ScanPortEntity> list = list(wrapper);
         return list;
     }

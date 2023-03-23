@@ -6,6 +6,11 @@ public class Const {
      * 字符串："0"
      */
     public final static String STR_0 = "0";
+
+    /**
+     * 字符串："1"
+     */
+    public final static String STR_1 = "1";
     /**
      * 字符串：""
      */
@@ -30,13 +35,22 @@ public class Const {
      * 字符串：-
      */
     public final static String STR_CROSSBAR = "-";
-
+    /**
+     * 字符串：= 等于号
+     */
+    public final static String STR_EQUAL = "=";
+    /**
+     * 字符串：? 问号
+     */
+    public final static String STR_QUESTION = "?";
     /**
      * 字符串: /
      */
     public final static String STR_SLASH = "/";
 
     public static String STR_COLON = ":";
+
+    public static String STR_TITLE = ";";
 
     public static String STR_BLANK = " ";
 

@@ -1,7 +1,5 @@
 package com.lhh.servermonitor.service;
 
-import java.util.Map;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lhh.serverbase.entity.ScanPortEntity;
@@ -31,6 +29,8 @@ public interface ScanPortService extends IService<ScanPortEntity> {
     * @return
     */
     List<ScanPortEntity> list(Map<String, Object> params);
+
+    List<ScanPortEntity> getByIpList(List<String> hostList);
 
 }
 

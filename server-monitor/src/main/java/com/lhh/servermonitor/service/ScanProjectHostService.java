@@ -31,5 +31,7 @@ public interface ScanProjectHostService extends IService<ScanProjectHostEntity> 
     */
     List<ScanProjectHostEntity> list(Map<String, Object> params);
 
+    List<ScanProjectHostEntity> selByProIdAndHost(Long projectId, String host);
+
 }
 
