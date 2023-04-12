@@ -9,6 +9,7 @@
 package com.lhh.serverbase.utils;
 
 import cn.hutool.core.util.StrUtil;
+import com.lhh.serverbase.common.exception.CmException;
 
 /**
  * SQL过滤

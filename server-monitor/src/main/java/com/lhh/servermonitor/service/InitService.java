@@ -1,10 +1,10 @@
 package com.lhh.servermonitor.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.serverbase.utils.CacheConst;
-import com.lhh.serverbase.utils.Const;
-import com.lhh.servermonitor.dto.ScanParamDto;
+import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +26,8 @@ public class InitService {
     ScanPortInfoService scanPortInfoService;
 
     public void initTask() {
-        List<ScanProjectEntity> projectList = new ArrayList<>();
-        Set<String> projectKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_TASK_PROJECT, '*'));
+        /*List<ScanProjectEntity> projectList = new ArrayList<>();
+        Set<String> projectKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_SCANNING_PROJECT, '*'));
         if (!CollectionUtils.isEmpty(projectKeySet)) {
             Map<String, String> map = JedisUtils.getPipeJson(new ArrayList<>(projectKeySet));
             if (!CollectionUtils.isEmpty(map)) {
@@ -41,10 +41,10 @@ public class InitService {
             for (ScanProjectEntity project : projectList) {
                 scanProjectService.saveProject(project);
             }
-        }
+        }*/
 
         List<ScanParamDto> dtoList = new ArrayList<>();
-        Set<String> ipKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_TASK_IP, '*'));
+        Set<String> ipKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_SCANNING_IP, '*'));
         if (!CollectionUtils.isEmpty(ipKeySet)) {
             Map<String, String> map = JedisUtils.getPipeJson(new ArrayList<>(ipKeySet));
             for (String key : map.keySet()) {

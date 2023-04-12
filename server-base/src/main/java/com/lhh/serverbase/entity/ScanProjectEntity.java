@@ -1,5 +1,6 @@
 package com.lhh.serverbase.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import com.baomidou.mybatisplus.annotation.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("scan_project")
-public class ScanProjectEntity extends BaseEntity {
+public class ScanProjectEntity extends BaseEntity implements Serializable {
 
     /**
      * 项目ID
@@ -62,5 +63,17 @@ public class ScanProjectEntity extends BaseEntity {
 
     @TableField(exist = false)
     private List<String> hostList;
+
+    @TableField(exist = false)
+    private String hosts;
+
+    @TableField(exist = false)
+    private String queueId;
+
+    @TableField(exist = false)
+    private Integer portNum;
+
+    @TableField(exist = false)
+    private Integer isCompleted;
 
 }

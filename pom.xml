@@ -20,6 +20,7 @@
         <module>server-info-common</module>
         <module>server-admin</module>
         <module>server-monitor</module>
+        <module>server-task</module>
     </modules>
 
     <properties>

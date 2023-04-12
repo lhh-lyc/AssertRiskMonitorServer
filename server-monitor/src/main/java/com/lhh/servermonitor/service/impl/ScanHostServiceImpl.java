@@ -50,6 +50,17 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     }
 
     @Override
+    public List<ScanHostEntity> getByParentDomainList(List<String> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper wrapper = Wrappers.query()
+                .in("parent_domain", hostList);
+        List<ScanHostEntity> list = list(wrapper);
+        return list;
+    }
+
+    @Override
     public List<ScanHostEntity> getByDomainList(List<String> hostList) {
         if (CollectionUtils.isEmpty(hostList)) {
             return new ArrayList<>();

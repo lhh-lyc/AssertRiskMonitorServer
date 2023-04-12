@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.scan.ScanPortDao">
+
+    <sql id="baseColumn">
+                    id,
+                    project_id,
+                    host_id,
+                    port,
+                    server_name,
+                    create_time,
+                    update_time,
+                    del_flg,
+                    create_id,
+                    update_id
+            </sql>
+
+    <select id="queryHomeNum" resultType="com.lhh.serverbase.dto.HomeNumDto">
+        select count(distinct ip) as ip_num,count(*) as port_num from (
+        select t4.ip,t4.port from scan_project t1
+        join scan_project_host t2 on t2.project_id = t1.id
+        join scan_host t3 on t3.domain = t2.`host`
+        join scan_port t4 on t4.ip = t3.ip
+        where t1.del_flg = 0
+        and t3.del_flg = 0
+        and t4.del_flg = 0
+        and t1.user_id = #{userId}
+        GROUP BY t4.ip,t4.port
+        ) t
+    </select>
+
+</mapper>

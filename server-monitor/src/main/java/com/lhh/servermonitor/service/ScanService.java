@@ -1,12 +1,18 @@
 package com.lhh.servermonitor.service;
 
+import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
-import com.lhh.serverbase.utils.CacheConst;
-import com.lhh.serverbase.utils.Const;
-import com.lhh.servermonitor.dto.ScanParamDto;
-import com.lhh.servermonitor.utils.*;
+import com.lhh.serverbase.utils.CopyUtils;
+import com.lhh.serverbase.utils.HttpUtils;
+import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.servermonitor.utils.ExecUtil;
+import com.lhh.servermonitor.utils.JedisUtils;
+import com.lhh.servermonitor.utils.PortUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +22,10 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,6 +37,8 @@ public class ScanService {
     ScanHostService scanHostService;
     @Autowired
     ScanProjectHostService scanProjectHostService;
+    @Autowired
+    ScanProjectContentService scanProjectContentService;
     @Autowired
     ScanPortInfoService scanPortInfoService;
 
@@ -61,10 +72,6 @@ public class ScanService {
                             updateHostList.add(host);
                         }
                         continue;
-                    } else {
-                        // 域名扫描过但端口不一样
-                        host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), scanDto.getScanPorts()));
-                        updateHostList.add(host);
                     }
                 }
                 ScanParamDto dto = new ScanParamDto();
@@ -77,6 +84,7 @@ public class ScanService {
             Map<String, String> redisMap = new HashMap<>();
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
             List<ScanParamDto> ipInfoList = getDomainIpList(dtoList);
+            Map<String, String> ipPortsMap = new HashMap<>();
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             List<String> ipList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(ipInfoList)) {
@@ -84,41 +92,56 @@ public class ScanService {
                     if (!CollectionUtils.isEmpty(dto.getSubIpList())) {
                         for (String ip : dto.getSubIpList()) {
                             ipList.add(ip);
-                            redisMap.put(String.format(CacheConst.REDIS_TASK_IP, ip), dto.getScanPorts());
+                            // 解决相同ip扫描不同端口，多线程同时修改scan_ports字段问题
+                            // map存储了此线程ports和所有正在其他更改的ports的交集
+                            String ipScanPorts = JedisUtils.getStr(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+                            String newIpScanPorts = StringUtils.isEmpty(ipScanPorts) ? dto.getScanPorts() : PortUtils.getNewPorts(ipScanPorts, dto.getScanPorts());
+                            ipPortsMap.put(ip, newIpScanPorts);
+                            redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), newIpScanPorts);
                         }
                     }
                 }
+                if (!CollectionUtils.isEmpty(redisMap)) {
+                    JedisUtils.setPipeJson(redisMap);
+                }
+
                 List<ScanHostEntity> exitIpInfoList = scanHostService.getByIpList(ipList);
-                Map<String, ScanHostEntity> ipMap = exitIpInfoList.stream().collect(Collectors.toMap(ScanHostEntity::getIp, Function.identity(), (key1, key2) -> key2));
-                String ports = ipInfoList.get(0).getScanPorts();
+                Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(ScanHostEntity::getIp));
                 String company = HttpUtils.getDomainUnit(scanDto.getHost());
                 for (ScanParamDto sub : ipInfoList) {
-                    if (CollectionUtils.isEmpty(sub.getSubIpList())) {
-                        break;
-                    }
-                    for (String ip : sub.getSubIpList()) {
-                        ScanParamDto dto = ScanParamDto.builder()
-                                .subIp(ip).scanPorts(ports)
-                                .build();
-                        scanPortParamList.add(dto);
-
-                        ScanHostEntity exitIp = ipMap.get(ip);
-                        // 新的域名与ip组合
-                        if (exitIp == null || (exitIp != null && !exitIp.getDomain().equals(sub.getDomain()))) {
-                            ScanHostEntity host = ScanHostEntity.builder()
-                                    .parentDomain(scanDto.getHost())
-                                    .domain(sub.getSubDomain())
-                                    .ip(ip).scanPorts(scanDto.getScanPorts())
-                                    .company(company)
-                                    .type(Const.INTEGER_3)
-                                    .subIpList(sub.getSubIpList())
+                    if (!CollectionUtils.isEmpty(sub.getSubIpList())) {
+                        for (String ip : sub.getSubIpList()) {
+                            if (Const.STR_CROSSBAR.equals(ip)) {
+                                continue;
+                            }
+                            ScanParamDto dto = ScanParamDto.builder()
+                                    .subIp(ip).scanPorts(scanDto.getScanPorts())
                                     .build();
-                            saveHostList.add(host);
-                        }
-                        // 更新域名扫描端口
-                        if (exitIp != null && !PortUtils.portEquals(exitIp.getScanPorts(), scanDto.getScanPorts())) {
-                            exitIp.setScanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), scanDto.getScanPorts()));
-                            updateHostList.add(exitIp);
+                            scanPortParamList.add(dto);
+
+                            String scanPorts = ipPortsMap.get(ip);
+                            List<ScanHostEntity> exitIpList = ipMap.get(ip);
+                            // 更新域名扫描端口
+                            if (!CollectionUtils.isEmpty(exitIpList)) {
+                                for (ScanHostEntity host : exitIpList) {
+                                    if (!PortUtils.portEquals(host.getScanPorts(), scanDto.getScanPorts())) {
+                                        host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), scanPorts));
+                                    }
+                                }
+                                updateHostList.addAll(exitIpList);
+                            }
+                            // 新的域名与ip组合
+                            if (CollectionUtils.isEmpty(exitIpList)) {
+                                ScanHostEntity host = ScanHostEntity.builder()
+                                        .parentDomain(scanDto.getHost())
+                                        .domain(sub.getSubDomain())
+                                        .ip(ip).scanPorts(scanPorts)
+                                        .company(company)
+                                        .type(Const.INTEGER_3)
+                                        .subIpList(sub.getSubIpList())
+                                        .build();
+                                saveHostList.add(host);
+                            }
                         }
                     }
 
@@ -129,7 +152,6 @@ public class ScanService {
                     projectHostList.add(item);
                 }
             }
-
             if (!CollectionUtils.isEmpty(saveHostList)) {
                 scanHostService.saveBatch(saveHostList);
             }
@@ -142,10 +164,19 @@ public class ScanService {
             if (!CollectionUtils.isEmpty(projectHostList)) {
                 scanProjectHostService.saveBatch(projectHostList);
             }
-            if (!CollectionUtils.isEmpty(redisMap)) {
-                JedisUtils.setPipeJson(redisMap);
+            List<ScanProjectContentEntity> contentList = new ArrayList<>();
+            if (!StringUtils.isEmpty(scanDto.getHost())) {
+                contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
+                    put("inputHost", scanDto.getHost());
+                }});
             }
-//            JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_DOMAIN, scanDto.getHost()));
+            if (!CollectionUtils.isEmpty(contentList)) {
+                for (ScanProjectContentEntity content : contentList) {
+                    // todo
+                    content.setIsCompleted(Const.INTEGER_1);
+                    scanProjectContentService.updateById(content);
+                }
+            }
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
                 scanPortParamList = scanPortParamList.stream().distinct().collect(Collectors.toList());
                 scanPortInfoService.scanPortList(scanPortParamList);
@@ -160,8 +191,8 @@ public class ScanService {
         List<ScanParamDto> ipList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(dtoList)) {
             for (ScanParamDto dto : dtoList) {
+                List<String> list = new ArrayList<>();
                 try {
-                    List<String> list = new ArrayList<>();
                     InetAddress[] inetadd = InetAddress.getAllByName(dto.getSubDomain());
                     //遍历所有的ip并输出
                     for (int i = 0; i < inetadd.length; i++) {
@@ -172,17 +203,20 @@ public class ScanService {
                             }
                         }
                     }
-                    if (CollectionUtils.isEmpty(list)) {
-                        log.info(dto.getSubDomain() + "未解析出ip");
-                        break;
-                    }
-                    String ips = String.join(Const.STR_COMMA, list);
-                    log.info(dto.getSubDomain() + "解析ip为：" + ips);
+//                    if (CollectionUtils.isEmpty(list)) {
+//                        log.info(dto.getSubDomain() + "未解析出ip");
+//                        break;
+//                    }
+
+                    String ips = CollectionUtils.isEmpty(list) ? Const.STR_EMPTY : String.join(Const.STR_COMMA, list);
+                    log.info(dto.getSubDomain() + (CollectionUtils.isEmpty(list) ? "未解析出ip" : "解析ip为：" + ips));
                     dto.setSubIpList(list);
-                    ipList.add(dto);
                 } catch (UnknownHostException e) {
+                    list.add(Const.STR_CROSSBAR);
+                    dto.setSubIpList(list);
                     log.error(dto.getSubDomain() + "解析ip出错");
                 }
+                ipList.add(dto);
             }
         }
         return ipList;

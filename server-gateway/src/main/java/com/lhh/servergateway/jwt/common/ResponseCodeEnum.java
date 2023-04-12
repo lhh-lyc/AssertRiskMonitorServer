@@ -18,7 +18,9 @@ public enum ResponseCodeEnum {
     TOKEN_MISSION("B2005", "token 缺失"),
     TOKEN_CHECK_INFO_FAILED("B2006", "token 信息验证失败"),
     REFRESH_TOKEN_INVALID("B2006", "refreshToken 无效"),
-    LOGOUT_ERROR("B2007", "用户登出失败");
+    REQUEST_HEADER_ERROR("B2007", "缺失必要请求头入参"),
+    USER_ERROR("B2008", "异常用户"),
+    LOGOUT_ERROR("B2009", "用户登出失败");
     private final String code;
     private final String message;
     ResponseCodeEnum(String code, String message) {

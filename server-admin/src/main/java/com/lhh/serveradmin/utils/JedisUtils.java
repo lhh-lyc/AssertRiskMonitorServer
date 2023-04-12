@@ -1,7 +1,7 @@
 package com.lhh.serveradmin.utils;
 
 import com.lhh.serverbase.common.exception.EmException;
-import com.lhh.serverbase.utils.Const;
+import com.lhh.serverbase.common.constant.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

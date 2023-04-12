@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("scan_project_host")
-public class ScanProjectHostEntity {
+public class ScanProjectHostEntity extends BaseEntity {
 
     /**
      * 主键ID

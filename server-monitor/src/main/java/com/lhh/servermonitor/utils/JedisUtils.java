@@ -1,7 +1,7 @@
 package com.lhh.servermonitor.utils;
 
 import com.lhh.serverbase.common.exception.EmException;
-import com.lhh.serverbase.utils.Const;
+import com.lhh.serverbase.common.constant.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,10 +12,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * JedisUtils(推荐存Byte数组，存Json字符串效率更慢)

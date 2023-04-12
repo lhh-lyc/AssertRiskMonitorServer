@@ -14,14 +14,13 @@ spring:
     password: 123456
   # Redis 配置
   redis:
-    host: localhost
+    host: 127.0.0.1
     port: 6379
     password: 123456
-    db: 1
     pool:
-      max-idle: 8
+      max-idle: 1000
       min-idle: 0
-      max-active: 8
+      max-active: 1000
       max-wait: -1
     timeout: 5000
   #flyway
@@ -47,3 +46,12 @@ server-setting:
   pwd: Lhh110112
   exec_timeout: 60
 
+mqtt-setting:
+  # mqtt服务器broker
+  host: 49.235.104.19
+  port: 5672
+  userName: admin
+  password: 123456
+  concurrent_consumers: 1
+  maxConcurrent_consumers: 10
+  prefetch_count: 1

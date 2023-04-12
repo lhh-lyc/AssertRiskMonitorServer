@@ -22,10 +22,15 @@ import com.baomidou.mybatisplus.annotation.*;
 public class ScanAddRecordEntity extends BaseEntity {
 
     /**
-     * 项目ID
+     * ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
+
+    /**
+     * 项目ID
+     */
+    private Long projectId;
     /**
      * 新增记录类型
      */
@@ -38,24 +43,10 @@ public class ScanAddRecordEntity extends BaseEntity {
      * 对应的子类对象
      */
     private String subName;
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-    /**
-     * 删除标识（0 正常 1 删除）
-     */
-    private Integer delFlg;
-    /**
-     *
-     */
-    private Long createId;
-    /**
-     *
-     */
-    private Long updateId;
+
+    @TableField(exist = false)
+    private String projectName;
+
+    @TableField(exist = false)
+    private String describe;
 }

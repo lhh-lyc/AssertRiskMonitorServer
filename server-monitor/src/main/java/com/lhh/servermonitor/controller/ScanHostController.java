@@ -19,7 +19,7 @@ import java.util.Map;
  * @date 2023-02-23 19:29:15
  */
 @RestController
-@RequestMapping("scanhost")
+@RequestMapping("scan/host")
 public class ScanHostController {
     @Autowired
     private ScanHostService scanHostService;

@@ -32,6 +32,8 @@ public interface ScanHostService extends IService<ScanHostEntity> {
     */
     List<ScanHostEntity> list(Map<String, Object> params);
 
+    List<ScanHostEntity> getByParentDomainList(List<String> hostList);
+
     List<ScanHostEntity> getByDomainList(List<String> hostList);
 
     List<ScanHostEntity> getByIpList(List<String> hostList);

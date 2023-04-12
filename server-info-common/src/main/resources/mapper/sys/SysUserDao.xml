@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.sys.SysUserDao">
+
+    <sql id="baseColumn">
+        user_id,
+        user_name,
+        real_name,
+        unit_id,
+        password,
+        salt,
+        email,
+        mobile,
+        status,
+        account_type,
+        head_url,
+        auth_app,
+        app_type,
+        client_id,
+        del_flg,
+        create_id,
+        update_id,
+        create_time,
+        update_time,
+        remark
+    </sql>
+    <sql id="Base_Column_List">
+        user_id,
+        user_name,
+        real_name,
+        unit_id,
+        email,
+        mobile,
+        status,
+        account_type,
+        head_url,
+        auth_app,
+        app_type,
+        client_id,
+        del_flg,
+        create_id,
+        update_id,
+        create_time,
+        update_time,
+        remark
+    </sql>
+    <!--根据用户名获取用户信息-->
+    <select id="queryByUserName" resultType="com.lhh.serverbase.entity.SysUserEntity">
+        select
+        <include refid="baseColumn"/>
+        from sys_user where user_name = #{username}
+    </select>
+
+    <!-- 查询用户的所有菜单ID -->
+    <select id="queryAllMenuId" resultType="long">
+        select distinct rm.menu_id from sys_user_role ur
+        LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id
+        where ur.user_id = #{userId}
+    </select>
+    <!--分页查询-->
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.SysUserEntity">
+        SELECT
+        u.*,
+        (
+        SELECT
+        GROUP_CONCAT( DISTINCT r.role_name )
+        FROM
+        sys_user_role ur
+        LEFT JOIN sys_role r ON ur.role_id = r.role_id
+        WHERE
+        ur.user_id = u.user_id
+        AND r.del_flg = 0
+        ) AS roleNameArr,
+        cu.NAME AS unit_name
+        FROM
+        sys_user u
+        LEFT JOIN cm_unit cu ON cu.unit_id = u.unit_id
+        AND cu.del_flg = 0
+        WHERE
+        u.del_flg = 0
+        <if test="params.userName != null and params.userName.trim() != ''">
+            and u.user_name like concat('%',#{params.userName},'%')
+        </if>
+        <if test="params.accountType != null and params.accountType != ''">
+            and u.account_type = #{params.accountType}
+        </if>
+        <if test="params.unitId != null and params.unitId != ''">
+            and u.unit_id = #{params.unitId}
+        </if>
+        order by cu.unit_code
+    </select>
+
+    <!--删除用户以及角色-->
+    <delete id="deleteUsers">
+        delete from sys_user where user_id in
+        <foreach item="userId" collection="array" open="(" separator=","
+                 close=")">
+            #{userId}
+        </foreach>
+        ;
+        delete from sys_user_role where user_id in
+        <foreach item="userId" collection="array" open="(" separator=","
+                 close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.SysUserEntity">
+        SELECT
+        u.*,
+        (
+        SELECT
+        GROUP_CONCAT( DISTINCT r.role_name )
+        FROM
+        sys_user_role ur
+        LEFT JOIN sys_role r ON ur.role_id = r.role_id
+        WHERE
+        ur.user_id = u.user_id
+        AND r.del_flg = 0
+        ) AS roleNameArr,
+        cu.NAME AS unit_name
+        FROM
+        sys_user u
+        LEFT JOIN cm_unit cu ON cu.unit_id = u.unit_id
+        AND cu.del_flg = 0
+        WHERE
+        u.del_flg = 0
+        <if test="params.userName != null and params.userName.trim() != ''">
+            and u.user_name like concat('%',#{params.userName},'%')
+        </if>
+        <if test="params.accountType != null and params.accountType != ''">
+            and u.account_type = #{params.accountType}
+        </if>
+        <if test="params.unitId != null and params.unitId != ''">
+            and u.unit_id = #{params.unitId}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            and u.user_id != #{params.userId}
+        </if>
+        <if test="params.mobile != null and params.mobile != ''">
+            and u.mobile = #{params.mobile}
+        </if>
+        order by u.unit_id
+    </select>
+
+</mapper>

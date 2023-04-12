@@ -1,17 +1,13 @@
 package com.lhh.servermonitor.service;
 
-import cn.hutool.core.map.MapUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
-import com.lhh.serverbase.utils.CacheConst;
-import com.lhh.serverbase.utils.Const;
-import com.lhh.servermonitor.dto.ScanParamDto;
+import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
-import com.lhh.servermonitor.utils.PortUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +16,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,17 +37,14 @@ public class ScanPortInfoService {
      */
     @Async
     public void scanPortList(List<ScanParamDto> dtoList) {
+        List<String> ipList = dtoList.stream().map(ScanParamDto::getSubIp).collect(Collectors.toList());
+        List<ScanPortEntity> AllHostList = CollectionUtils.isEmpty(ipList) ? new ArrayList<>() : scanPortService.getByIpList(ipList);
+        Map<String, List<ScanPortEntity>> hostMap = AllHostList.stream().collect(Collectors.groupingBy(ScanPortEntity::getIp));
         if (!CollectionUtils.isEmpty(dtoList)) {
             for (ScanParamDto dto : dtoList) {
                 String ip = dto.getSubIp();
-                List<ScanPortEntity> hostList = scanPortService.getByIpList(Arrays.asList(ip));
-                // 已扫描的不再扫描
-                if (!CollectionUtils.isEmpty(hostList)) {
-                    JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_IP, ip));
-                    log.info("" + ip + "端口已扫描");
-                    continue;
-                }
-                List<Integer> ports = hostList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
+                List<ScanPortEntity> hostList = hostMap.get(ip);
+                List<Integer> exitPorts = CollectionUtils.isEmpty(hostList) ? new ArrayList<>() : hostList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
 
                 log.info("开始扫描" + ip + "端口");
                 List<ScanPortEntity> portList = new ArrayList<>();
@@ -64,7 +61,7 @@ public class ScanPortInfoService {
                     for (String port : portStrList) {
                         if (!StringUtils.isEmpty(port)) {
                             port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH));
-                            if (!ports.contains(Integer.valueOf(port))) {
+                            if (!exitPorts.contains(Integer.valueOf(port))) {
                                 ScanPortEntity scanPort = ScanPortEntity.builder()
                                         .ip(ip).port(Integer.valueOf(port))
                                         .build();
@@ -76,8 +73,8 @@ public class ScanPortInfoService {
                     // todo 保存端口可以延后步骤
                     scanPortService.saveBatch(portList);
                 }
-                JedisUtils.delKey(String.format(CacheConst.REDIS_TASK_IP, ip));
-                log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出端口" : ip + "扫描出端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i->String.valueOf(i)).collect(Collectors.toList())));
+                JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+                log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i->String.valueOf(i)).collect(Collectors.toList())));
             }
         }
     }

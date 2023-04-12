@@ -1,8 +1,10 @@
 package com.lhh.servergateway.filter;
 
 import com.alibaba.fastjson.JSON;
-import com.lhh.serverbase.common.constant.Constants;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.TokenConstants;
+import com.lhh.serverbase.common.constant.Constant;
+import com.lhh.serverbase.utils.MD5;
 import com.lhh.servergateway.jwt.common.ResponseCodeEnum;
 import com.lhh.servergateway.jwt.common.ResponseResult;
 import com.lhh.servergateway.jwt.config.PassJavaJwtProperties;
@@ -26,6 +28,7 @@ import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Component("authFilter")
 @Slf4j
@@ -36,10 +39,11 @@ public class AuthFilter implements GlobalFilter, Ordered {
     @Resource
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
-    private static final String AUTH_TOKEN_URL = "/auth/login";
+    private static final String AUTH_TOKEN_URL = "/admin/auth/login";
     private static final String AUTH = "Authorization";
     public static final String USER_ID = "userId";
     public static final String USER_NAME = "username";
+    public static final String ENC_USER_ID = "encUserId";
     public static final String FROM_SOURCE = "from-source";
 
     @Override
@@ -76,6 +80,18 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return unauthorizedResponse(exchange, response, ResponseCodeEnum.TOKEN_CHECK_INFO_FAILED);
         }
 
+        String encUserId = header.getFirst(ENC_USER_ID);
+        ResponseCodeEnum e = jwtTokenUtil.isSelf(userId, encUserId);
+        if (e != null) {
+            return unauthorizedResponse(exchange, response, e);
+        }
+
+        /*boolean isRefreshTokenNotExisted = jwtTokenUtil.isRefreshTokenNotExistCache(token);
+        String accessToken = Const.STR_EMPTY;
+        if(isRefreshTokenNotExisted){
+            accessToken = jwtTokenUtil.refreshTokenAndGenerateToken(userId, username);
+        }*/
+
         // 设置用户信息到请求
         ServerHttpRequest.Builder mutate = request.mutate();
         addHeader(mutate, USER_ID, userId);
@@ -90,6 +106,9 @@ public class AuthFilter implements GlobalFilter, Ordered {
         //todo 如果响应中需要放数据，也可以放在response的header中
         response.setStatusCode(HttpStatus.OK);
         response.getHeaders().add("user-name",username);
+        /*if (!StringUtils.isEmpty(accessToken)) {
+            response.getHeaders().add(AUTH, accessToken);
+        }*/
         return chain.filter(exchange.mutate()
                 .request(buildReuqest)
                 .response(response)
@@ -122,7 +141,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
      */
     public static String urlEncode(String str) {
         try {
-            return URLEncoder.encode(str, Constants.UTF8);
+            return URLEncoder.encode(str, Constant.UTF8);
         }
         catch (UnsupportedEncodingException e)
         {

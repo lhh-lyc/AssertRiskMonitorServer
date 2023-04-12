@@ -1,6 +1,6 @@
 package com.lhh.serverbase.utils;
 
-import com.lhh.serverbase.common.constant.Constants;
+import com.lhh.serverbase.common.constant.Constant;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -41,7 +41,7 @@ public class ServletUtils {
      */
     public static String urlDecode(String str) {
         try {
-            return URLDecoder.decode(str, Constants.UTF8);
+            return URLDecoder.decode(str, Constant.UTF8);
         } catch (UnsupportedEncodingException e) {
             return StringUtils.EMPTY;
         }

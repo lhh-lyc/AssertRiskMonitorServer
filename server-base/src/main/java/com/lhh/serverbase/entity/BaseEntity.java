@@ -3,6 +3,7 @@ package com.lhh.serverbase.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,8 @@ public class BaseEntity {
      * 标记(0:正常,1:逻辑删除)
      * TableLogic 逻辑删除
      */
+    @TableLogic
+    @TableField(fill = FieldFill.INSERT)
     private Integer delFlg = 0;
     /**
      * 创建时间

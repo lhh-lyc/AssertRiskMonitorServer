@@ -5,7 +5,7 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/asset_risk?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=true&&useOldAliasMetadataBehavior=true
+    url: jdbc:mysql://localhost:3306/asset_risk_test?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=true&&useOldAliasMetadataBehavior=true
     username: root
     password: 123456
   # Redis 配置
@@ -38,3 +38,8 @@ eureka:
 ribbon:
   ReadTimeout: 600000
   ConnectTimeout: 600000
+
+#自定义配置
+custom-config:
+  #超级管理员用户
+  super-admin-id: 1

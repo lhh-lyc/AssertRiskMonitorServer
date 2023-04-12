@@ -1,9 +1,16 @@
 package com.lhh.servergateway.jwt.utils;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.utils.MD5;
+import com.lhh.servergateway.jwt.common.ResponseCodeEnum;
 import com.lhh.servergateway.jwt.config.PassJavaJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -63,12 +70,11 @@ public class PassJavaJwtTokenUtil {
     }
 
 
-    public Map<String, Object> refreshTokenAndGenerateToken(String userId, String username) {
+    public String refreshTokenAndGenerateToken(String userId, String username) {
         Map<String, Object> tokenMap = buildToken(userId, username);
         stringRedisTemplate.delete(JWT_CACHE_KEY + userId);
         cacheToken(userId, tokenMap);
-
-        return tokenMap;
+        return MapUtil.getStr(tokenMap, ACCESS_TOKEN);
     }
 
     public String getUserIdFromRequest(HttpServletRequest request) {
@@ -168,7 +174,30 @@ public class PassJavaJwtTokenUtil {
     public Boolean isRefreshTokenNotExistCache(String token) {
         String userId = getUserIdFromToken(token);
         String refreshToken = (String)stringRedisTemplate.opsForHash().get(JWT_CACHE_KEY + userId, REFRESH_TOKEN);
-        return refreshToken == null || !refreshToken.equals(token);
+        return StringUtils.isEmpty(refreshToken);
+    }
+
+    /**
+     * 判断是否为自身用户
+     *
+     * @param userId
+     * @return true=不存在，false=存在
+     */
+    public ResponseCodeEnum isSelf(String userId, String encUserId) {
+        String isSelfValid = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_IS_SELF_VALID);
+        if (StringUtils.isEmpty(isSelfValid)) {
+            isSelfValid = Const.STR_1;
+            stringRedisTemplate.opsForValue().set(CacheConst.REDIS_IS_SELF_VALID, isSelfValid);
+        }
+        if (Const.STR_1.equals(isSelfValid)) {
+            if (StringUtils.isEmpty(encUserId)) {
+                return ResponseCodeEnum.REQUEST_HEADER_ERROR;
+            }
+            if (!MD5.getEncryptPwd(userId, Const.STR_SALT).equals(encUserId)) {
+                return ResponseCodeEnum.USER_ERROR;
+            }
+        }
+        return null;
     }
 
     /**

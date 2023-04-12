@@ -29,3 +29,16 @@ eureka:
 ribbon:
   ReadTimeout: 600000
   ConnectTimeout: 600000
+
+# mqtt配置
+mqtt-setting:
+  # mqtt服务器broker
+  host: 49.235.104.19
+  port: 5672
+  userName: admin
+  password: 123456
+  pub-topic: projectData
+  concurrent_consumers: 1
+  maxConcurrent_consumers: 10
+  prefetch_count: 1
+  sub-num: 2

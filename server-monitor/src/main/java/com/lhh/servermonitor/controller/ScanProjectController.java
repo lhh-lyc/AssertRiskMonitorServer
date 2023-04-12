@@ -27,7 +27,6 @@ public class ScanProjectController {
 
     @PostMapping("saveProject")
     public R saveProject(@RequestBody ScanProjectEntity project) {
-        scanProjectService.save(project);
         scanProjectService.saveProject(project);
         return R.ok();
     }
