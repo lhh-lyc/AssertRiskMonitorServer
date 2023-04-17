@@ -37,6 +37,14 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
      */
     private String name;
     /**
+     * 是否收集子域名（0.否 1.是）
+     */
+    private Integer subDomainFlag;
+    /**
+     * 是否扫描端口（0.否 1.是）
+     */
+    private Integer portFlag;
+    /**
      * 扫描的端口
      */
     private String scanPorts;
@@ -69,6 +77,12 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
 
     @TableField(exist = false)
     private String queueId;
+
+    @TableField(exist = false)
+    private Integer allHostNum;
+
+    @TableField(exist = false)
+    private Integer scannedHostNum;
 
     @TableField(exist = false)
     private Integer portNum;

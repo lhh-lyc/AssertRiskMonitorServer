@@ -272,7 +272,7 @@ public class PassJavaJwtTokenUtil {
      * @return 令牌
      */
     private String generateRefreshToken(Map<String, Object> claims) {
-        Date expirationDate = new Date(System.currentTimeMillis() + jwtProperties.getExpiration() * 2);
+        Date expirationDate = new Date(System.currentTimeMillis() + jwtProperties.getExpiration() / 2);
         return Jwts.builder().setClaims(claims)
                 .setExpiration(expirationDate)
                 .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecret())

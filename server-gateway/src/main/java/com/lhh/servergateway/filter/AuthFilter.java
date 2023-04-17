@@ -1,5 +1,6 @@
 package com.lhh.servergateway.filter;
 
+import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.TokenConstants;
@@ -41,6 +42,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     private static final String AUTH_TOKEN_URL = "/admin/auth/login";
     private static final String AUTH = "Authorization";
+    private static final String ACCESS_TOKEN = "access_token";
+    private static final String REFRESH_TOKEN = "refresh_token";
     public static final String USER_ID = "userId";
     public static final String USER_NAME = "username";
     public static final String ENC_USER_ID = "encUserId";
@@ -48,14 +51,12 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        log.info("Auth start");
         ServerHttpRequest request = exchange.getRequest();
         HttpHeaders header = request.getHeaders();
         String token = header.getFirst(AUTH);
 
         // 跳过对登录请求的 token 检查。因为登录请求是没有 token 的，是来申请 token 的。
         String requestUrl = request.getURI().getPath();
-        log.info(requestUrl);
         if(AUTH_TOKEN_URL.equals(requestUrl)) {
             return chain.filter(exchange);
         }
@@ -106,9 +107,15 @@ public class AuthFilter implements GlobalFilter, Ordered {
         //todo 如果响应中需要放数据，也可以放在response的header中
         response.setStatusCode(HttpStatus.OK);
         response.getHeaders().add("user-name",username);
-        /*if (!StringUtils.isEmpty(accessToken)) {
-            response.getHeaders().add(AUTH, accessToken);
-        }*/
+
+        String refreshToken = header.getFirst(REFRESH_TOKEN);
+        if (jwtTokenUtil.isTokenExpired(refreshToken)) {
+            Map<String, Object> tokenMap = jwtTokenUtil.generateTokenAndRefreshToken(userId, username);
+            response.getHeaders().add(ACCESS_TOKEN, MapUtil.getStr(tokenMap, ACCESS_TOKEN));
+            response.getHeaders().add(REFRESH_TOKEN, MapUtil.getStr(tokenMap, REFRESH_TOKEN));
+            response.getHeaders().add("Access-Control-Expose-Headers", ACCESS_TOKEN);
+            response.getHeaders().add("Access-Control-Expose-Headers", REFRESH_TOKEN);
+        }
         return chain.filter(exchange.mutate()
                 .request(buildReuqest)
                 .response(response)

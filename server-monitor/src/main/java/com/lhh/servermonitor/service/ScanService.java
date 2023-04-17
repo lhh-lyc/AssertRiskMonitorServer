@@ -43,18 +43,21 @@ public class ScanService {
     ScanPortInfoService scanPortInfoService;
 
     public void scanDomainList(ScanParamDto scanDto) {
-        log.info(scanDto.getHost() + "子域名收集");
-        // 子域名列表
-        String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, scanDto.getHost());
-        SshResponse response = null;
-        try {
-            response = ExecUtil.runCommand(cmd);
-        } catch (IOException e) {
-            e.printStackTrace();
+        List<String> subdomainList = new ArrayList<>();
+        if (Const.INTEGER_1.equals(scanDto.getSubDomainFlag())) {
+            log.info(scanDto.getHost() + "子域名收集");
+            // 子域名列表
+            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, scanDto.getHost());
+            SshResponse response = null;
+            try {
+                response = ExecUtil.runCommand(cmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            subdomainList = response.getOutList();
+            log.info(CollectionUtils.isEmpty(subdomainList) ? scanDto.getHost() + "未扫描到子域名" : scanDto.getHost() + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
         }
-        List<String> subdomainList = response.getOutList();
         List<ScanParamDto> dtoList = new ArrayList<>();
-        log.info(CollectionUtils.isEmpty(subdomainList) ? scanDto.getHost() + "未扫描到子域名" : scanDto.getHost() + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
         subdomainList.add(scanDto.getHost());
         List<ScanHostEntity> saveHostList = new ArrayList<>();
         List<ScanHostEntity> updateHostList = new ArrayList<>();
@@ -96,8 +99,11 @@ public class ScanService {
                             // map存储了此线程ports和所有正在其他更改的ports的交集
                             String ipScanPorts = JedisUtils.getStr(String.format(CacheConst.REDIS_SCANNING_IP, ip));
                             String newIpScanPorts = StringUtils.isEmpty(ipScanPorts) ? dto.getScanPorts() : PortUtils.getNewPorts(ipScanPorts, dto.getScanPorts());
-                            ipPortsMap.put(ip, newIpScanPorts);
-                            redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), newIpScanPorts);
+                            ipPortsMap.put(ip + Const.STR_UNDERLINE + dto.getSubDomain(), newIpScanPorts);
+                            // 扫描端口
+                            if (Const.INTEGER_1.equals(scanDto.getPortFlag())) {
+                                redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), newIpScanPorts);
+                            }
                         }
                     }
                 }
@@ -106,29 +112,32 @@ public class ScanService {
                 }
 
                 List<ScanHostEntity> exitIpInfoList = scanHostService.getByIpList(ipList);
-                Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(ScanHostEntity::getIp));
+                Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(h->h.getIp() + Const.STR_UNDERLINE + h.getDomain()));
                 String company = HttpUtils.getDomainUnit(scanDto.getHost());
                 for (ScanParamDto sub : ipInfoList) {
                     if (!CollectionUtils.isEmpty(sub.getSubIpList())) {
                         for (String ip : sub.getSubIpList()) {
-                            if (Const.STR_CROSSBAR.equals(ip)) {
-                                continue;
-                            }
-                            ScanParamDto dto = ScanParamDto.builder()
-                                    .subIp(ip).scanPorts(scanDto.getScanPorts())
-                                    .build();
-                            scanPortParamList.add(dto);
+//                            if (Const.STR_CROSSBAR.equals(ip)) {
+//                                continue;
+//                            }
+                            String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + sub.getSubDomain());
+                            List<ScanHostEntity> exitIpList = ipMap.get(ip + Const.STR_UNDERLINE + sub.getSubDomain());
+                            // 扫描端口
+                            if (Const.INTEGER_1.equals(scanDto.getPortFlag())) {
+                                ScanParamDto dto = ScanParamDto.builder()
+                                        .subIp(ip).scanPorts(scanDto.getScanPorts())
+                                        .build();
+                                scanPortParamList.add(dto);
 
-                            String scanPorts = ipPortsMap.get(ip);
-                            List<ScanHostEntity> exitIpList = ipMap.get(ip);
-                            // 更新域名扫描端口
-                            if (!CollectionUtils.isEmpty(exitIpList)) {
-                                for (ScanHostEntity host : exitIpList) {
-                                    if (!PortUtils.portEquals(host.getScanPorts(), scanDto.getScanPorts())) {
-                                        host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), scanPorts));
+                                // 更新域名扫描端口
+                                if (!CollectionUtils.isEmpty(exitIpList)) {
+                                    for (ScanHostEntity host : exitIpList) {
+                                        if (!PortUtils.portEquals(host.getScanPorts(), scanDto.getScanPorts())) {
+                                            host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), scanPorts));
+                                        }
                                     }
+                                    updateHostList.addAll(exitIpList);
                                 }
-                                updateHostList.addAll(exitIpList);
                             }
                             // 新的域名与ip组合
                             if (CollectionUtils.isEmpty(exitIpList)) {
@@ -177,7 +186,8 @@ public class ScanService {
                     scanProjectContentService.updateById(content);
                 }
             }
-            if (!CollectionUtils.isEmpty(scanPortParamList)) {
+            // 扫描端口
+            if (Const.INTEGER_1.equals(scanDto.getPortFlag()) && !CollectionUtils.isEmpty(scanPortParamList)) {
                 scanPortParamList = scanPortParamList.stream().distinct().collect(Collectors.toList());
                 scanPortInfoService.scanPortList(scanPortParamList);
             }

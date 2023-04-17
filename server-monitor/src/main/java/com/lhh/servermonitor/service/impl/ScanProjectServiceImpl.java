@@ -173,12 +173,14 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .build();
                     projectHostList.add(item);
 
-                    ScanParamDto dto = ScanParamDto.builder()
-                            .subIp(ip)
-                            .scanPorts(project.getScanPorts())
-                            .build();
-                    scanPortParamList.add(dto);
-                    redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), project.getScanPorts());
+                    if (Const.INTEGER_1.equals(project.getPortFlag())) {
+                        ScanParamDto dto = ScanParamDto.builder()
+                                .subIp(ip)
+                                .scanPorts(project.getScanPorts())
+                                .build();
+                        scanPortParamList.add(dto);
+                        redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), project.getScanPorts());
+                    }
                 }
                 scanHostService.saveBatch(scanIpList);
                 scanProjectHostService.saveBatch(projectHostList);
@@ -199,6 +201,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .projectId(project.getId())
                             .host(host)
                             .scanPorts(project.getScanPorts())
+                            .subDomainFlag(project.getSubDomainFlag())
+                            .portFlag(project.getPortFlag())
                             .build();
                     scanDomainParamList.add(dto);
 //                    redisMap.put(String.format(CacheConst.REDIS_TASK_DOMAIN, host), Const.STR_1);

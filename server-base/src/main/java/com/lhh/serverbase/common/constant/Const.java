@@ -56,6 +56,8 @@ public class Const {
 
     public static Long LONG_0 = 0L;
 
+    public static Long LONG_3 = 3L;
+
     public static Integer INTEGER_0 = 0;
 
     public static Integer INTEGER_1 = 1;

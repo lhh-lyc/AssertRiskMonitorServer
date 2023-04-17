@@ -26,7 +26,13 @@
             and t1.project_id = #{projectId}
         </if>
         <if test="isCompleted != null and isCompleted != ''">
-            and t2.is_completed = #{isCompleted}
+            and t1.is_completed = #{isCompleted}
+        </if>
+        <if test="projectIdList != null and projectIdList.size() > 0">
+            AND t1.project_id IN
+            <foreach collection="projectIdList" item="projectId" index="index" separator="," close=")" open="(">
+                #{projectId}
+            </foreach>
         </if>
     </select>
 

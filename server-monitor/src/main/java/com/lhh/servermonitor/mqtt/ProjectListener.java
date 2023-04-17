@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.mqtt;
 
+import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.service.ScanProjectService;
@@ -29,7 +30,7 @@ public class ProjectListener {
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
         try {
-            System.out.println(project);
+            log.info(JSON.toJSONString(project));
 //            redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
