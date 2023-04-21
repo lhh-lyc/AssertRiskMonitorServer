@@ -74,4 +74,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity> i
         return sysUserDao.queryAllMenuId(userId);
     }
 
+    @Override
+    public List<Long> getAdminIdList() {
+        return sysUserDao.getAdminIdList();
+    }
+
 }

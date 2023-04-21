@@ -3,9 +3,8 @@ package com.lhh.servergateway.filter;
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.common.constant.TokenConstants;
 import com.lhh.serverbase.common.constant.Constant;
-import com.lhh.serverbase.utils.MD5;
+import com.lhh.serverbase.common.constant.TokenConstants;
 import com.lhh.servergateway.jwt.common.ResponseCodeEnum;
 import com.lhh.servergateway.jwt.common.ResponseResult;
 import com.lhh.servergateway.jwt.config.PassJavaJwtProperties;
@@ -22,11 +21,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final String REFRESH_TOKEN = "refresh_token";
     public static final String USER_ID = "userId";
     public static final String USER_NAME = "username";
+    public static final String IS_ADMIN = "isAdmin";
     public static final String ENC_USER_ID = "encUserId";
     public static final String FROM_SOURCE = "from-source";
 
@@ -102,11 +104,26 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
         // TODO 将用户信息存放在请求header中传递给下游业务
         mutate.header("user-name", username);
-        ServerHttpRequest buildReuqest = mutate.build();
 
         //todo 如果响应中需要放数据，也可以放在response的header中
         response.setStatusCode(HttpStatus.OK);
         response.getHeaders().add("user-name",username);
+
+        URI uri = request.getURI();
+        StringBuilder query = new StringBuilder();
+        String originalQuery = uri.getQuery();
+        if (StringUtils.isNotEmpty(originalQuery)) {
+            query.append(originalQuery);
+            if (originalQuery.charAt(originalQuery.length() - 1) != '&') {
+                query.append('&');
+            }
+        }
+        String isAdmin = header.getFirst(IS_ADMIN);
+        if (Const.STR_0.equals(isAdmin)) {
+            query.append("userId").append("=").append(userId);
+        }
+        URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build().encode().toUri();
+        ServerHttpRequest buildReuqest = mutate.uri(newUri).build();
 
         String refreshToken = header.getFirst(REFRESH_TOKEN);
         if (jwtTokenUtil.isTokenExpired(refreshToken)) {

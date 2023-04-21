@@ -54,11 +54,15 @@
         join scan_project_content pc on pc.project_id = p.id
         where p.del_flg = 0
         and pc.del_flg = 0
-        and p.user_id = #{params.userId}
+        <if test="params.userId != null and params.userId != ''">
+            and p.user_id = #{params.userId}
+        </if>
         and pc.is_completed = 0
         ) t5 on t5.id = t1.id
         where t1.del_flg = 0
-        and t1.user_id = #{params.userId}
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
         <if test="params.name != null and params.name != ''">
             and t1.name like concat ('%', #{params.name}, '%')
         </if>
@@ -66,7 +70,7 @@
         <if test="params.isCompleted != null and params.isCompleted != ''">
             where t.is_completed = #{params.isCompleted}
         </if>
-        order by t.create_time
+        order by t.create_time desc
     </select>
 
     <select id="queryList" resultType="com.lhh.serverbase.entity.ScanProjectEntity">

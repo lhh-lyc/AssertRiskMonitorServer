@@ -17,6 +17,11 @@ public class ScanProjectController {
     @Autowired
     ScanProjectService projectService;
 
+    @PostMapping("test")
+    public R test(@RequestBody ScanProjectEntity project){
+        return projectService.test(project);
+    }
+
     @PostMapping("saveProject")
     public R saveProject(@RequestBody ScanProjectEntity project){
         return projectService.saveProject(project);

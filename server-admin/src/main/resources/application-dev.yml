@@ -33,10 +33,10 @@ ribbon:
 # mqtt配置
 mqtt-setting:
   # mqtt服务器broker
-  host: 49.235.104.19
+  host: 127.0.0.1
   port: 5672
-  userName: admin
-  password: 123456
+  userName: guest
+  password: guest
   pub-topic: projectData
   concurrent_consumers: 1
   maxConcurrent_consumers: 10

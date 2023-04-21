@@ -30,12 +30,16 @@
             </resultMap>
 
     <select id="queryDomainGroupList" resultType="com.lhh.serverbase.dto.ScanResultDto">
-        select t1.id as project_id,t3.parent_domain, t3.domain, t3.company from scan_project t1
+        select
+        t1.id as project_id,t3.parent_domain, t3.domain, t3.company,t3.ip
+        from scan_project t1
         join scan_project_host t2 on t2.project_id = t1.id
         join scan_host t3 on t3.domain = t2.`host`
         where t1.del_flg = 0
         and t3.del_flg = 0
-        and t1.user_id = #{userId}
+        <if test="userId != null and userId != ''">
+            and t1.user_id = #{userId}
+        </if>
         GROUP BY t3.domain
     </select>
 

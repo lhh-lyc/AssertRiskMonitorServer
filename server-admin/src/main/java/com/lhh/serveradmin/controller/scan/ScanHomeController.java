@@ -27,4 +27,9 @@ public class ScanHomeController {
         return R.ok(scanHomeService.getRecordList(params));
     }
 
+    @GetMapping("getGroupTag")
+    public R getGroupTag(@RequestParam Map<String, Object> params){
+        return R.ok(scanHomeService.getGroupTag(params));
+    }
+
 }

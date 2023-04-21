@@ -2,6 +2,8 @@ package com.lhh.serverbase.entity;
 
 import java.util.Date;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
+import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,5 +40,20 @@ public class ScanPortEntity extends BaseEntity {
      * 端口对应的server
      */
     private String serverName;
+    /**
+     * 子域名
+     */
+    @TableField(exist = false)
+    private String domain;
+    /**
+     * 主域名
+     */
+    @TableField(exist = false)
+    private String parentDomain;
+    /**
+     * 公司
+     */
+    @TableField(exist = false)
+    private String company;
 
 }

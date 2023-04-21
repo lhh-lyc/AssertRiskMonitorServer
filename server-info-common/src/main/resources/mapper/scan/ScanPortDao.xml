@@ -17,7 +17,7 @@
             </sql>
 
     <select id="queryHomeNum" resultType="com.lhh.serverbase.dto.HomeNumDto">
-        select count(distinct ip) as ip_num,count(*) as port_num from (
+        select count(distinct port) as port_num from (
         select t4.ip,t4.port from scan_project t1
         join scan_project_host t2 on t2.project_id = t1.id
         join scan_host t3 on t3.domain = t2.`host`
@@ -25,9 +25,137 @@
         where t1.del_flg = 0
         and t3.del_flg = 0
         and t4.del_flg = 0
-        and t1.user_id = #{userId}
+        <if test="userId != null and userId != ''">
+            and t1.user_id = #{userId}
+        </if>
         GROUP BY t4.ip,t4.port
         ) t
     </select>
+
+    <select id="queryGroupTag"  resultType="com.lhh.serverbase.dto.GroupTagDto">
+        select
+        <if test="params.type == 2">
+            '企业' as tag_name, t3.company as tag_value
+        </if>
+        <if test="params.type == 3">
+            '主域名' as tag_name, t3.parent_domain as tag_value
+        </if>
+        <if test="params.type == 4">
+            '子域名' as tag_name, t3.domain as tag_value
+        </if>
+        <if test="params.type == 5">
+            'ip' as tag_name, t3.ip as tag_value
+        </if>
+        <if test="params.type == 6">
+            '端口' as tag_name, t4.port as tag_value
+        </if>
+        from scan_project t1
+        join scan_project_host t2 on t2.project_id = t1.id
+        and t2.del_flg = 0
+        join scan_host t3 on t3.domain = t2.host
+        and t3.del_flg = 0
+        <if test="params.type == 6">
+            join scan_port t4 on t4.ip = t3.ip
+            and t4.del_flg = 0
+        </if>
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.type == 2">
+            and t3.company is not null
+        </if>
+        <if test="params.type == 5">
+            and t3.ip != '-'
+        </if>
+        group by
+        <if test="params.type == 2">
+            t3.company
+        </if>
+        <if test="params.type == 3">
+            t3.parent_domain
+        </if>
+        <if test="params.type == 4">
+            t3.domain
+        </if>
+        <if test="params.type == 5">
+            t3.ip
+        </if>
+        <if test="params.type == 6">
+            t4.port
+        </if>
+    </select>
+
+    <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select
+        DISTINCT
+        t1.*, t2.domain, t2.parent_domain, t2.company
+        from scan_port t1
+        join scan_host t2 on t2.ip = t1.ip
+        and t2.del_flg = 0
+        join scan_project_host t3 on t3.`host` = t2.domain
+        and t3.del_flg = 0
+        join scan_project t4 on t4.id = t3.project_id
+        and t4.del_flg = 0
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t4.user_id = #{params.userId}
+        </if>
+        <if test="params.company != null and params.company != ''">
+            and t2.company like concat('%', #{params.company}, '%')
+        </if>
+        <if test="params.parentDomain != null and params.parentDomain != ''">
+            and t2.parent_domain like concat('%', #{params.parentDomain}, '%')
+        </if>
+        <if test="params.domain != null and params.domain != ''">
+            and t2.domain like concat('%', #{params.domain}, '%')
+        </if>
+        <if test="params.ip != null and params.ip != ''">
+            and t1.ip like concat('%', #{params.ip}, '%')
+        </if>
+        <if test="params.port != null and params.port != ''">
+            and t1.port like concat('%', #{params.port}, '%')
+        </if>
+        order by t1.ip, t1.port
+    </select>
+
+    <select id="exportList" resultType="com.lhh.serverbase.vo.ScanPortVo">
+        select
+        DISTINCT
+        t1.*, t2.domain, t2.parent_domain, t2.company
+        from scan_port t1
+        join scan_host t2 on t2.ip = t1.ip
+        and t2.del_flg = 0
+        join scan_project_host t3 on t3.`host` = t2.domain
+        and t3.del_flg = 0
+        join scan_project t4 on t4.id = t3.project_id
+        and t4.del_flg = 0
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t4.user_id = #{params.userId}
+        </if>
+        <if test="params.company != null and params.company != ''">
+            and t2.company like concat('%', #{params.company}, '%')
+        </if>
+        <if test="params.parentDomain != null and params.parentDomain != ''">
+            and t2.parent_domain like concat('%', #{params.parentDomain}, '%')
+        </if>
+        <if test="params.domain != null and params.domain != ''">
+            and t2.domain like concat('%', #{params.domain}, '%')
+        </if>
+        <if test="params.ip != null and params.ip != ''">
+            and t1.ip like concat('%', #{params.ip}, '%')
+        </if>
+        <if test="params.port != null and params.port != ''">
+            and t1.port like concat('%', #{params.port}, '%')
+        </if>
+        order by t1.ip, t1.port
+    </select>
+
+    <update id="deleteByIpPort">
+        update scan_port set del_flg = 1
+        where ip = #{ip}
+        and port = #{port}
+    </update>
 
 </mapper>

@@ -30,6 +30,11 @@ public class RedisLock {
             Boolean flag = redisTemplate.opsForValue().setIfAbsent(lockKey, value, 10L, TimeUnit.SECONDS);
             while (!flag) {
                 log.info("monitor加锁失败" + value);
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 flag = redisTemplate.opsForValue().setIfAbsent(lockKey, value, 10L, TimeUnit.SECONDS);
             }
             log.info("monitor加锁成功" + value);

@@ -120,5 +120,12 @@ public class SysUserController {
         return user;
     }
 
+    @GetMapping("getAdminIdList")
+    @ApiOperation(value = "获取管理员id列表")
+    public List<Long> getAdminIdList() {
+        List<Long> list = sysUserService.getAdminIdList();
+        return list;
+    }
+
 }
 

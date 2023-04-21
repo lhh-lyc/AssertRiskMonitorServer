@@ -1,32 +1,25 @@
 package com.lhh.servermonitor.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.common.constant.CacheConst;
-import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.Query;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.utils.JedisUtils;
-import com.lhh.servermonitor.utils.PortUtils;
-import com.lhh.serverbase.utils.RexpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,33 +96,16 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             // 保存scan_content数据
             List<ScanProjectContentEntity> exitContentList = scanProjectContentService.getExitHostList(project.getId(), project.getHostList());
             Map<String, ScanProjectContentEntity> contentMap = exitContentList.stream().collect(Collectors.toMap(ScanProjectContentEntity::getInputHost, Function.identity(), (key1, key2) -> key2));
-            List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
             List<ScanProjectContentEntity> updateContentList = new ArrayList<>();
             for (String host : project.getHostList()) {
-                ScanProjectContentEntity content;
-                if (!contentMap.containsKey(host)) {
-                    // 记录表扫描中
-                    content = ScanProjectContentEntity.builder()
-                            .projectId(project.getId()).inputHost(host)
-                            .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)
-                            .build();
-                    if (finalSameHostList.contains(host)) {
-                        content.setIsCompleted(Const.INTEGER_1);
-                        /*ScanProjectHostEntity projectHost = ScanProjectHostEntity.builder()
-                                .projectId(project.getId()).host(host)
-                                .build();
-                        exitProjectHostList.add(projectHost);*/
-                    }
-                    saveContentList.add(content);
-                } else {
-                    content = contentMap.get(host);
+                if (contentMap.containsKey(host)) {
+                    ScanProjectContentEntity content = contentMap.get(host);
                     if (finalSameHostList.contains(host)) {
                         content.setIsCompleted(Const.INTEGER_1);
                         updateContentList.add(content);
                     }
                 }
             }
-            scanProjectContentService.saveBatch(saveContentList);
             // todo
             if (!CollectionUtils.isEmpty(updateContentList)) {
                 for (ScanProjectContentEntity content : updateContentList) {

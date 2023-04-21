@@ -46,7 +46,8 @@ public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectConten
      */
     @Override
     public List<ScanProjectContentEntity> list(Map<String, Object> params) {
-        QueryWrapper wrapper = Wrappers.query();
+        QueryWrapper wrapper = Wrappers.query()
+                .eq("del_flg", Const.INTEGER_0);
         wrapper.eq(params.get("projectId") != null, "project_id", params.get("projectId"));
         wrapper.eq(params.get("inputHost") != null, "input_host", params.get("inputHost"));
         List<ScanProjectContentEntity> list = list(wrapper);
@@ -60,7 +61,8 @@ public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectConten
         }
         QueryWrapper wrapper = Wrappers.query()
                 .in("project_id", projectId)
-                .in("input_host", hostList);
+                .in("input_host", hostList)
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanProjectContentEntity> list = list(wrapper);
         return list;
     }

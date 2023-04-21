@@ -36,6 +36,11 @@ public class ScanProjectService {
     @Resource
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
+    public R test(ScanProjectEntity project) {
+        projectSender.sendToMqtt(project);
+        return R.ok();
+    }
+
     public R saveProject(ScanProjectEntity project) {
         Long userId = Long.valueOf(jwtTokenUtil.getUserId());
         Map<String, Object> params = new HashMap<>();
@@ -49,12 +54,22 @@ public class ScanProjectService {
         List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().split(Const.STR_COMMA)));
         project.setHostList(hostList);
         project = scanProjectFeign.save(project);
+        List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(project.getHostList())) {
+            for (String host : project.getHostList()) {
+                ScanProjectContentEntity content = ScanProjectContentEntity.builder()
+                        .projectId(project.getId()).inputHost(host)
+                        .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)
+                        .build();
+                saveContentList.add(content);
+            }
+            scanProjectContentFeign.saveBatch(saveContentList);
+        }
         projectSender.sendToMqtt(project);
         return R.ok();
     }
 
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
-        params.put("userId", jwtTokenUtil.getUserId());
         IPage<ScanProjectEntity> page = scanProjectFeign.page(params);
         List<Long> projectIds = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
         params.put("projectIds", projectIds);
@@ -64,7 +79,7 @@ public class ScanProjectService {
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
                 List<ScanProjectContentEntity> allList = contentMap.containsKey(project.getId()) ? contentMap.get(project.getId()) : new ArrayList<>();
-                List<ScanProjectContentEntity> scannedList = allList.stream().filter(c->Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
+                List<ScanProjectContentEntity> scannedList = allList.stream().filter(c -> Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
                 project.setAllHostNum(allList.size());
                 project.setScannedHostNum(scannedList.size());
                 Long second = DateUtil.between(project.getCreateTime(), now, DateUnit.SECOND);

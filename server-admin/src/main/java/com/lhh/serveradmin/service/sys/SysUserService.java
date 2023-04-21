@@ -70,6 +70,8 @@ public class SysUserService {
                 tokenMap.put("userId", sysUser.getUserId());
                 tokenMap.put("userName", sysUser.getUserName());
                 tokenMap.put("encUserId", MD5.getEncryptPwd(sysUser.getUserId().toString(), Const.STR_SALT));
+                List<Long> adminIdList = sysUserFeign.getAdminIdList();
+                tokenMap.put("isAdmin", adminIdList.contains(sysUser.getUserId()) ? Const.INTEGER_1 : Const.INTEGER_0);
                 return ResponseResult.success(tokenMap);
             }
             // 如果密码匹配失败

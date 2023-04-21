@@ -89,6 +89,16 @@
             <artifactId>amqp-client</artifactId>
             <version>5.13.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.allbs</groupId>
+            <artifactId>allbs-excel</artifactId>
+            <version>2.0.0</version>
+        </dependency>
     </dependencies>
 
 </project>

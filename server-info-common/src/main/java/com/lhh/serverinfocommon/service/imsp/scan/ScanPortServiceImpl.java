@@ -3,10 +3,14 @@ package com.lhh.serverinfocommon.service.imsp.scan;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.request.PageUtil;
+import com.lhh.serverbase.dto.GroupTagDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.Query;
+import com.lhh.serverbase.vo.ScanPortVo;
 import com.lhh.serverinfocommon.dao.scan.ScanPortDao;
 import com.lhh.serverinfocommon.service.scan.ScanPortService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +28,10 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     @Autowired
     private ScanPortDao scanPortDao;
 
-    /**
-     * 分页查询列表数据
-     * @param params
-     * @return
-     */
     @Override
     public IPage<ScanPortEntity> page(Map<String, Object> params) {
-        IPage<ScanPortEntity> page = this.page(
-                new Query<ScanPortEntity>().getPage(params),
-                new QueryWrapper<ScanPortEntity>()
-        );
-        return page;
+        Page<ScanPortEntity> page = PageUtil.getPageParam(params);
+        return scanPortDao.page(page, params);
     }
 
     /**
@@ -64,6 +60,22 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     @Override
     public HomeNumDto queryHomeNum(Map<String, Object> params) {
         return scanPortDao.queryHomeNum(params);
+    }
+
+    @Override
+    public IPage<GroupTagDto> queryGroupTag(Map<String, Object> params) {
+        Page<GroupTagDto> page = PageUtil.getPageParam(params);
+        return scanPortDao.queryGroupTag(page, params);
+    }
+
+    @Override
+    public List<ScanPortVo> exportList(Map<String, Object> params) {
+        return scanPortDao.exportList(params);
+    }
+
+    @Override
+    public void deleteByIpPort(Map<String, Object> params) {
+        scanPortDao.deleteByIpPort(params);
     }
 
 }

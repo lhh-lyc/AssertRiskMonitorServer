@@ -39,4 +39,10 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
      */
     List<Long> queryAllMenuId(Long userId);
 
+    /**
+     * 获取管理员id列表
+     * @return
+     */
+    List<Long> getAdminIdList();
+
 }

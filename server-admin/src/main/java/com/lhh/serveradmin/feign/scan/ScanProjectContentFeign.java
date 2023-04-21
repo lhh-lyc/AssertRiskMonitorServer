@@ -16,6 +16,9 @@ public interface ScanProjectContentFeign {
     @GetMapping("/scan/project/content/list")
     List<ScanProjectContentEntity> list(@RequestParam Map<String, Object> params);
 
+    @PostMapping("/scan/project/content/saveBatch")
+    void saveBatch(@RequestBody List<ScanProjectContentEntity> scanProjectHostList);
+
     @PostMapping("/scan/project/content/deleteBatch")
     void deleteBatch(@RequestBody List<Long> idList);
 

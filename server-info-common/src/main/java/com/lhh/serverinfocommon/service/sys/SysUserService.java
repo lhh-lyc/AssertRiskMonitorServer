@@ -37,5 +37,11 @@ public interface SysUserService extends IService<SysUserEntity> {
      */
     List<Long> queryAllMenuId(Long userId);
 
+    /**
+     * 获取管理员id列表
+     * @return
+     */
+    List<Long> getAdminIdList();
+
 }
 

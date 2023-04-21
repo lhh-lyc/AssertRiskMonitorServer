@@ -37,7 +37,7 @@ mybatis-plus:
     cache-enabled: false
     call-setters-on-nulls: true
     #输出log
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 logging:
   level:

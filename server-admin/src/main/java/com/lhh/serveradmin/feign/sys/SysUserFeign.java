@@ -32,7 +32,10 @@ public interface SysUserFeign {
     @PostMapping("/sys/user/update")
     void update(@RequestBody SysUserEntity sysUser);
 
-    @PostMapping("/sys/menu/deleteBatch")
+    @PostMapping("/sys/user/deleteBatch")
     void deleteBatch(@RequestBody Long[] ids);
+
+    @GetMapping("/sys/user/getAdminIdList")
+    List<Long> getAdminIdList();
 
 }

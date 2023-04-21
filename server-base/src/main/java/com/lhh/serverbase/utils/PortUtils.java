@@ -1,7 +1,7 @@
-package com.lhh.servermonitor.utils;
+package com.lhh.serverbase.utils;
 
-import com.lhh.serverbase.common.constant.RexpConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.common.constant.RexpConst;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -20,7 +20,7 @@ public class PortUtils {
         if (CollectionUtils.isEmpty(oldPortList)) {
             return Const.STR_EMPTY;
         }
-        List<Integer> list = oldPortList.stream().distinct().map(Integer::parseInt).collect(Collectors.toList());
+        List<Integer> list = oldPortList.stream().distinct().map(Integer::parseInt).sorted().collect(Collectors.toList());
         List<List<Integer>> resultList = new ArrayList<>();
         List<Integer> arrList = new ArrayList<>();
         if (list.size() == 1) {

@@ -37,5 +37,7 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<ScanResultDto> queryDomainGroupList(Map<String, Object> params);
 
+    List<ScanHostEntity> equalParams(Map<String, Object> params);
+
 }
 

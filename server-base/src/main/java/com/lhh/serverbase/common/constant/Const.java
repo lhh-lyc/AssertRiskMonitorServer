@@ -75,6 +75,8 @@ public class Const {
 
     public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate %s --wait 0";
 
+    public static String STR_NMAP_SERVER = "cd /mnt/webSafe/utils/&&nmap -p %s %s -sS";
+
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 
     /**

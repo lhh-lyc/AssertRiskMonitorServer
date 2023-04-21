@@ -1,8 +1,10 @@
 package com.lhh.serverinfocommon.controller.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lhh.serverbase.dto.GroupTagDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanPortEntity;
+import com.lhh.serverbase.vo.ScanPortVo;
 import com.lhh.serverinfocommon.service.scan.ScanPortService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,51 +28,66 @@ public class ScanPortController {
 
     /**
      * 保存
+     *
      * @return
      */
     @PostMapping("save")
     public void save(@RequestBody ScanPortEntity scanPort) {
-            scanPortService.save(scanPort);
+        scanPortService.save(scanPort);
     }
 
     /**
      * 批量保存
+     *
      * @return
      */
     @PostMapping("saveBatch")
     public void save(@RequestBody List<ScanPortEntity> scanPortList) {
-            scanPortService.saveBatch(scanPortList);
+        scanPortService.saveBatch(scanPortList);
     }
 
     /**
-    * 更新
-    * @return
-    */
+     * 更新
+     *
+     * @return
+     */
     @PostMapping("update")
     public void update(@RequestBody ScanPortEntity scanPort) {
-            scanPortService.updateById(scanPort);
+        scanPortService.updateById(scanPort);
     }
 
     /**
      * 单个删除
+     *
      * @param id
      * @return
      */
     @PostMapping("delete")
     public void delete(Long id) {
         if (id != null) {
-                scanPortService.removeById(id);
+            scanPortService.removeById(id);
         }
     }
 
     /**
      * 批量删除
+     *
      * @return
      */
     @PostMapping("deleteBatch")
     public void deleteBatch(@RequestBody Long[] ids) {
         List<Long> idList = Arrays.asList(ids);
-            scanPortService.removeByIds(idList);
+        scanPortService.removeByIds(idList);
+    }
+
+    /**
+     * 根据表格字段查询列表
+     */
+    @PostMapping("/deleteByIpPort")
+    public void deleteByIpPort(@RequestBody Map<String, Object> params) {
+        if (params.get("ip") != null && params.get("port") != null) {
+            scanPortService.deleteByIpPort(params);
+        }
     }
 
     /**
@@ -106,10 +123,37 @@ public class ScanPortController {
         return scanPort;
     }
 
+    /**
+     * 根据条件查询列表数据
+     */
+    @PostMapping("getByIpList")
+    public List<ScanPortEntity> getByIpList(@RequestBody List<String> ipList) {
+        List<ScanPortEntity> scanPortList = scanPortService.getByIpList(ipList);
+        return scanPortList;
+    }
+
     @GetMapping("getHomeNum")
     public HomeNumDto queryHomeNum(@RequestParam Map<String, Object> params) {
         HomeNumDto dto = scanPortService.queryHomeNum(params);
         return dto;
+    }
+
+    /**
+     * 分页查询列表
+     */
+    @GetMapping("/getGroupTag")
+    public IPage<GroupTagDto> getGroupTag(@RequestParam Map<String, Object> params) {
+        IPage<GroupTagDto> page = scanPortService.queryGroupTag(params);
+        return page;
+    }
+
+    /**
+     * 根据条件查询列表数据
+     */
+    @GetMapping("exportList")
+    public List<ScanPortVo> exportList(@RequestParam Map<String, Object> params) {
+        List<ScanPortVo> scanPortList = scanPortService.exportList(params);
+        return scanPortList;
     }
 
 }

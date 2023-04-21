@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanHostDao;
@@ -55,7 +56,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("parent_domain", hostList);
+                .in("parent_domain", hostList)
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }
@@ -66,7 +68,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("domain", hostList);
+                .in("domain", hostList)
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }
@@ -77,7 +80,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("ip", hostList);
+                .in("ip", hostList)
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }

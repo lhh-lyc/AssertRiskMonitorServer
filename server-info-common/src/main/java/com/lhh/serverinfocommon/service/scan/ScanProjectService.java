@@ -30,7 +30,5 @@ public interface ScanProjectService extends IService<ScanProjectEntity> {
      */
     List<ScanProjectEntity> list(Map<String, Object> params);
 
-    List<ScanProjectEntity> getHomeNum(Map<String, Object> params);
-
 }
 

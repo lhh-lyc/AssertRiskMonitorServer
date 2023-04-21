@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
@@ -43,7 +44,8 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
      */
     @Override
     public List<ScanProjectHostEntity> list(Map<String, Object> params) {
-        QueryWrapper wrapper = Wrappers.query();
+        QueryWrapper wrapper = Wrappers.query()
+                .eq("del_flg", Const.INTEGER_0);
         wrapper.eq(params.get("projectId") != null, "project_id", params.get("projectId"));
         wrapper.eq(params.get("host") != null, "host", params.get("host"));
         List<ScanProjectHostEntity> list = list(wrapper);
@@ -57,7 +59,8 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
      */
     @Override
     public List<ScanProjectHostEntity> selByProIdAndHost(Long projectId, String host) {
-        QueryWrapper wrapper = Wrappers.query();
+        QueryWrapper wrapper = Wrappers.query()
+                .eq("del_flg", Const.INTEGER_0);
         wrapper.eq(projectId != null, "project_id", projectId);
         wrapper.eq(!StringUtils.isEmpty(host), "host", host);
         List<ScanProjectHostEntity> list = list(wrapper);

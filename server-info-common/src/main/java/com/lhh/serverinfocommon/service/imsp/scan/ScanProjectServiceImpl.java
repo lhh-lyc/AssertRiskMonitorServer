@@ -68,10 +68,4 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         return list;
     }
 
-    @Override
-    public List<ScanProjectEntity> getHomeNum(Map<String, Object> params) {
-
-        return null;
-    }
-
 }

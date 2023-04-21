@@ -106,9 +106,27 @@ public class ScanHostController {
         return scanHost;
     }
 
+    @PostMapping("getByDomainList")
+    public List<ScanHostEntity> getByDomainList(@RequestBody List<String> hostList) {
+        List<ScanHostEntity> scanHostList = scanHostService.getByDomainList(hostList);
+        return scanHostList;
+    }
+
+    @PostMapping("getByIpList")
+    public List<ScanHostEntity> getByIpList(@RequestBody List<String> hostList) {
+        List<ScanHostEntity> scanHostList = scanHostService.getByIpList(hostList);
+        return scanHostList;
+    }
+
     @GetMapping("getDomainGroupList")
     public List<ScanResultDto> queryDomainGroupList(@RequestParam Map<String, Object> params) {
         List<ScanResultDto> scanHostList = scanHostService.queryDomainGroupList(params);
+        return scanHostList;
+    }
+
+    @GetMapping("equalParams")
+    public List<ScanHostEntity> equalParams(@RequestParam Map<String, Object> params) {
+        List<ScanHostEntity> scanHostList = scanHostService.equalParams(params);
         return scanHostList;
     }
 

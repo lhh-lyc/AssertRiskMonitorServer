@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanPortDao;
@@ -55,7 +56,8 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("ip", hostList);
+                .in("ip", hostList)
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanPortEntity> list = list(wrapper);
         return list;
     }
