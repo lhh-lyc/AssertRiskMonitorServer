@@ -45,7 +45,9 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
      */
     @Override
     public List<ScanPortEntity> list(Map<String, Object> params) {
-        QueryWrapper wrapper = Wrappers.query();
+        QueryWrapper wrapper = Wrappers.query()
+                .eq("del_flg", Const.INTEGER_0)
+                .eq(params.get("ip") != null, "ip", params.get("ip"));
         List<ScanPortEntity> list = list(wrapper);
         return list;
     }

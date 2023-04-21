@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.service;
 
+import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
@@ -34,14 +35,16 @@ public class ScanPortInfoService {
      */
     @Async
     public void scanPortList(List<ScanParamDto> dtoList) {
-        List<String> ipList = dtoList.stream().map(ScanParamDto::getSubIp).collect(Collectors.toList());
-        List<ScanPortEntity> AllHostList = CollectionUtils.isEmpty(ipList) ? new ArrayList<>() : scanPortService.getByIpList(ipList);
-        Map<String, List<ScanPortEntity>> hostMap = AllHostList.stream().collect(Collectors.groupingBy(ScanPortEntity::getIp));
+//        List<String> ipList = dtoList.stream().map(ScanParamDto::getSubIp).collect(Collectors.toList());
+//        List<ScanPortEntity> AllHostList = CollectionUtils.isEmpty(ipList) ? new ArrayList<>() : scanPortService.getByIpList(ipList);
+//        Map<String, List<ScanPortEntity>> hostMap = AllHostList.stream().collect(Collectors.groupingBy(ScanPortEntity::getIp));
         if (!CollectionUtils.isEmpty(dtoList)) {
+            Map<String, Object> params = new HashMap<>();
             for (ScanParamDto dto : dtoList) {
                 String ip = dto.getSubIp();
-                List<ScanPortEntity> hostList = hostMap.get(ip);
-                List<Integer> exitPorts = CollectionUtils.isEmpty(hostList) ? new ArrayList<>() : hostList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
+                params.put("ip", ip);
+                List<ScanPortEntity> portEntityList = scanPortService.list(params);
+                List<Integer> exitPorts = CollectionUtils.isEmpty(portEntityList) ? new ArrayList<>() : portEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
 
                 log.info("开始扫描" + ip + "端口");
                 String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts(), 5000);
