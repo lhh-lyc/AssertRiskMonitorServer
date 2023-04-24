@@ -20,7 +20,9 @@ import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,6 +81,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         return list;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveProject(ScanProjectEntity project) {
         // mq分割project，合并缓存问题
@@ -169,7 +172,23 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
 //                scanPortInfoService.scanPortList(scanPortParamList);
                 syncService.dataHandler(scanPortParamList);
+                List<ScanProjectContentEntity> contentList = new ArrayList<>();
+                for (ScanParamDto dto : scanPortParamList) {
+                    if (!StringUtils.isEmpty(dto.getSubIp())) {
+                        contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
+                            put("inputHost", dto.getSubIp());
+                        }});
+                    }
+                    if (!CollectionUtils.isEmpty(contentList)) {
+                        for (ScanProjectContentEntity content : contentList) {
+                            // todo
+                            content.setIsCompleted(Const.INTEGER_1);
+                            scanProjectContentService.updateById(content);
+                        }
+                    }
+                }
             }
+
 
             // 扫描新的域名
             List<String> newDomainList = domainList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());

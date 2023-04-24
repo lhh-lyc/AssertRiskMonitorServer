@@ -114,15 +114,14 @@ public class ScanService {
                     JedisUtils.setPipeJson(redisMap);
                 }
 
+                List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), Const.STR_EMPTY);
+                List<String> exitPhList = phList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
                 List<ScanHostEntity> exitIpInfoList = scanHostService.getByIpList(ipList);
                 Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(h->h.getIp() + Const.STR_UNDERLINE + h.getDomain()));
                 String company = HttpUtils.getDomainUnit(scanDto.getHost());
                 for (ScanParamDto sub : ipInfoList) {
                     if (!CollectionUtils.isEmpty(sub.getSubIpList())) {
                         for (String ip : sub.getSubIpList()) {
-//                            if (Const.STR_CROSSBAR.equals(ip)) {
-//                                continue;
-//                            }
                             String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + sub.getSubDomain());
                             List<ScanHostEntity> exitIpList = ipMap.get(ip + Const.STR_UNDERLINE + sub.getSubDomain());
                             // 扫描端口
@@ -158,10 +157,12 @@ public class ScanService {
                     }
 
                     // 保存项目-host关联关系
-                    ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .projectId(scanDto.getProjectId()).host(sub.getSubDomain())
-                            .build();
-                    projectHostList.add(item);
+                    if (exitPhList.contains(sub.getSubDomain())) {
+                        ScanProjectHostEntity item = ScanProjectHostEntity.builder()
+                                .projectId(scanDto.getProjectId()).host(sub.getSubDomain())
+                                .build();
+                        projectHostList.add(item);
+                    }
                 }
             }
             if (!CollectionUtils.isEmpty(saveHostList)) {
@@ -201,7 +202,7 @@ public class ScanService {
     /**
      * java代码解析子域名ip
      */
-    public List<ScanParamDto> getDomainIpList(List<ScanParamDto> dtoList) {
+    private List<ScanParamDto> getDomainIpList(List<ScanParamDto> dtoList) {
         List<ScanParamDto> ipList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(dtoList)) {
             for (ScanParamDto dto : dtoList) {

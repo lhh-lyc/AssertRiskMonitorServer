@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -110,6 +111,7 @@ public class ScanPortInfoService {
     /**
      * java代码获取开放端口
      */
+    @Transactional(rollbackFor = Exception.class)
     public void scanSingleIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();
         String ip = dto.getSubIp();
@@ -171,7 +173,7 @@ public class ScanPortInfoService {
                 // todo 保存端口可以延后步骤
                 scanPortService.saveBatch(portList);
             }
-            log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
+            log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
         }
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
     }
