@@ -37,7 +37,7 @@ public class ScanProjectService {
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
     public R test(ScanProjectEntity project) {
-        projectSender.sendToMqtt(project);
+        projectSender.sendToMqtt2(project);
         return R.ok();
     }
 

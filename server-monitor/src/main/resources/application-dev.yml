@@ -52,6 +52,12 @@ mqtt-setting:
   port: 5672
   userName: guest
   password: guest
-  concurrent_consumers: 1
+  concurrent_consumers: 3
   maxConcurrent_consumers: 10
   prefetch_count: 1
+
+sync-setting:
+  # 扫描端口最大线程数控制
+  MAX_THREADS: 5
+  # 扫描端口跑批分页大小
+  EXPIRED_PAGE_SIZE: 20

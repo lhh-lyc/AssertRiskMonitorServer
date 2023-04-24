@@ -11,6 +11,7 @@ import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,8 @@ public class ScanService {
     ScanProjectContentService scanProjectContentService;
     @Autowired
     ScanPortInfoService scanPortInfoService;
+    @Autowired
+    SyncService syncService;
 
     public void scanDomainList(ScanParamDto scanDto) {
         List<String> subdomainList = new ArrayList<>();
@@ -173,6 +176,12 @@ public class ScanService {
             if (!CollectionUtils.isEmpty(projectHostList)) {
                 scanProjectHostService.saveBatch(projectHostList);
             }
+            // 扫描端口
+            if (Const.INTEGER_1.equals(scanDto.getPortFlag()) && !CollectionUtils.isEmpty(scanPortParamList)) {
+                scanPortParamList = scanPortParamList.stream().distinct().collect(Collectors.toList());
+//                scanPortInfoService.scanPortList(scanPortParamList);
+                syncService.dataHandler(scanPortParamList);
+            }
             List<ScanProjectContentEntity> contentList = new ArrayList<>();
             if (!StringUtils.isEmpty(scanDto.getHost())) {
                 contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
@@ -185,11 +194,6 @@ public class ScanService {
                     content.setIsCompleted(Const.INTEGER_1);
                     scanProjectContentService.updateById(content);
                 }
-            }
-            // 扫描端口
-            if (Const.INTEGER_1.equals(scanDto.getPortFlag()) && !CollectionUtils.isEmpty(scanPortParamList)) {
-                scanPortParamList = scanPortParamList.stream().distinct().collect(Collectors.toList());
-                scanPortInfoService.scanPortList(scanPortParamList);
             }
         }
     }

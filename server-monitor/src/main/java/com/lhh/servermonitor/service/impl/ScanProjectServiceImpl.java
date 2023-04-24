@@ -16,6 +16,7 @@ import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.service.*;
+import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     ScanPortInfoService scanPortInfoService;
     @Autowired
     ScanService scanService;
+    @Autowired
+    SyncService syncService;
     @Autowired
     RedisLock redisLock;
 
@@ -164,7 +167,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             JedisUtils.setPipeJson(redisMap);
             redisMap.clear();
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
-                scanPortInfoService.scanPortList(scanPortParamList);
+//                scanPortInfoService.scanPortList(scanPortParamList);
+                syncService.dataHandler(scanPortParamList);
             }
 
             // 扫描新的域名
