@@ -30,5 +30,7 @@ public interface ScanProjectContentService extends IService<ScanProjectContentEn
     */
     List<ScanProjectContentEntity> list(Map<String, Object> params);
 
+    List<ScanProjectContentEntity> getContentIpList(List<String> notIdList);
+
 }
 

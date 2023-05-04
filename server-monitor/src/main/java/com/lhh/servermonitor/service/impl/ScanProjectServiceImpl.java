@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,6 +19,7 @@ import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @Service("scanProjectService")
 public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProjectEntity> implements ScanProjectService {
 
@@ -81,7 +83,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         return list;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveProject(ScanProjectEntity project) {
         // mq分割project，合并缓存问题
@@ -145,7 +146,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 for (String ip : newIpList) {
                     ScanHostEntity scanHost = ScanHostEntity.builder()
                             .domain(ip).ip(ip).parentDomain(ip)
-                            .scanPorts(project.getScanPorts()).type(Const.INTEGER_2)
+                            .scanPorts(project.getScanPorts())
+                            .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
                             .build();
                     scanIpList.add(scanHost);
 
@@ -161,7 +163,10 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                                 .scanPorts(project.getScanPorts())
                                 .build();
                         scanPortParamList.add(dto);
-                        redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), project.getScanPorts());
+                        Map<String, String> ipMap = new HashMap<>();
+                        ipMap.put("ports", project.getScanPorts());
+                        ipMap.put("status", Const.STR_0);
+                        redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), JSON.toJSONString(ipMap));
                     }
                 }
                 scanHostService.saveBatch(scanIpList);
@@ -189,13 +194,16 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 }
             }
 
-
             // 扫描新的域名
             List<String> newDomainList = domainList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
 
             List<ScanParamDto> scanDomainParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newDomainList)) {
                 for (String host : newDomainList) {
+                    if (RexpUtil.isTopDomain(host)) {
+                        log.error(host + "为顶级域名，不预解析！");
+                        continue;
+                    }
                     ScanParamDto dto = ScanParamDto.builder()
                             .projectId(project.getId())
                             .host(host)

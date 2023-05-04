@@ -19,19 +19,4 @@ import java.util.Map;
 @Mapper
 public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
-    /**
-    * 分页查询用户列表
-    * @param page
-    * @param params
-    * @return
-    */
-    IPage<ScanHostEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
-
-    /**
-     * 查询用户列表
-     * @param params
-     * @return
-     */
-    List<ScanHostEntity> queryList(Map<String, Object> params);
-
 }

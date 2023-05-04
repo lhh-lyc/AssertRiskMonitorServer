@@ -22,4 +22,10 @@ public interface ScanProjectContentFeign {
     @PostMapping("/scan/project/content/deleteBatch")
     void deleteBatch(@RequestBody List<Long> idList);
 
+    @PostMapping("/scan/project/content/getContentIpList")
+    List<ScanProjectContentEntity> getContentIpList(@RequestBody List<String> notIdList);
+
+    @PostMapping("/scan/project/content/update")
+    void update(@RequestBody ScanProjectContentEntity scanProjectHost);
+
 }

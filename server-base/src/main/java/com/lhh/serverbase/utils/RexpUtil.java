@@ -1,5 +1,6 @@
 package com.lhh.serverbase.utils;
 
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.RexpConst;
 
 import java.util.regex.Matcher;
@@ -21,19 +22,15 @@ public class RexpUtil {
     }
 
     /**
-     * 验证是否为一级域名
-     * @param domain
-     * @return
+     * 1.顶级域名不解析
+     * 2.未收录域名不解析
+     * 3.
      */
-    public static boolean isDomain(String domain) {
-        if (domain.matches(RexpConst.domainRex)) {
-            return true;
-        }
-        return false;
-    }
+
 
     /**
      * 验证二级域名是否合法
+     *
      * @param domain
      * @return
      */
@@ -42,6 +39,90 @@ public class RexpUtil {
             return true;
         }
         return false;
+    }
+
+    public static void main(String[] args) {
+        String domainName = "baidu.com";
+        String b = getMajorDomain(domainName);
+        System.out.println(b);
+        domainName = "ca.baidu.com";
+        b = getMajorDomain(domainName);
+        System.out.println(b);
+        domainName = "cat.ac.cn";
+        b = getMajorDomain(domainName);
+        System.out.println(b);
+        domainName = "ac.cn";
+        b = getMajorDomain(domainName);
+        System.out.println(b);
+        domainName = "cn";
+        b = getMajorDomain(domainName);
+        System.out.println(b);
+    }
+
+    public static String getTopDomain(String url) {
+        Matcher matcher = Pattern.compile(RexpConst.RE_TOP, Pattern.CASE_INSENSITIVE).matcher(url);
+        matcher.find();
+        return matcher.group();
+    }
+
+    /**
+     * 验证是否为一级域名
+     *
+     * @param url
+     * @return
+     */
+    public static Boolean isMajorDomain(String url) {
+        try {
+            Matcher matcher = Pattern.compile(RexpConst.RE_TOP, Pattern.CASE_INSENSITIVE).matcher(url);
+            matcher.find();
+            if (url.equals(matcher.group())) {
+                if (!Const.topList.contains(url)) {
+                    return true;
+                }
+            } else {
+                String newUrl = url.substring(0, url.indexOf(matcher.group()) - 1);
+                if (!newUrl.contains(Const.STR_DOT)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * 验证是否为一级域名
+     *
+     * @param url
+     * @return
+     */
+    public static String getMajorDomain(String url) {
+        Matcher matcher = Pattern.compile(RexpConst.RE_TOP, Pattern.CASE_INSENSITIVE).matcher(url);
+        matcher.find();
+        if (url.equals(matcher.group())) {
+            if (!Const.topList.contains(url)) {
+                return url;
+            }
+        } else {
+            String newUrl = url.substring(0, url.indexOf(matcher.group()) - 1);
+            if (!newUrl.contains(Const.STR_DOT)) {
+                return url;
+            } else {
+                return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + Const.STR_DOT + matcher.group();
+            }
+        }
+        return Const.STR_EMPTY;
+    }
+
+    /**
+     * 验证是否为一级域名
+     *
+     * @param url
+     * @return
+     */
+    public static Boolean isTopDomain(String url) {
+        return Const.topList.contains(url);
     }
 
 }

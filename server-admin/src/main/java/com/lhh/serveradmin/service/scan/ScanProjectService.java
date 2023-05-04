@@ -2,12 +2,15 @@ package com.lhh.serveradmin.service.scan;
 
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectHostFeign;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.mqtt.ProjectSender;
+import com.lhh.serveradmin.utils.JedisUtils;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
@@ -15,6 +18,8 @@ import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
+import com.lhh.serverbase.utils.RexpUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +27,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ScanProjectService {
 
@@ -54,9 +60,14 @@ public class ScanProjectService {
         List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().split(Const.STR_COMMA)));
         project.setHostList(hostList);
         project = scanProjectFeign.save(project);
+        JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(project.getHostList())) {
             for (String host : project.getHostList()) {
+                if (RexpUtil.isTopDomain(host)) {
+                    log.error(host + "为顶级域名，不预解析！");
+                    continue;
+                }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
                         .projectId(project.getId()).inputHost(host)
                         .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)

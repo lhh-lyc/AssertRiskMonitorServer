@@ -34,4 +34,6 @@ public interface ScanProjectContentDao extends BaseMapper<ScanProjectContentEnti
      */
     List<ScanProjectContentEntity> queryList(Map<String, Object> params);
 
+    List<ScanProjectContentEntity> getContentIpList(@Param("notIdList") List<String> notIdList);
+
 }

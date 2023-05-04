@@ -19,19 +19,8 @@ import java.util.Map;
 @Mapper
 public interface ScanProjectContentDao extends BaseMapper<ScanProjectContentEntity> {
 
-    /**
-    * 分页查询用户列表
-    * @param page
-    * @param params
-    * @return
-    */
-    IPage<ScanProjectContentEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
+    List<ScanProjectContentEntity> getUnCompletedIdList();
 
-    /**
-     * 查询用户列表
-     * @param params
-     * @return
-     */
-    List<ScanProjectContentEntity> queryList(Map<String, Object> params);
+    List<ScanProjectContentEntity> getContentIpList(List<String> notIdList);
 
 }

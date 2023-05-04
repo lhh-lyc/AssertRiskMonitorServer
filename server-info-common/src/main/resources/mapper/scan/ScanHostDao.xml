@@ -43,5 +43,4 @@
         GROUP BY t3.domain
     </select>
 
-
 </mapper>

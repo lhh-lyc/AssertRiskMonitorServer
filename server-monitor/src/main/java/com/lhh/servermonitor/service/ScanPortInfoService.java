@@ -111,7 +111,6 @@ public class ScanPortInfoService {
     /**
      * java代码获取开放端口
      */
-    @Transactional(rollbackFor = Exception.class)
     public void scanSingleIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();
         String ip = dto.getSubIp();

@@ -114,5 +114,11 @@ public class ScanProjectContentController {
         return scanProjectHost;
     }
 
+    @PostMapping("getContentIpList")
+    public List<ScanProjectContentEntity> getContentIpList(@RequestBody List<String> notIdList) {
+        List<ScanProjectContentEntity> scanProjectHostList = scanProjectContentService.getContentIpList(notIdList);
+        return scanProjectHostList;
+    }
+
 }
 

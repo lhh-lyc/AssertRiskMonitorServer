@@ -51,6 +51,10 @@ public class ScanHostEntity extends BaseEntity {
      * host类型 1.录入域名 2.录入ip 3.子域名
      */
     private Integer type;
+    /**
+     * 是否为主域名（0.否 1.是）
+     */
+    private Integer isMajor;
 
     @TableField(exist = false)
     private List<String> subIpList;

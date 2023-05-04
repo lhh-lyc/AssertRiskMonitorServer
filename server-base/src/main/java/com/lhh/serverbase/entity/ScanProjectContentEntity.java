@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 系统_用户角色表
  *
@@ -46,4 +48,7 @@ public class ScanProjectContentEntity extends BaseEntity {
 
     @TableField(exist = false)
     private String ports;
+
+    @TableField(exist = false)
+    private List<String> ipList;
 }

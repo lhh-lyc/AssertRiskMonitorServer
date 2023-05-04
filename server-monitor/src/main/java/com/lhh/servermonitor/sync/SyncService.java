@@ -20,7 +20,6 @@ public class SyncService {
     @Value(value = "${sync-setting.EXPIRED_PAGE_SIZE}")
     private Integer EXPIRED_PAGE_SIZE;
 
-    @Transactional(rollbackFor = Exception.class)
     public void dataHandler(List<ScanParamDto> list) {
         //处理数据数量
         int listSize = list.size();

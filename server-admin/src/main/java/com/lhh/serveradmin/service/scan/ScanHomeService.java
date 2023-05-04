@@ -49,7 +49,7 @@ public class ScanHomeService {
         Integer primaryDomainNum = Const.INTEGER_0;
         if (!CollectionUtils.isEmpty(parentDomainList)) {
             for (String key : parentDomainList.keySet()) {
-                if (RexpUtil.isDomain(key)) {
+                if (RexpUtil.isMajorDomain(key)) {
                     primaryDomainNum++;
                 }
             }
@@ -57,7 +57,7 @@ public class ScanHomeService {
         Integer subDomainNum = Const.INTEGER_0;
         if (!CollectionUtils.isEmpty(list)) {
             for (ScanResultDto dto : list) {
-                if (!RexpUtil.isDomain(dto.getDomain()) && !RexpUtil.isIP(dto.getDomain())) {
+                if (!RexpUtil.isMajorDomain(dto.getDomain()) && !RexpUtil.isIP(dto.getDomain())) {
                     subDomainNum++;
                 }
             }

@@ -1,5 +1,8 @@
 package com.lhh.serverbase.common.constant;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Const {
 
     /**
@@ -19,6 +22,10 @@ public class Const {
      * 字符串：. 逗号
      */
     public final static String STR_COMMA = ",";
+    /**
+     * 字符串：.点
+     */
+    public final static String STR_DOT = ".";
     /**
      * 字符串：. 字符点
      */
@@ -106,5 +113,7 @@ public class Const {
             return value;
         }
     }
+
+    public static final List<String> topList = Arrays.asList("gov.cn","org.cn","ac.cn","mil.cn","net.cn","edu.cn","com.cn","bj.cn","tj.cn","sh.cn","cq.cn","he.cn","sx.cn","nm.cn","ln.cn","jl.cn","hl.cn","js.cn","zj.cn","ah.cn","fj.cn","jx.cn","sd.cn","ha.cn","hb.cn","hn.cn","gd.cn","gx.cn","hi.cn","sc.cn","gz.cn","yn.cn","xz.cn","sn.cn","gs.cn","qh.cn","nx.cn","xj.cn","tw.cn","hk.cn","mo.cn","cn","ren","wang","citic","top","sohu","xin","com","net","club","xyz","vip","site","shop","ink","info","mobi","red","pro","kim","ltd","group","biz","auto","link","work","law","beer","store","tech","fun","online","art","design","wiki","love","center","video","social","team","show","cool","zone","world","today","city","chat","company","live","fund","gold","plus","guru","run","pub","email","life","co","fashion","fit","luxe","yoga","cloud","host","space","press","website","archi","asia","bio","black","blue","green","lotto","organic","pet","pink","poker","promo","ski","vote","voto","icu");
 
 }
