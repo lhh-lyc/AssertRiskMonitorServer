@@ -128,7 +128,7 @@ public class ExecService {
      */
     public List<Integer> getPortList(String host, String ports) {
         List<Integer> portList = new ArrayList<>();
-        String cmd = String.format(Const.STR_MASSCAN_PORT, host, ports, 5000);
+        String cmd = String.format(Const.STR_MASSCAN_PORT, host, ports);
         SshResponse response = null;
         try {
             response = ExecUtil.runCommand(cmd);

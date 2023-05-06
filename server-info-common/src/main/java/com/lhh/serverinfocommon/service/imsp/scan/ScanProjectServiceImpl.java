@@ -63,7 +63,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     public List<ScanProjectEntity> list(Map<String, Object> params) {
         QueryWrapper wrapper = Wrappers.query()
                 .eq(params.get("userId") != null, "user_id", params.get("userId"))
-                .eq(params.get("name") != null, "name", params.get("name"));
+                .eq(params.get("name") != null, "name", params.get("name"))
+                .eq("del_flg", Const.INTEGER_0);
         List<ScanProjectEntity> list = list(wrapper);
         return list;
     }

@@ -32,6 +32,11 @@ public class ScanProjectController {
         return R.ok(projectService.page(params));
     }
 
+    @GetMapping("list")
+    public R list(@RequestParam Map<String, Object> params){
+        return R.ok(projectService.list(params));
+    }
+
     @GetMapping("info/{id}")
     public R info(@PathVariable("id") Long id){
         ScanProjectEntity project = projectService.info(id);

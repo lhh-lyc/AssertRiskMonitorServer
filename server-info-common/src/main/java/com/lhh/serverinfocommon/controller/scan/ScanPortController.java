@@ -148,6 +148,14 @@ public class ScanPortController {
     }
 
     /**
+     * 查询数量
+     */
+    @GetMapping("/getGroupTagNum")
+    public Integer getGroupTagNum(@RequestParam Map<String, Object> params) {
+        return scanPortService.queryGroupTagNum(params);
+    }
+
+    /**
      * 根据条件查询列表数据
      */
     @GetMapping("exportList")

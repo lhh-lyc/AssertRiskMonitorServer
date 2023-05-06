@@ -88,6 +88,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         // mq分割project，合并缓存问题
 //        redisLock.saveProjectRedis(project);
         if (!CollectionUtils.isEmpty(project.getHostList())) {
+            log.info("1");
             List<String> ipList = project.getHostList().stream().filter(i -> RexpUtil.isIP(i)).collect(Collectors.toList());
             List<String> domainList = project.getHostList().stream().filter(item -> !ipList.contains(item)).collect(Collectors.toList());
 
@@ -113,12 +114,15 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     }
                 }
             }
+            log.info("2");
             // todo
             if (!CollectionUtils.isEmpty(updateContentList)) {
-                for (ScanProjectContentEntity content : updateContentList) {
-                    scanProjectContentService.updateById(content);
-                }
+                scanProjectContentService.updateStatus(updateContentList);
+//                for (ScanProjectContentEntity content : updateContentList) {
+//                    scanProjectContentService.updateById(content);
+//                }
             }
+            log.info("4");
 
             // 子域名关联
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
@@ -137,6 +141,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             }
             scanProjectHostService.saveBatch(saveProjectHostList);
 
+            log.info("3");
             //扫描新的ip
             Map<String, String> redisMap = new HashMap<>();
             List<String> newIpList = ipList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
@@ -172,6 +177,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 scanHostService.saveBatch(scanIpList);
                 scanProjectHostService.saveBatch(projectHostList);
             }
+            log.info("5");
             JedisUtils.setPipeJson(redisMap);
             redisMap.clear();
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
@@ -188,22 +194,22 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                         for (ScanProjectContentEntity content : contentList) {
                             // todo
                             content.setIsCompleted(Const.INTEGER_1);
-                            scanProjectContentService.updateById(content);
+//                            scanProjectContentService.updateById(content);
                         }
                     }
                 }
+                if (!CollectionUtils.isEmpty(contentList)) {
+                    scanProjectContentService.updateStatus(contentList);
+                }
             }
 
+            log.info("6");
             // 扫描新的域名
             List<String> newDomainList = domainList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
 
             List<ScanParamDto> scanDomainParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newDomainList)) {
                 for (String host : newDomainList) {
-                    if (RexpUtil.isTopDomain(host)) {
-                        log.error(host + "为顶级域名，不预解析！");
-                        continue;
-                    }
                     ScanParamDto dto = ScanParamDto.builder()
                             .projectId(project.getId())
                             .host(host)
@@ -216,9 +222,14 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 }
             }
             JedisUtils.setPipeJson(redisMap);
+            log.info("7");
             if (!CollectionUtils.isEmpty(scanDomainParamList)) {
                 for (ScanParamDto dto : scanDomainParamList) {
-                    scanService.scanDomainList(dto);
+                    try {
+                        scanService.scanDomainList(dto);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

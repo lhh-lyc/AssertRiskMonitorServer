@@ -46,6 +46,9 @@ server-setting:
   pwd: Lhh110112
   exec_timeout: 60
 
+dir-setting:
+  subfinder-dir: /mnt/webSafe/utils/subfinder
+
 mqtt-setting:
   # mqtt服务器broker
   host: localhost
@@ -56,7 +59,6 @@ mqtt-setting:
   concurrent_consumers: 3
   maxConcurrent_consumers: 10
   prefetch_count: 1
-
 
 sync-setting:
   # 扫描端口最大线程数控制

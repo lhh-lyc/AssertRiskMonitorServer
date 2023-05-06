@@ -44,7 +44,7 @@ public class ScanHomeService {
         List<ScanProjectEntity> projectList = scanProjectFeign.list(params);
         Integer projectNum = projectList.size();
         Integer companyNum = list.stream().filter(c->!StringUtils.isEmpty(c.getCompany())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getCompany))), ArrayList::new)).size();
-        Integer ipNum = list.stream().filter(c->!Const.STR_CROSSBAR.equals(c.getIp())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getIp))), ArrayList::new)).size();
+        Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", 5);}});
         Map<String, List<ScanResultDto>> parentDomainList = list.stream().collect(Collectors.groupingBy(ScanResultDto::getParentDomain));
         Integer primaryDomainNum = Const.INTEGER_0;
         if (!CollectionUtils.isEmpty(parentDomainList)) {

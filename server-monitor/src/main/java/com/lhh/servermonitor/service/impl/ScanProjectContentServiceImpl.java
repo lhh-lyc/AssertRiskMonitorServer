@@ -23,7 +23,7 @@ import java.util.Map;
 public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectContentDao, ScanProjectContentEntity> implements ScanProjectContentService {
 
     @Autowired
-    private ScanProjectContentService scanProjectContentService;
+    private ScanProjectContentDao scanProjectContentDao;
 
     /**
      * 分页查询列表数据
@@ -65,6 +65,11 @@ public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectConten
                 .eq("del_flg", Const.INTEGER_0);
         List<ScanProjectContentEntity> list = list(wrapper);
         return list;
+    }
+
+    @Override
+    public void updateStatus(List<ScanProjectContentEntity> list) {
+        scanProjectContentDao.updateStatus(list);
     }
 
 }

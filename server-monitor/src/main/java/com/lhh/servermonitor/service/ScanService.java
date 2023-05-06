@@ -19,6 +19,7 @@ import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -37,6 +38,9 @@ import java.util.stream.Collectors;
 @Service
 public class ScanService {
 
+    @Value("${dir-setting.subfinder-dir}")
+    private String subfinderDir;
+
     @Autowired
     ScanHostService scanHostService;
     @Autowired
@@ -49,12 +53,13 @@ public class ScanService {
     SyncService syncService;
 
     public void scanDomainList(ScanParamDto scanDto) {
+        log.info("8");
         String parentDomain = RexpUtil.getMajorDomain(scanDto.getHost());
         List<String> subdomainList = new ArrayList<>();
         if (Const.INTEGER_1.equals(scanDto.getSubDomainFlag())) {
             log.info(scanDto.getHost() + "子域名收集");
             // 子域名列表
-            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, scanDto.getHost());
+            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, scanDto.getHost());
             SshResponse response = null;
             try {
                 response = ExecUtil.runCommand(cmd);
@@ -69,6 +74,7 @@ public class ScanService {
         if (!subdomainList.contains(scanDto.getHost())) {
             subdomainList.add(scanDto.getHost());
         }
+        log.info("9");
         List<ScanHostEntity> saveHostList = new ArrayList<>();
         List<ScanHostEntity> updateHostList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
@@ -94,6 +100,7 @@ public class ScanService {
             }
 
             // 子域名解析ip
+            log.info("10");
             Map<String, String> redisMap = new HashMap<>();
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
             List<ScanParamDto> ipInfoList = getDomainIpList(dtoList);
@@ -182,9 +189,10 @@ public class ScanService {
             }
             if (!CollectionUtils.isEmpty(updateHostList)) {
                 // todo
-                for (ScanHostEntity host : updateHostList) {
-                    scanHostService.updateById(host);
-                }
+                scanHostService.updateScanPorts(updateHostList);
+//                for (ScanHostEntity host : updateHostList) {
+//                    scanHostService.updateById(host);
+//                }
             }
             if (!CollectionUtils.isEmpty(projectHostList)) {
                 scanProjectHostService.saveBatch(projectHostList);

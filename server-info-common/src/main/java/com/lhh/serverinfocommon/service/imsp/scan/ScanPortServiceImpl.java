@@ -69,6 +69,11 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     }
 
     @Override
+    public Integer queryGroupTagNum(Map<String, Object> params) {
+        return scanPortDao.queryGroupTagNum(params);
+    }
+
+    @Override
     public List<ScanPortVo> exportList(Map<String, Object> params) {
         return scanPortDao.exportList(params);
     }

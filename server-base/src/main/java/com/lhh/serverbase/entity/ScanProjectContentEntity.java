@@ -45,6 +45,14 @@ public class ScanProjectContentEntity extends BaseEntity {
      * 是否完成
      */
     private Integer isCompleted;
+    /**
+     * 是否包含未知顶级域名（0.否1.是）
+     */
+    private Integer unknownTop;
+    /**
+     * 是否为顶级域名（0.否1.是）
+     */
+    private Integer isTop;
 
     @TableField(exist = false)
     private String ports;

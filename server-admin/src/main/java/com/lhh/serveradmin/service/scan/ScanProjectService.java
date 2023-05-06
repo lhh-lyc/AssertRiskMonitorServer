@@ -57,25 +57,42 @@ public class ScanProjectService {
             return R.error("该项目名称已存在！");
         }
         project.setUserId(userId);
-        List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().split(Const.STR_COMMA)));
+        List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().replace(" ", "").split(Const.STR_LINEFEED)));
         project.setHostList(hostList);
         project = scanProjectFeign.save(project);
         JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(project.getHostList())) {
-            for (String host : project.getHostList()) {
+        List<String> validHostList = new ArrayList<>();
+        Boolean isValid;
+        if (!CollectionUtils.isEmpty(hostList)) {
+            for (String host : hostList) {
+                isValid = true;
+                Integer isTop = Const.INTEGER_0;
+                Integer unknownTop = Const.INTEGER_0;
+                // todo 考虑存入数据库
                 if (RexpUtil.isTopDomain(host)) {
                     log.error(host + "为顶级域名，不预解析！");
-                    continue;
+                    isTop = Const.INTEGER_1;
+                    isValid = false;
+                }
+                if (RexpUtil.isOtherDomain(host)) {
+                    log.error(host + "包含未知顶级域名，不预解析！");
+                    unknownTop = Const.INTEGER_1;
+                    isValid = false;
+                }
+                if (isValid) {
+                    validHostList.add(host);
                 }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
                         .projectId(project.getId()).inputHost(host)
                         .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)
+                        .isTop(isTop).unknownTop(unknownTop)
                         .build();
                 saveContentList.add(content);
             }
             scanProjectContentFeign.saveBatch(saveContentList);
         }
+        project.setHostList(validHostList);
         projectSender.sendToMqtt(project);
         return R.ok();
     }
@@ -101,6 +118,10 @@ public class ScanProjectService {
             }
         }
         return page;
+    }
+
+    public List<ScanProjectEntity> list(Map<String, Object> params) {
+        return scanProjectFeign.list(params);
     }
 
     public ScanProjectEntity info(Long id) {

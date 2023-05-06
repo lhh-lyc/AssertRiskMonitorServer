@@ -26,6 +26,9 @@ public interface ScanPortFeign {
     @GetMapping("/scan/port/getGroupTag")
     IPage<GroupTagDto> getGroupTag(@RequestParam Map<String, Object> params);
 
+    @GetMapping("/scan/port/getGroupTagNum")
+    Integer getGroupTagNum(@RequestParam Map<String, Object> params);
+
     @GetMapping("/scan/port/page")
     IPage<ScanPortEntity> page(@RequestParam Map<String, Object> params);
 

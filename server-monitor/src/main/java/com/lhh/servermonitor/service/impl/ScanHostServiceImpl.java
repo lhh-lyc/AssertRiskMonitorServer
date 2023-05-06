@@ -86,4 +86,9 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         return list;
     }
 
+    @Override
+    public void updateScanPorts(List<ScanHostEntity> list) {
+        scanHostDao.updateScanPorts(list);
+    }
+
 }

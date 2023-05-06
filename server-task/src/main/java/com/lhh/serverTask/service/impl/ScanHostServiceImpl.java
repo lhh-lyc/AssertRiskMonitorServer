@@ -21,6 +21,7 @@ import com.lhh.serverTask.utils.JedisUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -38,6 +39,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("scanHostService")
 public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity> implements ScanHostService {
+
+    @Value("${dir-setting.subfinder-dir}")
+    private String subfinderDir;
 
     @Autowired
     private ScanHostDao scanHostDao;
@@ -108,7 +112,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         if (!RexpUtil.isIP(hostEntity.getParentDomain())) {
             log.info(hostEntity.getParentDomain() + "子域名收集");
             // 子域名列表
-            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, hostEntity.getParentDomain());
+            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, hostEntity.getParentDomain());
             SshResponse response = null;
             try {
                 response = ExecUtil.runCommand(cmd);
@@ -128,7 +132,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     public void scanDomainList(ScanParamDto scanDto) {
         log.info(scanDto.getHost() + "子域名收集");
         // 子域名列表
-        String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, scanDto.getHost());
+        String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, scanDto.getHost());
         SshResponse response = null;
         try {
             response = ExecUtil.runCommand(cmd);

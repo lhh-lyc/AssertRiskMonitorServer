@@ -34,6 +34,9 @@
 
     <select id="queryGroupTag"  resultType="com.lhh.serverbase.dto.GroupTagDto">
         select
+        <if test="params.type == 1">
+            '项目' as tag_name, t1.name as tag_value
+        </if>
         <if test="params.type == 2">
             '企业' as tag_name, t3.company as tag_value
         </if>
@@ -50,10 +53,12 @@
             '端口' as tag_name, t4.port as tag_value
         </if>
         from scan_project t1
-        join scan_project_host t2 on t2.project_id = t1.id
-        and t2.del_flg = 0
-        join scan_host t3 on t3.domain = t2.host
-        and t3.del_flg = 0
+        <if test="params.type != 1">
+            join scan_project_host t2 on t2.project_id = t1.id
+            and t2.del_flg = 0
+            join scan_host t3 on t3.domain = t2.host
+            and t3.del_flg = 0
+        </if>
         <if test="params.type == 6">
             join scan_port t4 on t4.ip = t3.ip
             and t4.del_flg = 0
@@ -65,10 +70,16 @@
         <if test="params.type == 2">
             and t3.company is not null
         </if>
+        <if test="params.type == 4">
+            and t3.is_major = 0
+        </if>
         <if test="params.type == 5">
             and t3.ip != '-'
         </if>
         group by
+        <if test="params.type == 1">
+            t1.create_time desc
+        </if>
         <if test="params.type == 2">
             t3.company
         </if>
@@ -86,6 +97,47 @@
         </if>
     </select>
 
+    <select id="queryGroupTagNum"  resultType="java.lang.Integer">
+        select
+        <if test="params.type == 2">
+            count(distinct t3.company)
+        </if>
+        <if test="params.type == 3">
+            count(distinct t3.parent_domain)
+        </if>
+        <if test="params.type == 4">
+            count(distinct t3.domain)
+        </if>
+        <if test="params.type == 5">
+            count(distinct t3.ip)
+        </if>
+        <if test="params.type == 6">
+            count(distinct t4.port)
+        </if>
+        from scan_project t1
+        join scan_project_host t2 on t2.project_id = t1.id
+        and t2.del_flg = 0
+        join scan_host t3 on t3.domain = t2.host
+        and t3.del_flg = 0
+        <if test="params.type == 6">
+            join scan_port t4 on t4.ip = t3.ip
+            and t4.del_flg = 0
+        </if>
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.type == 2">
+            and t3.company is not null
+        </if>
+        <if test="params.type == 4">
+            and t3.is_major = 0
+        </if>
+        <if test="params.type == 5">
+            and t3.ip != '-'
+        </if>
+    </select>
+
     <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
         select
         DISTINCT
@@ -98,6 +150,9 @@
         join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
         where t1.del_flg = 0
+        <if test="params.projectId != null and params.projectId != ''">
+            and t4.id = #{params.projectId}
+        </if>
         <if test="params.userId != null and params.userId != ''">
             and t4.user_id = #{params.userId}
         </if>

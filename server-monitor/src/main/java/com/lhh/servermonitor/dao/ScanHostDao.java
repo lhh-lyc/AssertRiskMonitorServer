@@ -19,4 +19,6 @@ import java.util.Map;
 @Mapper
 public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
+    void updateScanPorts(@Param("list") List<ScanHostEntity> list);
+
 }

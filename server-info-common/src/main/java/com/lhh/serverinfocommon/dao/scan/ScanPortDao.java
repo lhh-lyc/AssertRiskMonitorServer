@@ -41,6 +41,8 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     IPage<GroupTagDto> queryGroupTag(Page page, @Param("params") Map<String, Object> params);
 
+    Integer queryGroupTagNum(@Param("params") Map<String, Object> params);
+
     IPage<ScanPortEntity> page(Page page, @Param("params") Map<String, Object> params);
 
     List<ScanPortVo> exportList(@Param("params") Map<String, Object> params);

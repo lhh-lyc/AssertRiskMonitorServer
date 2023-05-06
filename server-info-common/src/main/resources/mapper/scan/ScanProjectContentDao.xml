@@ -70,7 +70,9 @@
         and t2.del_flg = 0
         where t1.del_flg = 0
         and t1.is_completed = 0
-        and t2.id is null)
+        and t2.id is null
+        and t1.unknown_top != 1
+        and t1.is_top != 1)
     </select>
 
 </mapper>

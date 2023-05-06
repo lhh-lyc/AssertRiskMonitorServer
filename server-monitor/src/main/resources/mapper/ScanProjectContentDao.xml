@@ -53,4 +53,15 @@
         and t2.id is null)
     </select>
 
+    <update id="updateStatus">
+        <foreach collection="list" item="item" separator=";">
+            update
+            `scan_project_content`
+            set
+            `is_completed` = #{item.isCompleted}
+            where
+            id = #{item.id}
+        </foreach>
+    </update>
+
 </mapper>

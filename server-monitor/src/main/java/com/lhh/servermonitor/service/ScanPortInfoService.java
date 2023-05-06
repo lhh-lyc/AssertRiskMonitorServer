@@ -48,7 +48,7 @@ public class ScanPortInfoService {
                 List<Integer> exitPorts = CollectionUtils.isEmpty(portEntityList) ? new ArrayList<>() : portEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
 
                 log.info("开始扫描" + ip + "端口");
-                String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts(), 5000);
+                String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
                 SshResponse response = null;
                 try {
                     response = ExecUtil.runCommand(cmd);
@@ -121,7 +121,7 @@ public class ScanPortInfoService {
             return;
         }
         log.info("开始扫描" + ip + "端口");
-        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts(), 5000);
+        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
         SshResponse response = null;
         try {
             response = ExecUtil.runCommand(cmd);
@@ -188,7 +188,7 @@ public class ScanPortInfoService {
         List<Integer> exitPorts = CollectionUtils.isEmpty(portEntityList) ? new ArrayList<>() : portEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
 
         log.info("开始扫描" + ip + "端口");
-        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts(), 5000);
+        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
         SshResponse response = null;
         try {
             response = ExecUtil.runCommand(cmd);

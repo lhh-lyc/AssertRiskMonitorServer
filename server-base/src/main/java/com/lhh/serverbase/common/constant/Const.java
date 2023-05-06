@@ -1,5 +1,7 @@
 package com.lhh.serverbase.common.constant;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,6 +62,10 @@ public class Const {
     public static String STR_TITLE = ";";
 
     public static String STR_BLANK = " ";
+    /**
+     * 字符串：\n 换行
+     */
+    public final static String STR_LINEFEED = "\n";
 
     public static Long LONG_0 = 0L;
 
@@ -78,11 +84,11 @@ public class Const {
     public static Integer INTEGER_100 = 100;
 
     // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
-    public static String STR_SUBFINDER_SUBDOMAIN = "cd /mnt/webSafe/utils/subfinder&&./subfinder -d %s -silent";
+    public static String STR_SUBFINDER_SUBDOMAIN = "cd %s&&./subfinder -d %s -silent";
 
-    public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate %s --wait 0";
+    public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate 3000 --wait 0";
 
-    public static String STR_NMAP_SERVER = "cd /mnt/webSafe/utils/&&nmap -p %s %s -sS";
+    public static String STR_NMAP_SERVER = "cd /opt/assertRiskMonitorServer/tools/&&nmap -p %s %s -sS";
 
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 

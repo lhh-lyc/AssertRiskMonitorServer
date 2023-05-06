@@ -42,6 +42,8 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     IPage<GroupTagDto> queryGroupTag(Map<String, Object> params);
 
+    Integer queryGroupTagNum(Map<String, Object> params);
+
     List<ScanPortVo> exportList(Map<String, Object> params);
 
     void deleteByIpPort(Map<String, Object> params);
