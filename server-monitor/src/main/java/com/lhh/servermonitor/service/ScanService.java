@@ -189,10 +189,10 @@ public class ScanService {
             }
             if (!CollectionUtils.isEmpty(updateHostList)) {
                 // todo
-                scanHostService.updateScanPorts(updateHostList);
-//                for (ScanHostEntity host : updateHostList) {
-//                    scanHostService.updateById(host);
-//                }
+//                scanHostService.updateScanPorts(updateHostList);
+                for (ScanHostEntity host : updateHostList) {
+                    scanHostService.updateById(host);
+                }
             }
             if (!CollectionUtils.isEmpty(projectHostList)) {
                 scanProjectHostService.saveBatch(projectHostList);

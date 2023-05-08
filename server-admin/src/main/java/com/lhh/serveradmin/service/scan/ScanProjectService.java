@@ -126,6 +126,8 @@ public class ScanProjectService {
 
     public ScanProjectEntity info(Long id) {
         ScanProjectEntity project = scanProjectFeign.info(id);
+        String hosts = project.getHosts().replace(Const.STR_COMMA, "\n");
+        project.setHosts(hosts);
         return project;
     }
 

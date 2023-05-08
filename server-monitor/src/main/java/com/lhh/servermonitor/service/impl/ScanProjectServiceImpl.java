@@ -117,10 +117,10 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             log.info("2");
             // todo
             if (!CollectionUtils.isEmpty(updateContentList)) {
-                scanProjectContentService.updateStatus(updateContentList);
-//                for (ScanProjectContentEntity content : updateContentList) {
-//                    scanProjectContentService.updateById(content);
-//                }
+//                scanProjectContentService.updateStatus(updateContentList);
+                for (ScanProjectContentEntity content : updateContentList) {
+                    scanProjectContentService.updateById(content);
+                }
             }
             log.info("4");
 
@@ -194,13 +194,13 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                         for (ScanProjectContentEntity content : contentList) {
                             // todo
                             content.setIsCompleted(Const.INTEGER_1);
-//                            scanProjectContentService.updateById(content);
+                            scanProjectContentService.updateById(content);
                         }
                     }
                 }
-                if (!CollectionUtils.isEmpty(contentList)) {
-                    scanProjectContentService.updateStatus(contentList);
-                }
+//                if (!CollectionUtils.isEmpty(contentList)) {
+//                    scanProjectContentService.updateStatus(contentList);
+//                }
             }
 
             log.info("6");

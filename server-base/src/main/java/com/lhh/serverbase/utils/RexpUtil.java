@@ -44,19 +44,19 @@ public class RexpUtil {
     }
 
     public static void main(String[] args) {
-        String a = "    aaaaaa      \n bbbbbb  ";
-        System.out.println(a.replace(" ", ""));
-//        String domainName = "";
-//        String b = "";
-//        Boolean flag;
-//        flag = isMajorDomain("xinghuodao.cn");
+        String domainName = "";
+        String b = "";
+        Boolean flag;
+//        flag = isMajorDomain("freetyst.vip.migu.cn");
 //        System.out.println(flag);
 //        domainName = "baidu.com";
 //        b = getMajorDomain(domainName);
 //        System.out.println(b);
-//        domainName = "ca.baidu.com";
-//        b = getMajorDomain(domainName);
-//        System.out.println(b);
+        domainName = "culanjing.com.cn";
+        b = getMajorDomain(domainName);
+        flag = isMajorDomain(domainName);
+        System.out.println(b);
+        System.out.println(flag);
 //        domainName = "cat.ac.cn";
 //        b = getMajorDomain(domainName);
 //        System.out.println(b);
@@ -145,7 +145,7 @@ public class RexpUtil {
             if (!newUrl.contains(Const.STR_DOT)) {
                 return url;
             } else {
-                return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + Const.STR_DOT + matcher.group();
+                return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + matcher.group();
             }
         }
         return Const.STR_EMPTY;

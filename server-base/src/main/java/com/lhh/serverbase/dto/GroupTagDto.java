@@ -17,6 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 public class GroupTagDto {
 
+    private String tag;
+
     private String tagName;
 
     private String tagValue;
