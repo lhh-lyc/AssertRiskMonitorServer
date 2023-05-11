@@ -26,15 +26,17 @@ public class TaskService {
         Boolean flag;
         Set<String> projectKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_SCANNING_PROJECT, '*'));
         List<String> idList = new ArrayList<>();
-        projectKeySet.stream().forEach(i -> idList.add(i.replace(CacheConst.REDIS_SCANNING_PROJECT, Const.STR_EMPTY)));
+        projectKeySet.stream().forEach(i -> idList.add(i.substring(i.indexOf(Const.STR_COLON) + 1)));
         List<ScanProjectContentEntity> contentList = scanProjectContentFeign.getContentIpList(idList);
         if (!CollectionUtils.isEmpty(contentList)) {
             for (ScanProjectContentEntity content : contentList) {
                 flag = true;
-                for (String ip : content.getIpList()) {
-                    if (JedisUtils.exists(String.format(CacheConst.REDIS_SCANNING_IP, ip))) {
-                        flag = false;
-                        break;
+                if (!Const.INTEGER_1.equals(content.getIsTop()) && !Const.INTEGER_1.equals(content.getUnknownTop())) {
+                    for (String ip : content.getIpList()) {
+                        if (JedisUtils.exists(String.format(CacheConst.REDIS_SCANNING_IP, ip))) {
+                            flag = false;
+                            break;
+                        }
                     }
                 }
                 if (flag) {

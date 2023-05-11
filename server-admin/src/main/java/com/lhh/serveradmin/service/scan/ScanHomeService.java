@@ -39,10 +39,10 @@ public class ScanHomeService {
 
     public List<Map<String, Object>> getHomeNum(Map<String, Object> params) {
         List<Map<String, Object>> resultList = new ArrayList<>();
-        List<ScanResultDto> list = scanHostFeign.getDomainGroupList(params);
-        HomeNumDto numDto = scanPortFeign.getHomeNum(params);
         List<ScanProjectEntity> projectList = scanProjectFeign.list(params);
         Integer projectNum = projectList.size();
+        List<ScanResultDto> list = scanHostFeign.getDomainGroupList(params);
+        HomeNumDto numDto = scanPortFeign.getHomeNum(params);
         Integer companyNum = list.stream().filter(c->!StringUtils.isEmpty(c.getCompany())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getCompany))), ArrayList::new)).size();
         Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", 5);}});
         Map<String, List<ScanResultDto>> parentDomainList = list.stream().collect(Collectors.groupingBy(ScanResultDto::getParentDomain));

@@ -87,8 +87,12 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     public void saveProject(ScanProjectEntity project) {
         // mq分割project，合并缓存问题
 //        redisLock.saveProjectRedis(project);
+        ScanProjectEntity oldProject = scanProjectDao.selectById(project.getId());
+        if (oldProject == null) {
+            log.info("项目id=" + project.getId() + "已被删除");
+            return;
+        }
         if (!CollectionUtils.isEmpty(project.getHostList())) {
-            log.info("1");
             List<String> ipList = project.getHostList().stream().filter(i -> RexpUtil.isIP(i)).collect(Collectors.toList());
             List<String> domainList = project.getHostList().stream().filter(item -> !ipList.contains(item)).collect(Collectors.toList());
 
@@ -114,7 +118,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     }
                 }
             }
-            log.info("2");
             // todo
             if (!CollectionUtils.isEmpty(updateContentList)) {
 //                scanProjectContentService.updateStatus(updateContentList);
@@ -122,7 +125,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     scanProjectContentService.updateById(content);
                 }
             }
-            log.info("4");
 
             // 子域名关联
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
@@ -141,7 +143,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             }
             scanProjectHostService.saveBatch(saveProjectHostList);
 
-            log.info("3");
             //扫描新的ip
             Map<String, String> redisMap = new HashMap<>();
             List<String> newIpList = ipList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
@@ -177,7 +178,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 scanHostService.saveBatch(scanIpList);
                 scanProjectHostService.saveBatch(projectHostList);
             }
-            log.info("5");
             JedisUtils.setPipeJson(redisMap);
             redisMap.clear();
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
@@ -203,7 +203,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
 //                }
             }
 
-            log.info("6");
             // 扫描新的域名
             List<String> newDomainList = domainList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
 
@@ -222,7 +221,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 }
             }
             JedisUtils.setPipeJson(redisMap);
-            log.info("7");
             if (!CollectionUtils.isEmpty(scanDomainParamList)) {
                 for (ScanParamDto dto : scanDomainParamList) {
                     try {

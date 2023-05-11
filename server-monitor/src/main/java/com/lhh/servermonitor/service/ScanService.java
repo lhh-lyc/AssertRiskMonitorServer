@@ -53,7 +53,6 @@ public class ScanService {
     SyncService syncService;
 
     public void scanDomainList(ScanParamDto scanDto) {
-        log.info("8");
         String parentDomain = RexpUtil.getMajorDomain(scanDto.getHost());
         List<String> subdomainList = new ArrayList<>();
         if (Const.INTEGER_1.equals(scanDto.getSubDomainFlag())) {
@@ -74,7 +73,6 @@ public class ScanService {
         if (!subdomainList.contains(scanDto.getHost())) {
             subdomainList.add(scanDto.getHost());
         }
-        log.info("9");
         List<ScanHostEntity> saveHostList = new ArrayList<>();
         List<ScanHostEntity> updateHostList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
@@ -100,7 +98,6 @@ public class ScanService {
             }
 
             // 子域名解析ip
-            log.info("10");
             Map<String, String> redisMap = new HashMap<>();
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
             List<ScanParamDto> ipInfoList = getDomainIpList(dtoList);

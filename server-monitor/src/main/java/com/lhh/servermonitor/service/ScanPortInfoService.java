@@ -118,6 +118,7 @@ public class ScanPortInfoService {
         List<ScanPortEntity> portEntityList = scanPortService.list(params);
         if (!CollectionUtils.isEmpty(portEntityList)) {
             log.info(ip + "扫描端口已被扫描！");
+            JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
             return;
         }
         log.info("开始扫描" + ip + "端口");

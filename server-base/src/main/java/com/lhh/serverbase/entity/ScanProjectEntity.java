@@ -23,6 +23,8 @@ import com.baomidou.mybatisplus.annotation.*;
 @TableName("scan_project")
 public class ScanProjectEntity extends BaseEntity implements Serializable {
 
+    private static final long serialVersionUID = 1;
+
     /**
      * 项目ID
      */
@@ -89,5 +91,8 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
 
     @TableField(exist = false)
     private Integer isCompleted;
+
+    @TableField(exist = false)
+    private String userName;
 
 }

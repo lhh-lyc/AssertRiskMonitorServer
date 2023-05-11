@@ -70,15 +70,17 @@ public class ScanProjectService {
                 Integer isTop = Const.INTEGER_0;
                 Integer unknownTop = Const.INTEGER_0;
                 // todo 考虑存入数据库
-                if (RexpUtil.isTopDomain(host)) {
-                    log.error(host + "为顶级域名，不预解析！");
-                    isTop = Const.INTEGER_1;
-                    isValid = false;
-                }
-                if (RexpUtil.isOtherDomain(host)) {
-                    log.error(host + "包含未知顶级域名，不预解析！");
-                    unknownTop = Const.INTEGER_1;
-                    isValid = false;
+                if (!RexpUtil.isIP(host)) {
+                    if (RexpUtil.isTopDomain(host)) {
+                        log.error(host + "为顶级域名，不预解析！");
+                        isTop = Const.INTEGER_1;
+                        isValid = false;
+                    }
+                    if (RexpUtil.isOtherDomain(host)) {
+                        log.error(host + "包含未知顶级域名，不预解析！");
+                        unknownTop = Const.INTEGER_1;
+                        isValid = false;
+                    }
                 }
                 if (isValid) {
                     validHostList.add(host);
@@ -136,6 +138,7 @@ public class ScanProjectService {
             return;
         }
         scanProjectFeign.deleteBatch(ids);
+        JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, ids.get(0)));
         Map<String, Object> params = new HashMap<>(Const.INTEGER_1);
         params.put("projectId", ids.get(0));
         List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);

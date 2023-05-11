@@ -138,7 +138,7 @@
     <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
         select
         DISTINCT
-        t1.*, t2.domain, t2.parent_domain, t2.company
+        t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name, u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip = t1.ip
         and t2.del_flg = 0
@@ -146,6 +146,8 @@
         and t3.del_flg = 0
         join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
+        join sys_user u on u.user_id = t4.user_id
+        and u.del_flg = 0
         where t1.del_flg = 0
         <if test="params.projectId != null and params.projectId != ''">
             and t4.id = #{params.projectId}
@@ -168,13 +170,16 @@
         <if test="params.port != null and params.port != ''">
             and t1.port like concat('%', #{params.port}, '%')
         </if>
+        <if test="params.serverName != null and params.serverName != ''">
+            and t1.server_name like concat('%', #{params.serverName}, '%')
+        </if>
         order by t1.ip, t1.port
     </select>
 
     <select id="exportList" resultType="com.lhh.serverbase.vo.ScanPortVo">
         select
         DISTINCT
-        t1.*, t2.domain, t2.parent_domain, t2.company
+        t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name
         from scan_port t1
         join scan_host t2 on t2.ip = t1.ip
         and t2.del_flg = 0
@@ -200,6 +205,9 @@
         </if>
         <if test="params.port != null and params.port != ''">
             and t1.port like concat('%', #{params.port}, '%')
+        </if>
+        <if test="params.serverName != null and params.serverName != ''">
+            and t1.server_name like concat('%', #{params.serverName}, '%')
         </if>
         order by t1.ip, t1.port
     </select>

@@ -55,5 +55,14 @@ public class ScanPortEntity extends BaseEntity {
      */
     @TableField(exist = false)
     private String company;
+    /**
+     * 公司
+     */
+    @TableField(exist = false)
+    private String projectName;
+    @TableField(exist = false)
+    private Long userId;
+    @TableField(exist = false)
+    private String userName;
 
 }
