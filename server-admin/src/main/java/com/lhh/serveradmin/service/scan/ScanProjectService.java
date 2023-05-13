@@ -9,6 +9,7 @@ import com.lhh.serveradmin.feign.scan.ScanProjectFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectHostFeign;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.mqtt.ProjectSender;
+import com.lhh.serveradmin.service.sys.SysUserService;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
@@ -60,9 +61,9 @@ public class ScanProjectService {
         List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().replace(" ", "").split(Const.STR_LINEFEED)));
         project.setHostList(hostList);
         project = scanProjectFeign.save(project);
-        JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
         List<String> validHostList = new ArrayList<>();
+        List<String> notValidHostList = new ArrayList<>();
         Boolean isValid;
         if (!CollectionUtils.isEmpty(hostList)) {
             for (String host : hostList) {
@@ -84,6 +85,8 @@ public class ScanProjectService {
                 }
                 if (isValid) {
                     validHostList.add(host);
+                } else {
+                    notValidHostList.add(host);
                 }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
                         .projectId(project.getId()).inputHost(host)
@@ -94,8 +97,13 @@ public class ScanProjectService {
             }
             scanProjectContentFeign.saveBatch(saveContentList);
         }
-        project.setHostList(validHostList);
-        projectSender.sendToMqtt(project);
+        if (!CollectionUtils.isEmpty(validHostList)) {
+            JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
+            project.setHostList(validHostList);
+            projectSender.sendToMqtt(project);
+        } else {
+            log.info("项目" + project.getId() + "输入域名包含" + JSON.toJSONString(project.getHostList()) + ",其中扫描域名包含" + JSON.toJSONString(validHostList) + ",不扫描域名包含" + JSON.toJSONString(notValidHostList));
+        }
         return R.ok();
     }
 

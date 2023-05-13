@@ -52,6 +52,10 @@ public class ScanHostEntity extends BaseEntity {
      */
     private Integer type;
     /**
+     * 是否为域名（0.否 1.是）
+     */
+    private Integer isDomain;
+    /**
      * 是否为主域名（0.否 1.是）
      */
     private Integer isMajor;

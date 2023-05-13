@@ -51,26 +51,28 @@
 
     <select id="getContentIpList" resultMap="contentMap">
         select t.*, t2.ip from scan_project_content t
-        join scan_project_host t1 on t1.project_id = t.project_id
-        join scan_host t2 on t2.domain = t1.`host`
+        left join scan_project_host t1 on t1.project_id = t.project_id
+        and t1.del_flg = 0
+        left join scan_host t2 on t2.domain = t1.`host`
+        and t2.del_flg = 0
         where t.del_flg = 0
         and t.is_completed = 0
-        and t1.del_flg = 0
-        and t2.del_flg = 0
         <if test="notIdList != null and notIdList.size() > 0">
-            and t1.project_id not in
+            and t.project_id not in
             <foreach collection="notIdList" item="projectId" index="index" separator="," close=")" open="(">
                 #{projectId}
             </foreach>
         </if>
         --  关联表没有关联关系的直接判定为未扫描
-        and t1.project_id not in (
+        and t.project_id not in (
         select distinct t1.project_id from scan_project_content t1
         left join scan_project_host t2 on t2.`host` = t1.input_host
         and t2.project_id = t1.project_id
         and t2.del_flg = 0
         where t1.del_flg = 0
         and t1.is_completed = 0
+        and t1.unknown_top != 1
+        and t1.is_top != 1
         and t2.id is null)
     </select>
 

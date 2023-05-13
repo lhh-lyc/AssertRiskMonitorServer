@@ -165,6 +165,7 @@ public class ScanService {
                                         .company(company)
                                         .type(Const.INTEGER_3)
                                         .isMajor(RexpUtil.isMajorDomain(sub.getSubDomain()) ? Const.INTEGER_1 : Const.INTEGER_0)
+                                        .isDomain(Const.INTEGER_1)
                                         .subIpList(sub.getSubIpList())
                                         .build();
                                 saveHostList.add(host);

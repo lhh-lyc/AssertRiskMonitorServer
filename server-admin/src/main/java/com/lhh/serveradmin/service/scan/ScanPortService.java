@@ -1,11 +1,15 @@
 package com.lhh.serveradmin.service.scan;
 
 import com.lhh.serveradmin.feign.scan.ScanPortFeign;
+import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
+import com.lhh.serveradmin.service.sys.SysUserService;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 

@@ -17,77 +17,85 @@
             </sql>
 
     <select id="queryHomeNum" resultType="com.lhh.serverbase.dto.HomeNumDto">
-        select count(distinct t4.ip,t4.port) as port_num from scan_project t1
-        join scan_project_host t2 on t2.project_id = t1.id
-        join scan_host t3 on t3.domain = t2.`host`
-        join scan_port t4 on t4.ip = t3.ip
-        where t1.del_flg = 0
-        and t3.del_flg = 0
-        and t4.del_flg = 0
+        SELECT
+        count( DISTINCT t1.ip, t1.PORT ) AS port_num
+        FROM
+        scan_port t1
+        LEFT JOIN scan_host t2 ON t2.ip = t1.ip
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project_host t3 ON t3.`host` = t2.domain
+        AND t3.del_flg = 0
+        LEFT JOIN scan_project t4 ON t4.id = t3.project_id
+        AND t4.del_flg = 0
+        WHERE
+        t1.del_flg = 0
         <if test="userId != null and userId != ''">
-            and t1.user_id = #{userId}
+            and t4.user_id = #{userId}
         </if>
     </select>
 
     <select id="queryGroupTag"  resultType="com.lhh.serverbase.dto.GroupTagDto">
         select
-        <if test="params.type == 1">
-            '项目' as tag_name, t1.name as tag, t1.id as tag_value
-        </if>
         <if test="params.type == 2">
-            '企业' as tag_name, t3.company as tag, t3.company as tag_value
+            '企业' as tag_name, t1.company as tag, t1.company as tag_value
         </if>
         <if test="params.type == 3">
-            '主域名' as tag_name, t3.parent_domain as tag, t3.parent_domain as tag_value
+            '主域名' as tag_name, t1.parent_domain as tag, t1.parent_domain as tag_value
         </if>
         <if test="params.type == 4">
-            '子域名' as tag_name, t3.domain as tag, t3.domain as tag_value
+            '子域名' as tag_name, t1.domain as tag, t1.domain as tag_value
         </if>
         <if test="params.type == 5">
-            'ip' as tag_name, t3.ip as tag, t3.ip as tag_value
+            'ip' as tag_name, t1.ip as tag, t1.ip as tag_value
         </if>
         <if test="params.type == 6">
             '端口' as tag_name, concat(t4.ip,':',t4.PORT) as tag, concat(t4.ip,':',t4.PORT) as tag_value
         </if>
-        from scan_project t1
-        <if test="params.type != 1">
-            join scan_project_host t2 on t2.project_id = t1.id
-            and t2.del_flg = 0
-            join scan_host t3 on t3.domain = t2.host
-            and t3.del_flg = 0
-        </if>
+        from scan_host t1
+        LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project t3 ON t3.id = t2.project_id
+        AND t3.del_flg = 0
         <if test="params.type == 6">
-            join scan_port t4 on t4.ip = t3.ip
+            join scan_port t4 on t4.ip = t1.ip
             and t4.del_flg = 0
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            join scan_project t5 on t5.id = t3.project_id
+            and t5.del_flg = 0
         </if>
         where t1.del_flg = 0
         <if test="params.userId != null and params.userId != ''">
-            and t1.user_id = #{params.userId}
+            and t5.user_id = #{params.userId}
         </if>
         <if test="params.type == 2">
-            and t3.company is not null
+            and t1.company is not null
+        </if>
+        <if test="params.type == 3">
+            and t1.is_domain = 1
         </if>
         <if test="params.type == 4">
-            and t3.is_major = 0
+            and t1.is_domain = 1
+            and t1.is_major = 0
         </if>
         <if test="params.type == 5">
-            and t3.ip != '-'
+            and t1.ip != '-'
         </if>
         group by
         <if test="params.type == 1">
-            t1.create_time desc
+            t5.id
         </if>
         <if test="params.type == 2">
-            t3.company
+            t1.company
         </if>
         <if test="params.type == 3">
-            t3.parent_domain
+            t1.parent_domain
         </if>
         <if test="params.type == 4">
-            t3.domain
+            t1.domain
         </if>
         <if test="params.type == 5">
-            t3.ip
+            t1.ip
         </if>
         <if test="params.type == 6">
             t4.ip,t4.port
@@ -97,41 +105,45 @@
     <select id="queryGroupTagNum"  resultType="java.lang.Integer">
         select
         <if test="params.type == 2">
-            count(distinct t3.company)
+            count(distinct t1.company)
         </if>
         <if test="params.type == 3">
-            count(distinct t3.parent_domain)
+            count(distinct t1.parent_domain)
         </if>
         <if test="params.type == 4">
-            count(distinct t3.domain)
+            count(distinct t1.domain)
         </if>
         <if test="params.type == 5">
-            count(distinct t3.ip)
+            count(distinct t1.ip)
         </if>
         <if test="params.type == 6">
             count(distinct t4.ip,t4.port)
         </if>
-        from scan_project t1
-        join scan_project_host t2 on t2.project_id = t1.id
-        and t2.del_flg = 0
-        join scan_host t3 on t3.domain = t2.host
-        and t3.del_flg = 0
+        from scan_host t1
+        LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project t3 ON t3.id = t2.project_id
+        AND t3.del_flg = 0
         <if test="params.type == 6">
-            join scan_port t4 on t4.ip = t3.ip
+            join scan_port t4 on t4.ip = t1.ip
             and t4.del_flg = 0
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            join scan_project t5 on t5.id = t3.project_id
+            and t5.del_flg = 0
         </if>
         where t1.del_flg = 0
         <if test="params.userId != null and params.userId != ''">
-            and t1.user_id = #{params.userId}
+            and t5.user_id = #{params.userId}
         </if>
         <if test="params.type == 2">
-            and t3.company is not null
+            and t1.company is not null
         </if>
         <if test="params.type == 4">
-            and t3.is_major = 0
+            and t1.is_major = 0
         </if>
         <if test="params.type == 5">
-            and t3.ip != '-'
+            and t1.ip != '-'
         </if>
     </select>
 
@@ -142,11 +154,11 @@
         from scan_port t1
         join scan_host t2 on t2.ip = t1.ip
         and t2.del_flg = 0
-        join scan_project_host t3 on t3.`host` = t2.domain
+        LEFT join scan_project_host t3 on t3.`host` = t2.domain
         and t3.del_flg = 0
-        join scan_project t4 on t4.id = t3.project_id
+        LEFT join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
-        join sys_user u on u.user_id = t4.user_id
+        LEFT join sys_user u on u.user_id = t4.user_id
         and u.del_flg = 0
         where t1.del_flg = 0
         <if test="params.projectId != null and params.projectId != ''">
@@ -173,13 +185,13 @@
         <if test="params.serverName != null and params.serverName != ''">
             and t1.server_name like concat('%', #{params.serverName}, '%')
         </if>
-        order by t1.ip, t1.port
+        order by t2.parent_domain, t2.domain, t1.ip, t1.port
     </select>
 
     <select id="exportList" resultType="com.lhh.serverbase.vo.ScanPortVo">
         select
         DISTINCT
-        t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name
+        t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name, u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip = t1.ip
         and t2.del_flg = 0
@@ -187,7 +199,12 @@
         and t3.del_flg = 0
         join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
+        LEFT join sys_user u on u.user_id = t4.user_id
+        and u.del_flg = 0
         where t1.del_flg = 0
+        <if test="params.projectId != null and params.projectId != ''">
+            and t4.id = #{params.projectId}
+        </if>
         <if test="params.userId != null and params.userId != ''">
             and t4.user_id = #{params.userId}
         </if>
@@ -209,7 +226,7 @@
         <if test="params.serverName != null and params.serverName != ''">
             and t1.server_name like concat('%', #{params.serverName}, '%')
         </if>
-        order by t1.ip, t1.port
+        order by t2.parent_domain, t2.domain, t1.ip, t1.port
     </select>
 
     <update id="deleteByIpPort">

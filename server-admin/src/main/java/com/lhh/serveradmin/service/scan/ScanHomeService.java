@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.service.scan;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.*;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
@@ -45,23 +46,10 @@ public class ScanHomeService {
         HomeNumDto numDto = scanPortFeign.getHomeNum(params);
         Integer companyNum = list.stream().filter(c->!StringUtils.isEmpty(c.getCompany())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getCompany))), ArrayList::new)).size();
         Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", 5);}});
-        Map<String, List<ScanResultDto>> parentDomainList = list.stream().collect(Collectors.groupingBy(ScanResultDto::getParentDomain));
-        Integer primaryDomainNum = Const.INTEGER_0;
-        if (!CollectionUtils.isEmpty(parentDomainList)) {
-            for (String key : parentDomainList.keySet()) {
-                if (RexpUtil.isMajorDomain(key)) {
-                    primaryDomainNum++;
-                }
-            }
-        }
-        Integer subDomainNum = Const.INTEGER_0;
-        if (!CollectionUtils.isEmpty(list)) {
-            for (ScanResultDto dto : list) {
-                if (!RexpUtil.isMajorDomain(dto.getDomain()) && !RexpUtil.isIP(dto.getDomain())) {
-                    subDomainNum++;
-                }
-            }
-        }
+        List<String> primaryDomainList = list.stream().filter(c->Const.INTEGER_1.equals(c.getIsDomain())).map(ScanResultDto::getParentDomain).distinct().collect(Collectors.toList());
+        Integer primaryDomainNum = primaryDomainList.size();
+        List<ScanResultDto> subDomainList = list.stream().filter(c->Const.INTEGER_0.equals(c.getIsMajor())&&Const.INTEGER_1.equals(c.getIsDomain())).collect(Collectors.toList());
+        Integer subDomainNum = subDomainList.size();
         List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);
         List<ScanProjectContentEntity> completeList = contentList.stream().filter(i->Const.INTEGER_1.equals(i.getIsCompleted())).collect(Collectors.toList());
         List<ScanProjectContentEntity> notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
@@ -121,7 +109,27 @@ public class ScanHomeService {
     }
 
     public IPage<GroupTagDto> getGroupTag(Map<String, Object> params){
-        IPage<GroupTagDto> list = scanPortFeign.getGroupTag(params);
+        Integer type = MapUtil.getInt(params, "type");
+        IPage<GroupTagDto> list = new IPage<>();;
+        if (Const.INTEGER_1.equals(type)) {
+            IPage<ScanProjectEntity> projectList = scanProjectFeign.page(params);
+            if (!CollectionUtils.isEmpty(projectList.getRecords())) {
+                List<GroupTagDto> dtoList = new ArrayList<>();
+                for (ScanProjectEntity project : projectList.getRecords()) {
+                    GroupTagDto dto = GroupTagDto.builder()
+                            .tagName("项目").tag(project.getName()).tagValue(project.getId().toString())
+                            .build();
+                    dtoList.add(dto);
+                }
+                list.setCurrent(projectList.getCurrent());
+                list.setPages(projectList.getPages());
+                list.setSize(projectList.getSize());
+                list.setTotal(projectList.getTotal());
+                list.setRecords(dtoList);
+            }
+            return list;
+        }
+        list = scanPortFeign.getGroupTag(params);
         return list;
     }
 

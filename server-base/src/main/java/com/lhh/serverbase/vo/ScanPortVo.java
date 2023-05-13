@@ -25,6 +25,19 @@ public class ScanPortVo {
     /**
      * 公司
      */
+    @ExcelProperty("用户")
+    @TableField(exist = false)
+    private String userName;
+    /**
+     * 公司
+     */
+    @ColumnWidth(20)
+    @ExcelProperty("项目")
+    @TableField(exist = false)
+    private String projectName;
+    /**
+     * 公司
+     */
     @ColumnWidth(30)
     @ExcelProperty("公司")
     @TableField(exist = false)

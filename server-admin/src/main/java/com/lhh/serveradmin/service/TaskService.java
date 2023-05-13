@@ -31,6 +31,7 @@ public class TaskService {
         if (!CollectionUtils.isEmpty(contentList)) {
             for (ScanProjectContentEntity content : contentList) {
                 flag = true;
+                // 这两个条件不放到sql是因为有的项目只有不扫描的域名，sql查出来更新状态而不是不查出来
                 if (!Const.INTEGER_1.equals(content.getIsTop()) && !Const.INTEGER_1.equals(content.getUnknownTop())) {
                     for (String ip : content.getIpList()) {
                         if (JedisUtils.exists(String.format(CacheConst.REDIS_SCANNING_IP, ip))) {

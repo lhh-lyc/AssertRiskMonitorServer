@@ -25,4 +25,8 @@ public class ScanResultDto {
 
     private Integer port;
 
+    private Integer isDomain;
+
+    private Integer isMajor;
+
 }

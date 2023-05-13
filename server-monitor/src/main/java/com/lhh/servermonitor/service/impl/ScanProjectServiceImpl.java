@@ -154,6 +154,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .domain(ip).ip(ip).parentDomain(ip)
                             .scanPorts(project.getScanPorts())
                             .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
+                            .isDomain(Const.INTEGER_0)
                             .build();
                     scanIpList.add(scanHost);
 

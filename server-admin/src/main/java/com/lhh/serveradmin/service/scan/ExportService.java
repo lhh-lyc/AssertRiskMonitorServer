@@ -12,6 +12,7 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.ImportExcelUtils;
 import com.lhh.serverbase.utils.PortUtils;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverbase.vo.ScanPortVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -149,11 +150,14 @@ public class ExportService {
                     } else {
                         parentDomain = StringUtils.isEmpty(data.get(1)) ? StringUtils.isEmpty(data.get(2)) ? data.get(3) : data.get(2) : data.get(1);
                     }
+                    Integer isDomain = RexpUtil.isIP(domain) ? Const.INTEGER_0 : Const.INTEGER_1;
+                    Integer isMajor = RexpUtil.isMajorDomain(domain) ? Const.INTEGER_1 : Const.INTEGER_0;
                     ScanHostEntity host = ScanHostEntity.builder()
                             .domain(domain)
                             .parentDomain(parentDomain)
                             .ip(data.get(3)).type(data.get(2).equals(data.get(1)) ? Const.INTEGER_1 : Const.INTEGER_3)
                             .scanPorts(data.get(4)).company(data.get(0))
+                            .isDomain(isDomain).isMajor(isMajor)
                             .build();
                     saveHostList.add(host);
                 } else {

@@ -31,16 +31,17 @@
 
     <select id="queryDomainGroupList" resultType="com.lhh.serverbase.dto.ScanResultDto">
         select
-        t1.id as project_id,t3.parent_domain, t3.domain, t3.company,t3.ip
-        from scan_project t1
-        join scan_project_host t2 on t2.project_id = t1.id
-        join scan_host t3 on t3.domain = t2.`host`
-        where t1.del_flg = 0
+        t3.id as project_id,t1.parent_domain, t1.domain, t1.company,t1.ip, t1.is_domain, t1.is_major
+        from scan_host t1
+        left join scan_project_host t2 on t2.`host` = t1.domain
+        and t2.del_flg = 0
+        left join scan_project t3 on t3.id = t2.project_id
         and t3.del_flg = 0
+        where t1.del_flg = 0
         <if test="userId != null and userId != ''">
-            and t1.user_id = #{userId}
+            and t3.user_id = #{userId}
         </if>
-        GROUP BY t3.domain
+        GROUP BY t1.domain
     </select>
 
 </mapper>
