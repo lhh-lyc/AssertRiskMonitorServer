@@ -2,13 +2,17 @@ package com.lhh.serverinfocommon.controller.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverinfocommon.service.scan.ScanProjectContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +122,27 @@ public class ScanProjectContentController {
     public List<ScanProjectContentEntity> getContentIpList(@RequestBody List<String> notIdList) {
         List<ScanProjectContentEntity> scanProjectHostList = scanProjectContentService.getContentIpList(notIdList);
         return scanProjectHostList;
+    }
+
+    @PostMapping("test")
+    public void test() {
+        List<ScanProjectContentEntity> list = scanProjectContentService.list(new HashMap<>());
+        String parentDomain = "";
+        for (ScanProjectContentEntity content : list) {
+            if (StringUtils.isEmpty(content.getParentDomain())) {
+                if (RexpUtil.isIP(content.getInputHost())) {
+                    content.setParentDomain(content.getInputHost());
+                } else {
+                    if (content.getUnknownTop().equals(Const.INTEGER_1)) {
+                        content.setParentDomain(content.getInputHost());
+                    } else {
+                        parentDomain = RexpUtil.getMajorDomain(content.getInputHost());
+                        content.setParentDomain(parentDomain);
+                    }
+                }
+                scanProjectContentService.updateById(content);
+            }
+        }
     }
 
 }

@@ -22,9 +22,7 @@ public class PageUtil {
             limit = Integer.parseInt(MapUtil.getStr(params, "limit"));
         }
         Page page = new Page(currPage, limit);
-
         if (params.get("sidx") != null) {
-
             String sidx = String.valueOf(params.get("sidx"));
             if (!StringUtils.isEmpty(sidx)) {
                 if (params.get("order") != null) {
@@ -37,12 +35,9 @@ public class PageUtil {
                 } else {
                     page.setAsc(sidx);
                 }
-
             }
-
-
         }
-
+        page.setOptimizeCountSql(false);
         return page;
     }
 }

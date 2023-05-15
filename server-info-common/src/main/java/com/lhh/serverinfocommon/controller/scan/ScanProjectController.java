@@ -38,12 +38,6 @@ public class ScanProjectController {
         return R.ok();
     }
 
-    @GetMapping("getHomeNum")
-    public R getHomeNum(@RequestBody ScanProjectEntity project) {
-        scanProjectService.save(project);
-        return R.ok();
-    }
-
     /**
      * 保存
      *
@@ -115,8 +109,23 @@ public class ScanProjectController {
      */
     @GetMapping("/page")
     public IPage<ScanProjectEntity> page(@RequestParam Map<String, Object> params) {
+        Long t1 = System.currentTimeMillis();
         IPage<ScanProjectEntity> page = scanProjectService.page(params);
+        Long t2 = System.currentTimeMillis();
+        System.out.println(t2-t1);
         return page;
+    }
+
+    /**
+     * 分页查询列表
+     */
+    @GetMapping("/l")
+    public List<ScanProjectEntity> l(@RequestParam Map<String, Object> params) {
+        Long t1 = System.currentTimeMillis();
+        List<ScanProjectEntity> l = scanProjectService.l(params);
+        Long t2 = System.currentTimeMillis();
+        System.out.println(t2-t1);
+        return l;
     }
 
     /**

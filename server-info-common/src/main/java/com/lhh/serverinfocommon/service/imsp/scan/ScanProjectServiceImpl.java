@@ -54,6 +54,17 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     }
 
     /**
+     * 分页查询列表数据
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public List<ScanProjectEntity> l(Map<String, Object> params) {
+        return scanProjectDao.queryList(params);
+    }
+
+    /**
      * 查询列表数据
      *
      * @param params

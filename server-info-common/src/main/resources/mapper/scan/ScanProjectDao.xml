@@ -38,29 +38,29 @@
             </resultMap>
 
     <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
-        select * from (
+        select t.* from (
         select
                t1.id, t1.name, t1.scan_ports, t1.create_time,
-               count(distinct t4.port_id) as port_num, u.user_name,
-        case when t5.is_completed is null then 1 else 0 end as is_completed
+               count(distinct t4.port_id) as port_num, u.user_name, t5.is_completed
         from scan_project t1
-        left join scan_project_host t2 on t2.project_id = t1.id
+        join scan_project_host t2 on t2.project_id = t1.id
         and t2.del_flg = 0
-        left join scan_host t3 on t3.domain = t2.host
+        join scan_host t3 on t3.domain = t2.host
         and t3.del_flg = 0
-        left join scan_port t4 on t4.ip = t3.ip
+        join scan_port t4 on t4.ip = t3.ip
         and t4.del_flg = 0
-        left join (
-        select p.id, pc.is_completed from scan_project p
-        join scan_project_content pc on pc.project_id = p.id
-        where p.del_flg = 0
-        and pc.del_flg = 0
+        JOIN (
+        SELECT
+        t1.project_id,IF(SUM(CASE WHEN t1.is_completed = 0 THEN 1 ELSE 0 END) = 0, 1, 0) as is_completed
+        FROM scan_project_content t1
+        join scan_project t2 on t2.id = t1.project_id
+        and t2.del_flg = 0
         <if test="params.userId != null and params.userId != ''">
-            and p.user_id = #{params.userId}
+            and t2.user_id = #{params.userId}
         </if>
-        and pc.is_completed = 0
-        ) t5 on t5.id = t1.id
-        join sys_user u on u.user_id = t1.user_id
+        group by t1.project_id
+        ) t5 ON t5.project_id = t1.id
+        left join sys_user u on u.user_id = t1.user_id
         and u.del_flg = 0
         where t1.del_flg = 0
         <if test="params.userId != null and params.userId != ''">
@@ -77,9 +77,42 @@
     </select>
 
     <select id="queryList" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
+        select t.* from (
         select
-        <include refid="baseColumn"/>
-        from scan_project
+        t1.id, t1.name, t1.scan_ports, t1.create_time,
+        count(distinct t4.port_id) as port_num, u.user_name, t5.is_completed
+        from scan_project t1
+        left join scan_project_host t2 on t2.project_id = t1.id
+        and t2.del_flg = 0
+        left join scan_host t3 on t3.domain = t2.host
+        and t3.del_flg = 0
+        left join scan_port t4 on t4.ip = t3.ip
+        and t4.del_flg = 0
+        LEFT JOIN (
+        SELECT
+        t1.project_id,IF(SUM(CASE WHEN t1.is_completed = 0 THEN 1 ELSE 0 END) = 0, 1, 0) as is_completed
+        FROM scan_project_content t1
+        join scan_project t2 on t2.id = t1.project_id
+        and t2.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t2.user_id = #{params.userId}
+        </if>
+        group by t1.project_id
+        ) t5 ON t5.project_id = t1.id
+        left join sys_user u on u.user_id = t1.user_id
+        and u.del_flg = 0
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.name != null and params.name != ''">
+            and t1.name like concat ('%', #{params.name}, '%')
+        </if>
+        group by t1.id) t
+        <if test="params.isCompleted != null and params.isCompleted != ''">
+            where t.is_completed = #{params.isCompleted}
+        </if>
+        order by t.create_time desc
     </select>
 
 

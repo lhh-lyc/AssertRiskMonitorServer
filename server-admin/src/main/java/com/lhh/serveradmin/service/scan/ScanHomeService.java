@@ -39,18 +39,33 @@ public class ScanHomeService {
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
     public List<Map<String, Object>> getHomeNum(Map<String, Object> params) {
+        Long t1 = System.currentTimeMillis();
         List<Map<String, Object>> resultList = new ArrayList<>();
         List<ScanProjectEntity> projectList = scanProjectFeign.list(params);
+        Long t2 = System.currentTimeMillis();
+        System.out.println(t2-t1);
         Integer projectNum = projectList.size();
+        Long t3 = System.currentTimeMillis();
         List<ScanResultDto> list = scanHostFeign.getDomainGroupList(params);
+        Long t4 = System.currentTimeMillis();
+        System.out.println(t4-t3);
+        Long t5 = System.currentTimeMillis();
         HomeNumDto numDto = scanPortFeign.getHomeNum(params);
+        Long t6 = System.currentTimeMillis();
+        System.out.println(t6-t5);
         Integer companyNum = list.stream().filter(c->!StringUtils.isEmpty(c.getCompany())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getCompany))), ArrayList::new)).size();
+        Long t7 = System.currentTimeMillis();
         Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", 5);}});
+        Long t8 = System.currentTimeMillis();
+        System.out.println(t8-t7);
         List<String> primaryDomainList = list.stream().filter(c->Const.INTEGER_1.equals(c.getIsDomain())).map(ScanResultDto::getParentDomain).distinct().collect(Collectors.toList());
         Integer primaryDomainNum = primaryDomainList.size();
         List<ScanResultDto> subDomainList = list.stream().filter(c->Const.INTEGER_0.equals(c.getIsMajor())&&Const.INTEGER_1.equals(c.getIsDomain())).collect(Collectors.toList());
         Integer subDomainNum = subDomainList.size();
+        Long t9 = System.currentTimeMillis();
         List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);
+        Long t10 = System.currentTimeMillis();
+        System.out.println(t10-t9);
         List<ScanProjectContentEntity> completeList = contentList.stream().filter(i->Const.INTEGER_1.equals(i.getIsCompleted())).collect(Collectors.toList());
         List<ScanProjectContentEntity> notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
         List<ScanProjectContentEntity> completeIpList = completeList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());

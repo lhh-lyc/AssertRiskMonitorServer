@@ -149,7 +149,6 @@
 
     <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
         select
-        DISTINCT
         t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name, u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip = t1.ip

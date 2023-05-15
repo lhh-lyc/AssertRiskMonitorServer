@@ -23,6 +23,8 @@ public interface ScanProjectService extends IService<ScanProjectEntity> {
      */
     IPage<ScanProjectEntity> page(Map<String, Object> params);
 
+    List<ScanProjectEntity> l(Map<String, Object> params);
+
     /**
      * 根据参数查询列表
      * @param params

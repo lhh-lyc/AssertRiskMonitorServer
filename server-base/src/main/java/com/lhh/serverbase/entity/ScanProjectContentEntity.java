@@ -38,6 +38,10 @@ public class ScanProjectContentEntity extends BaseEntity {
      */
     private String inputHost;
     /**
+     * 主域名
+     */
+    private String parentDomain;
+    /**
      * 扫描的端口
      */
     private String scanPorts;

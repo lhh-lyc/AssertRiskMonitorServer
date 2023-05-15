@@ -32,6 +32,6 @@ public interface ScanProjectDao extends BaseMapper<ScanProjectEntity> {
      * @param params
      * @return
      */
-    List<ScanProjectEntity> queryList(Map<String, Object> params);
+    List<ScanProjectEntity> queryList(@Param("params") Map<String, Object> params);
 
 }
