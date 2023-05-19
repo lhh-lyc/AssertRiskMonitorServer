@@ -41,6 +41,17 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Autowired
     ScanProjectHostService scanProjectHostService;
 
+    @Override
+    public IPage<ScanProjectEntity> basicPage(Map<String, Object> params) {
+        Page<ScanProjectEntity> page = PageUtil.getPageParam(params);
+        return scanProjectDao.basicPage(page, params);
+    }
+
+    @Override
+    public List<ScanProjectEntity> getProjectPortNum(List<Long> projectIdList) {
+        return scanProjectDao.getProjectPortNum(projectIdList);
+    }
+
     /**
      * 分页查询列表数据
      *

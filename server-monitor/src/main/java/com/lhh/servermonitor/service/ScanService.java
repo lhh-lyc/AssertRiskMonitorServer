@@ -10,10 +10,7 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
-import com.lhh.serverbase.utils.CopyUtils;
-import com.lhh.serverbase.utils.HttpUtils;
-import com.lhh.serverbase.utils.PortUtils;
-import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.serverbase.utils.*;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
@@ -161,7 +158,7 @@ public class ScanService {
                                 ScanHostEntity host = ScanHostEntity.builder()
                                         .parentDomain(parentDomain)
                                         .domain(sub.getSubDomain())
-                                        .ip(ip).scanPorts(scanPorts)
+                                        .ip(ip).ipLong(IpLongUtils.ipToLong(ip)).scanPorts(scanPorts)
                                         .company(company)
                                         .type(Const.INTEGER_3)
                                         .isMajor(RexpUtil.isMajorDomain(sub.getSubDomain()) ? Const.INTEGER_1 : Const.INTEGER_0)

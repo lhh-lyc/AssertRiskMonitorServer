@@ -37,17 +37,66 @@
                     <result property="updateId" column="update_id"/>
             </resultMap>
 
+    <select id="basicPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
+        select
+        t1.id, t1.name, t1.scan_ports, t1.create_time,t2.is_completed
+        from scan_project t1
+        join sys_user u on u.user_id = t1.user_id
+        and u.del_flg = 0
+        JOIN (
+        SELECT
+        t1.project_id,
+        IF
+        ( SUM( CASE WHEN t1.is_completed = 0 THEN 1 ELSE 0 END ) = 0, 1, 0 ) AS is_completed
+        FROM
+        scan_project_content t1
+        JOIN scan_project t2 ON t2.id = t1.project_id
+        AND t2.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            AND t2.user_id = #{params.userId}
+        </if>
+        GROUP BY
+        t1.project_id
+        ) t2 ON t2.project_id = t1.id
+        where t1.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.name != null and params.name != ''">
+            and t1.name like concat ('%', #{params.name}, '%')
+        </if>
+        order by t1.create_time desc
+    </select>
+
+    <select id="getProjectPortNum" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
+        select t.project_id as id, ifnull(count(distinct t.port_id), 0) as port_num from (
+        select t1.project_id, t3.port_id from scan_project_content t1
+        join scan_host t2 on t2.parent_domain = t1.parent_domain
+        and t2.del_flg = 0
+        join scan_port t3 on t3.ip_long = t2.ip_long
+        and t3.del_flg = 0
+        where t1.del_flg = 0
+        <if test="projectIdList != null and projectIdList.size() > 0">
+            AND t1.project_id IN
+            <foreach collection="projectIdList" item="projectId" index="index" separator="," close=")" open="(">
+                #{projectId}
+            </foreach>
+        </if>
+        ) t
+        group by t.project_id
+    </select>
+
     <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
         select t.* from (
         select
-               t1.id, t1.name, t1.scan_ports, t1.create_time,
-               count(distinct t4.port_id) as port_num, u.user_name, t5.is_completed
+        t1.id, t1.name, t1.scan_ports, t1.create_time,
+        count(distinct t4.port_id) as port_num, u.user_name, t5.is_completed
         from scan_project t1
         join scan_project_host t2 on t2.project_id = t1.id
         and t2.del_flg = 0
         join scan_host t3 on t3.domain = t2.host
         and t3.del_flg = 0
-        join scan_port t4 on t4.ip = t3.ip
+        join scan_port t4 on t4.ip_long = t3.ip_long
         and t4.del_flg = 0
         JOIN (
         SELECT
@@ -86,7 +135,7 @@
         and t2.del_flg = 0
         left join scan_host t3 on t3.domain = t2.host
         and t3.del_flg = 0
-        left join scan_port t4 on t4.ip = t3.ip
+        left join scan_port t4 on t4.ip_long = t3.ip_long
         and t4.del_flg = 0
         LEFT JOIN (
         SELECT

@@ -39,5 +39,11 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<ScanHostEntity> equalParams(Map<String, Object> params);
 
+    Integer getCompanyNum(Map<String, Object> params);
+
+    Integer getDomainNum(Map<String, Object> params);
+
+    Integer getSubDomainNum(Map<String, Object> params);
+
 }
 

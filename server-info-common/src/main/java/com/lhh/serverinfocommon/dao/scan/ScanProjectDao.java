@@ -25,6 +25,10 @@ public interface ScanProjectDao extends BaseMapper<ScanProjectEntity> {
     * @param params
     * @return
     */
+    IPage<ScanProjectEntity> basicPage(Page page, @Param("params") Map<String, Object> params);
+
+    List<ScanProjectEntity> getProjectPortNum(@Param("projectIdList") List<Long> projectIdList);
+
     IPage<ScanProjectEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
 
     /**

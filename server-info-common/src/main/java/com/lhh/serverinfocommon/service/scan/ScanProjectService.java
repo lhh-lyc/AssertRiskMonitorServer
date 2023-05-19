@@ -16,6 +16,10 @@ import java.util.Map;
  */
 public interface ScanProjectService extends IService<ScanProjectEntity> {
 
+    IPage<ScanProjectEntity> basicPage(Map<String, Object> params);
+
+    List<ScanProjectEntity> getProjectPortNum(List<Long> projectIdList);
+
     /**
      * 分页查询列表数据
      * @param params

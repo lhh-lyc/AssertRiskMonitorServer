@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -89,7 +90,7 @@ public class ScanProjectService {
                     notValidHostList.add(host);
                 }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
-                        .projectId(project.getId()).inputHost(host)
+                        .projectId(project.getId()).inputHost(host).parentDomain(RexpUtil.getMajorDomain(host))
                         .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)
                         .isTop(isTop).unknownTop(unknownTop)
                         .build();
@@ -108,14 +109,18 @@ public class ScanProjectService {
     }
 
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
-        IPage<ScanProjectEntity> page = scanProjectFeign.page(params);
-        List<Long> projectIds = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
-        params.put("projectIds", projectIds);
-        List<ScanProjectContentEntity> contentList = CollectionUtils.isEmpty(projectIds) ? new ArrayList<>() : scanProjectContentFeign.list(params);
+        IPage<ScanProjectEntity> page = scanProjectFeign.basicPage(params);
+        List<Long> projectIdList = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
+        List<ScanProjectEntity> numList = scanProjectFeign.getProjectPortNum(projectIdList);
+        Map<Long, Integer> maps = numList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
+        params.put("projectIds", projectIdList);
+        List<ScanProjectContentEntity> contentList = CollectionUtils.isEmpty(projectIdList) ? new ArrayList<>() : scanProjectContentFeign.list(params);
         Map<Long, List<ScanProjectContentEntity>> contentMap = contentList.stream().collect(Collectors.groupingBy(ScanProjectContentEntity::getProjectId));
         Date now = new Date();
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
+                Integer portNum = maps.get(project.getId());
+                project.setPortNum(portNum);
                 List<ScanProjectContentEntity> allList = contentMap.containsKey(project.getId()) ? contentMap.get(project.getId()) : new ArrayList<>();
                 List<ScanProjectContentEntity> scannedList = allList.stream().filter(c -> Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
                 project.setAllHostNum(allList.size());

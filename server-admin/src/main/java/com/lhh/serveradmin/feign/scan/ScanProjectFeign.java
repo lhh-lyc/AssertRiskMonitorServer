@@ -17,6 +17,12 @@ public interface ScanProjectFeign {
     @PostMapping("/scan/project/save")
     ScanProjectEntity save(@RequestBody ScanProjectEntity project);
 
+    @GetMapping("/scan/project/basicPage")
+    IPage<ScanProjectEntity> basicPage(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/project/getProjectPortNum")
+    List<ScanProjectEntity> getProjectPortNum(@RequestBody List<Long> projectIdList);
+
     @GetMapping("/scan/project/page")
     IPage<ScanProjectEntity> page(@RequestParam Map<String, Object> params);
 

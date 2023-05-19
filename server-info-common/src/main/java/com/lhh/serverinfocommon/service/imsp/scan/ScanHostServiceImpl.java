@@ -91,4 +91,19 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         return list;
     }
 
+    @Override
+    public Integer getCompanyNum(Map<String, Object> params) {
+        return scanHostDao.getCompanyNum(params);
+    }
+
+    @Override
+    public Integer getDomainNum(Map<String, Object> params) {
+        return scanHostDao.getDomainNum(params);
+    }
+
+    @Override
+    public Integer getSubDomainNum(Map<String, Object> params) {
+        return scanHostDao.getDomainNum(params);
+    }
+
 }

@@ -130,5 +130,23 @@ public class ScanHostController {
         return scanHostList;
     }
 
+    @GetMapping("getCompanyNum")
+    public Integer getCompanyNum(@RequestParam Map<String, Object> params) {
+        Integer num = scanHostService.getCompanyNum(params);
+        return num;
+    }
+
+    @GetMapping("getDomainNum")
+    public Integer getDomainNum(@RequestParam Map<String, Object> params) {
+        Integer num = scanHostService.getDomainNum(params);
+        return num;
+    }
+
+    @GetMapping("getSubDomainNum")
+    public Integer getSubDomainNum(@RequestParam Map<String, Object> params) {
+        Integer num = scanHostService.getSubDomainNum(params);
+        return num;
+    }
+
 }
 

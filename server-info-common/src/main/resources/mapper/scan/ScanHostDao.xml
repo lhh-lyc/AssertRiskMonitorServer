@@ -44,4 +44,55 @@
         GROUP BY t1.domain
     </select>
 
+    <select id="getCompanyNum" resultType="java.lang.Integer">
+        SELECT
+        count(DISTINCT t1.company)
+        FROM
+        scan_host t1
+        LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project t3 ON t3.id = t2.project_id
+        AND t3.del_flg = 0
+        WHERE
+        t1.del_flg = 0
+        <if test="userId != null and userId != ''">
+            and t3.user_id = #{userId}
+        </if>
+    </select>
+
+    <select id="getDomainNum" resultType="java.lang.Integer">
+        SELECT
+        count(distinct domain)
+        FROM
+        scan_host t1
+        LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project t3 ON t3.id = t2.project_id
+        AND t3.del_flg = 0
+        WHERE
+        t1.del_flg = 0
+        and t1.is_major = 1
+        <if test="userId != null and userId != ''">
+            and t3.user_id = #{userId}
+        </if>
+    </select>
+
+    <select id="getSubDomainNum" resultType="java.lang.Integer">
+        SELECT
+        count(distinct domain)
+        FROM
+        scan_host t1
+        LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain
+        AND t2.del_flg = 0
+        LEFT JOIN scan_project t3 ON t3.id = t2.project_id
+        AND t3.del_flg = 0
+        WHERE
+        t1.del_flg = 0
+        and t1.is_domain = 1
+        and t1.is_major = 0
+        <if test="userId != null and userId != ''">
+            and t3.user_id = #{userId}
+        </if>
+    </select>
+
 </mapper>

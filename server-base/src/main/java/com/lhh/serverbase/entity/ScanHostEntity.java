@@ -40,6 +40,10 @@ public class ScanHostEntity extends BaseEntity {
      */
     private String ip;
     /**
+     * ip
+     */
+    private Long ipLong;
+    /**
      * 扫描的端口
      */
     private String scanPorts;

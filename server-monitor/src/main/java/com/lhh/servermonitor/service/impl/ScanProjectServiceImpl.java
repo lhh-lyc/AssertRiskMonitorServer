@@ -11,6 +11,7 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.utils.RexpUtil;
@@ -151,7 +152,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             if (!CollectionUtils.isEmpty(newIpList)) {
                 for (String ip : newIpList) {
                     ScanHostEntity scanHost = ScanHostEntity.builder()
-                            .domain(ip).ip(ip).parentDomain(ip)
+                            .domain(ip).parentDomain(ip)
+                            .ip(ip).ipLong(IpLongUtils.ipToLong(ip))
                             .scanPorts(project.getScanPorts())
                             .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
                             .isDomain(Const.INTEGER_0)

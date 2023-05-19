@@ -38,68 +38,68 @@ public class ScanHomeService {
     @Resource
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
-    public List<Map<String, Object>> getHomeNum(Map<String, Object> params) {
-        Long t1 = System.currentTimeMillis();
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<ScanProjectEntity> projectList = scanProjectFeign.list(params);
-        Long t2 = System.currentTimeMillis();
-        System.out.println(t2-t1);
-        Integer projectNum = projectList.size();
-        Long t3 = System.currentTimeMillis();
-        List<ScanResultDto> list = scanHostFeign.getDomainGroupList(params);
-        Long t4 = System.currentTimeMillis();
-        System.out.println(t4-t3);
-        Long t5 = System.currentTimeMillis();
-        HomeNumDto numDto = scanPortFeign.getHomeNum(params);
-        Long t6 = System.currentTimeMillis();
-        System.out.println(t6-t5);
-        Integer companyNum = list.stream().filter(c->!StringUtils.isEmpty(c.getCompany())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScanResultDto :: getCompany))), ArrayList::new)).size();
-        Long t7 = System.currentTimeMillis();
-        Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", 5);}});
-        Long t8 = System.currentTimeMillis();
-        System.out.println(t8-t7);
-        List<String> primaryDomainList = list.stream().filter(c->Const.INTEGER_1.equals(c.getIsDomain())).map(ScanResultDto::getParentDomain).distinct().collect(Collectors.toList());
-        Integer primaryDomainNum = primaryDomainList.size();
-        List<ScanResultDto> subDomainList = list.stream().filter(c->Const.INTEGER_0.equals(c.getIsMajor())&&Const.INTEGER_1.equals(c.getIsDomain())).collect(Collectors.toList());
-        Integer subDomainNum = subDomainList.size();
-        Long t9 = System.currentTimeMillis();
-        List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);
-        Long t10 = System.currentTimeMillis();
-        System.out.println(t10-t9);
-        List<ScanProjectContentEntity> completeList = contentList.stream().filter(i->Const.INTEGER_1.equals(i.getIsCompleted())).collect(Collectors.toList());
-        List<ScanProjectContentEntity> notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
-        List<ScanProjectContentEntity> completeIpList = completeList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-        List<ScanProjectContentEntity> completeDomainList = completeList.stream().filter(i->!RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-        List<ScanProjectContentEntity> notCompleteIpList = notCompleteList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-        List<ScanProjectContentEntity> notCompleteDomainList = notCompleteList.stream().filter(i->!RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-
-        Map<String, Object> result = new HashMap<String, Object>(){{put("title", "项目");put("num", projectNum);put("type", 1);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "企业");put("num", companyNum);put("type", 2);}};
-        resultList.add(result);
-        Integer finalPrimaryDomainNum = primaryDomainNum;
-        result = new HashMap<String, Object>(){{put("title", "主域名");put("num", finalPrimaryDomainNum);put("type", 3);}};
-        resultList.add(result);
-        Integer finalSubDomainNum = subDomainNum;
-        result = new HashMap<String, Object>(){{put("title", "子域名");put("num", finalSubDomainNum);put("type", 4);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "IP");put("num", ipNum);put("type", 5);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "端口");put("num", numDto.getPortNum());put("type", 6);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "网站");put("num", numDto.getPortNum());put("type", 7);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "漏洞");put("num", numDto.getPortNum());put("type", 8);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "主域名已收集");put("num", completeDomainList.size());put("type", 9);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "IP已扫描");put("num", completeIpList.size());put("type", 10);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "主域名收集");put("num", notCompleteDomainList.size());put("type", 11);}};
-        resultList.add(result);
-        result = new HashMap<String, Object>(){{put("title", "IP扫描");put("num", notCompleteIpList.size());put("type", 12);}};
-        resultList.add(result);
-        return resultList;
+    public Map<String, Object> getHomeNum(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        Integer type = MapUtil.getInt(params, "type");
+        switch (type) {
+            case 1:
+                List<ScanProjectEntity> projectList = scanProjectFeign.list(params);
+                result = new HashMap<String, Object>(){{put("title", "项目");put("num", projectList.size());put("type", type);}};
+                break;
+            case 2:
+                Integer companyNum = scanHostFeign.getCompanyNum(params);
+                result = new HashMap<String, Object>(){{put("title", "企业");put("num", companyNum);put("type", type);}};
+                break;
+            case 3:
+                Integer primaryDomainNum = scanHostFeign.getDomainNum(params);
+                result = new HashMap<String, Object>(){{put("title", "主域名");put("num", primaryDomainNum);put("type", type);}};
+                break;
+            case 4:
+                Integer subDomainNum = scanHostFeign.getSubDomainNum(params);
+                result = new HashMap<String, Object>(){{put("title", "子域名");put("num", subDomainNum);put("type", type);}};
+                break;
+            case 5:
+                Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", type);}});
+                result = new HashMap<String, Object>(){{put("title", "IP");put("num", ipNum);put("type", type);}};
+                break;
+            case 6:
+                HomeNumDto numDto = scanPortFeign.getHomeNum(params);
+                result = new HashMap<String, Object>(){{put("title", "端口");put("num", numDto.getPortNum());put("type", 6);}};
+                break;
+            case 7:
+                numDto = scanPortFeign.getHomeNum(params);
+                result = new HashMap<String, Object>(){{put("title", "网站");put("num", numDto.getPortNum());put("type", type);}};
+                break;
+            case 8:
+                numDto = scanPortFeign.getHomeNum(params);
+                result = new HashMap<String, Object>(){{put("title", "漏洞");put("num", numDto.getPortNum());put("type", type);}};
+                break;
+            case 9:
+                List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);
+                List<ScanProjectContentEntity> completeList = contentList.stream().filter(i->Const.INTEGER_1.equals(i.getIsCompleted())).collect(Collectors.toList());
+                List<ScanProjectContentEntity> completeDomainList = completeList.stream().filter(i->!RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
+                result = new HashMap<String, Object>(){{put("title", "主域名已收集");put("num", completeDomainList.size());put("type", type);}};
+                break;
+            case 10:
+                contentList = scanProjectContentFeign.list(params);
+                completeList = contentList.stream().filter(i->Const.INTEGER_1.equals(i.getIsCompleted())).collect(Collectors.toList());
+                List<ScanProjectContentEntity> completeIpList = completeList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
+                result = new HashMap<String, Object>(){{put("title", "IP已扫描");put("num", completeIpList.size());put("type", type);}};
+                break;
+            case 11:
+                contentList = scanProjectContentFeign.list(params);
+                List<ScanProjectContentEntity> notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
+                List<ScanProjectContentEntity> notCompleteDomainList = notCompleteList.stream().filter(i->!RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
+                result = new HashMap<String, Object>(){{put("title", "主域名收集");put("num", notCompleteDomainList.size());put("type", type);}};
+                break;
+            case 12:
+                contentList = scanProjectContentFeign.list(params);
+                notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
+                List<ScanProjectContentEntity> notCompleteIpList = notCompleteList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
+                result = new HashMap<String, Object>(){{put("title", "IP扫描");put("num", notCompleteIpList.size());put("type", type);}};
+                break;
+        }
+        return result;
     }
 
     public List<ScanAddRecordEntity> getRecordList(Map<String, Object> params) {

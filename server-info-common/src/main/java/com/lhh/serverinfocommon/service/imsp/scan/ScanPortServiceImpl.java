@@ -1,7 +1,9 @@
 package com.lhh.serverinfocommon.service.imsp.scan;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,6 +11,7 @@ import com.lhh.serverbase.common.request.PageUtil;
 import com.lhh.serverbase.dto.GroupTagDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanPortEntity;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.vo.ScanPortVo;
 import com.lhh.serverinfocommon.dao.scan.ScanPortDao;
@@ -31,6 +34,10 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     @Override
     public IPage<ScanPortEntity> page(Map<String, Object> params) {
         Page<ScanPortEntity> page = PageUtil.getPageParam(params);
+        if (params.get("ip") != null && !StringUtils.isEmpty(MapUtil.getStr(params, "ip"))) {
+            Long ipLong = IpLongUtils.ipToLong(MapUtil.getStr(params, "ip"));
+            params.put("ipLong", ipLong);
+        }
         return scanPortDao.page(page, params);
     }
 
@@ -75,6 +82,10 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
 
     @Override
     public List<ScanPortVo> exportList(Map<String, Object> params) {
+        if (params.get("ip") != null && !StringUtils.isEmpty(MapUtil.getStr(params, "ip"))) {
+            Long ipLong = IpLongUtils.ipToLong(MapUtil.getStr(params, "ip"));
+            params.put("ipLong", ipLong);
+        }
         return scanPortDao.exportList(params);
     }
 

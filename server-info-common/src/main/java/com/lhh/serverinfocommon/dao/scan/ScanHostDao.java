@@ -37,5 +37,10 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     List<ScanResultDto> queryDomainGroupList(Map<String, Object> params);
 
+    Integer getCompanyNum(Map<String, Object> params);
+
+    Integer getDomainNum(Map<String, Object> params);
+
+    Integer getSubDomainNum(Map<String, Object> params);
 
 }

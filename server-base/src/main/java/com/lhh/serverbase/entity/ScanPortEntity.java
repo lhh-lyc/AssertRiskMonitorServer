@@ -33,6 +33,10 @@ public class ScanPortEntity extends BaseEntity {
      */
     private String ip;
     /**
+     * ip
+     */
+    private Long ipLong;
+    /**
      * port
      */
     private Integer port;

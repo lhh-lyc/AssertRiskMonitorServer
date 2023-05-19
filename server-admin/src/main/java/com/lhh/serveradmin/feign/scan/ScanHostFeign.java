@@ -32,4 +32,13 @@ public interface ScanHostFeign {
     @PostMapping("/scan/host/update")
     void update(@RequestBody ScanHostEntity scanHost);
 
+    @GetMapping("/scan/host/getCompanyNum")
+    Integer getCompanyNum(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/host/getDomainNum")
+    Integer getDomainNum(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/host/getSubDomainNum")
+    Integer getSubDomainNum(@RequestParam Map<String, Object> params);
+
 }

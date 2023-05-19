@@ -19,7 +19,7 @@ public class ScanHomeController {
 
     @GetMapping("getHomeNum")
     public R getHomeNum(@RequestParam Map<String, Object> params){
-        return R.ok(scanHomeService.getHomeNum(params));
+        return R.ok().put("data", scanHomeService.getHomeNum(params));
     }
 
     @GetMapping("getRecordList")

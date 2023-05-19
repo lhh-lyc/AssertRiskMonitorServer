@@ -11,10 +11,7 @@ import com.lhh.serverinfocommon.service.scan.ScanProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -107,12 +104,27 @@ public class ScanProjectController {
     /**
      * 分页查询列表
      */
+    @GetMapping("/basicPage")
+    public IPage<ScanProjectEntity> basicPage(@RequestParam Map<String, Object> params) {
+        IPage<ScanProjectEntity> page = scanProjectService.basicPage(params);
+        return page;
+    }
+
+    @PostMapping("/getProjectPortNum")
+    public List<ScanProjectEntity> getProjectPortNum(@RequestBody List<Long> projectIdList) {
+        if (CollectionUtils.isEmpty(projectIdList)) {
+            return new ArrayList<>();
+        }
+        List<ScanProjectEntity> scanProjectList = scanProjectService.getProjectPortNum(projectIdList);
+        return scanProjectList;
+    }
+
+    /**
+     * 分页查询列表
+     */
     @GetMapping("/page")
     public IPage<ScanProjectEntity> page(@RequestParam Map<String, Object> params) {
-        Long t1 = System.currentTimeMillis();
         IPage<ScanProjectEntity> page = scanProjectService.page(params);
-        Long t2 = System.currentTimeMillis();
-        System.out.println(t2-t1);
         return page;
     }
 
