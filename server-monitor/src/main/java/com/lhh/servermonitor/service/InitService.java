@@ -3,10 +3,9 @@ package com.lhh.servermonitor.service;
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.servermonitor.mqtt.MqSender;
+import com.lhh.servermonitor.mqtt.MqIpSender;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +31,7 @@ public class InitService {
     @Autowired
     ScanPortInfoService scanPortInfoService;
     @Autowired
-    MqSender mqSender;
+    MqIpSender mqIpSender;
 
     public void initTask() {
         // 扫描中断的ip发送到mq，只允许一个服务发送
@@ -59,7 +58,7 @@ public class InitService {
                     keyList.put(key, JSONObject.toJSONString(obj));
                     if (dtoList.size() == size) {
                         ScanParamDto d = ScanParamDto.builder().dtoList(dtoList).build();
-                        mqSender.sendScanningIpToMqtt(d);
+                        mqIpSender.sendScanningIpToMqtt(d);
                         dtoList.clear();
                         JedisUtils.setPipeJson(keyList);
                         keyList.clear();
@@ -67,7 +66,7 @@ public class InitService {
                 }
                 if (!CollectionUtils.isEmpty(dtoList)) {
                     ScanParamDto d = ScanParamDto.builder().dtoList(dtoList).build();
-                    mqSender.sendScanningIpToMqtt(d);
+                    mqIpSender.sendScanningIpToMqtt(d);
                     JedisUtils.setPipeJson(keyList);
                 }
             }

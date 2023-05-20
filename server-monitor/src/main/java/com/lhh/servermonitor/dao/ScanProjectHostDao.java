@@ -20,19 +20,6 @@ import java.util.Map;
 @Mapper
 public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
-    /**
-    * 分页查询用户列表
-    * @param page
-    * @param params
-    * @return
-    */
-    IPage<ScanProjectHostEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
-
-    /**
-     * 查询用户列表
-     * @param params
-     * @return
-     */
-    List<ScanProjectHostEntity> queryList(Map<String, Object> params);
+    void updateEndScanDomain(@Param("ipLong") Long ipLong);
 
 }

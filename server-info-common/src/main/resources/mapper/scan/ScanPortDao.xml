@@ -18,7 +18,10 @@
 
     <select id="queryHomeNum" resultType="com.lhh.serverbase.dto.HomeNumDto">
         SELECT
-        count(t1.port_id) AS port_num
+        count(*) AS port_num
+        from (
+        SELECT
+        distinct t1.ip_long, t1.`port`
         FROM
         scan_port t1
         JOIN scan_host t2 ON t2.ip_long = t1.ip_long
@@ -31,7 +34,7 @@
         t1.del_flg = 0
         <if test="userId != null and userId != ''">
             and t4.user_id = #{userId}
-        </if>
+        </if>) t
     </select>
 
     <select id="queryGroupTag"  resultType="com.lhh.serverbase.dto.GroupTagDto">
@@ -61,7 +64,7 @@
             and t4.del_flg = 0
         </if>
         <if test="params.userId != null and params.userId != ''">
-            join scan_project t5 on t5.id = t3.project_id
+            join scan_project t5 on t5.id = t3.id
             and t5.del_flg = 0
         </if>
         where t1.del_flg = 0

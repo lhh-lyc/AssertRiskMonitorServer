@@ -14,4 +14,39 @@
         </foreach>
     </update>
 
+    <update id="updateEndScanIp">
+        update scan_host
+        set is_scanning = 0
+        where del_flg = 0
+          and ip_long = #{ipLong}
+    </update>
+
+    <select id="getEndScanDomain" resultType="java.lang.String">
+        select t.domain
+        from (
+                 select domain, sum(is_scanning) as sum
+                 from scan_host
+                 where del_flg = 0
+                   and domain in (
+                     select domain from scan_host
+                     WHERE del_flg = 0
+                   and ip_long = #{ipLong})
+                 group by domain
+                 having sum = 0) t
+    </select>
+
+    <select id="getEndScanMajor" resultType="java.lang.String">
+        select t.parent_domain
+        from (
+        select parent_domain, sum(is_scanning) as sum
+        from scan_host
+        where del_flg = 0
+        and domain in (
+        select domain from scan_host
+        WHERE del_flg = 0
+        and ip_long = #{ipLong})
+        group by parent_domain
+        having sum = 0) t
+    </select>
+
 </mapper>

@@ -7,6 +7,7 @@ import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -114,9 +115,12 @@ public class ScanPortInfoService {
     public void scanSingleIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();
         String ip = dto.getSubIp();
+        Long ipLong = IpLongUtils.ipToLong(ip);
         params.put("ip", ip);
         List<ScanPortEntity> portEntityList = scanPortService.list(params);
         if (!CollectionUtils.isEmpty(portEntityList)) {
+            // 更新isScanning
+            scanHostService.updateEndScanDomain(ipLong);
             log.info(ip + "扫描端口已被扫描！");
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
             return;
@@ -164,7 +168,7 @@ public class ScanPortInfoService {
 
                 for (String port : scanPortList) {
                     ScanPortEntity scanPort = ScanPortEntity.builder()
-                            .ip(ip).port(Integer.valueOf(port))
+                            .ip(ip).ipLong(ipLong).port(Integer.valueOf(port))
                             .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
                             .build();
                     portList.add(scanPort);
@@ -175,11 +179,13 @@ public class ScanPortInfoService {
             }
             log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
         }
+        // 更新isScanning
+        scanHostService.updateEndScanDomain(ipLong);
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
     }
 
     /**
-     * java代码获取开放端口
+     * 重新扫描，覆盖
      */
     public void reloadIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();

@@ -35,7 +35,12 @@ public class ScanProjectHostEntity extends BaseEntity {
      * host表
      */
     private String host;
+    /**
+     * 是否正在扫描中（0.否 1.是）防止重复扫描
+     */
+    private Integer isScanning;
 
     @TableField(exist = false)
     private String ports;
+
 }

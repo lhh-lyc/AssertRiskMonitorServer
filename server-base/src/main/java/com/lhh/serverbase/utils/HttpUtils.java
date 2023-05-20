@@ -57,8 +57,10 @@ public class HttpUtils {
     }
 
     public static void main(String[] args) {
-        String obj = getDomainUnit("hb.com");
-        System.out.println(obj);
+        for (int i = 0; i < 100;i++) {
+            String obj = getDomainUnit("dywx.njgdkyhb.com");
+            System.out.println(obj);
+        }
     }
 
 }

@@ -23,7 +23,7 @@ public class ServerMonitorApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        initService.initTask();
+//        initService.initTask();
     }
 
 }

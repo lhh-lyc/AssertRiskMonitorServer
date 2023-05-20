@@ -15,6 +15,7 @@ import org.springframework.amqp.rabbit.annotation.*;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,9 +38,9 @@ public class ProjectListener {
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
+        log.info(JSON.toJSONString(project));
         try {
-            log.info(JSON.toJSONString(project));
-//            redisLock.saveProjectRedis(project);
+//                redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);

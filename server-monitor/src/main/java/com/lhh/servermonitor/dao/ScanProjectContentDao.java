@@ -25,4 +25,6 @@ public interface ScanProjectContentDao extends BaseMapper<ScanProjectContentEnti
 
     void updateStatus(List<ScanProjectContentEntity> list);
 
+    void updateEndScanContent(@Param("ipLong") Long ipLong);
+
 }

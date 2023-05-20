@@ -21,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class MqSender {
+public class MqIpSender {
 
     @Value("${mqtt-setting.host}")
     private String host;

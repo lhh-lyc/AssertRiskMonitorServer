@@ -56,6 +56,7 @@ mqtt-setting:
   userName: guest
   password: guest
   scanning-ip-pub-topic: scanningIpData
+  scanning-host-pub-topic: scanningHostData
   concurrent_consumers: 3
   maxConcurrent_consumers: 10
   prefetch_count: 1

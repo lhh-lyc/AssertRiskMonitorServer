@@ -98,15 +98,6 @@ public class ScanProjectController {
         return page;
     }
 
-    /**
-     * 根据条件查询列表数据
-     */
-    @GetMapping("list")
-    public List<ScanProjectEntity> list(@RequestParam Map<String, Object> params) {
-        List<ScanProjectEntity> scanProjectList = scanProjectService.list(params);
-        return scanProjectList;
-    }
-
     @GetMapping("info")
     public ScanProjectEntity getInfo(Long id) {
             ScanProjectEntity scanProject = scanProjectService.getById(id);

@@ -25,14 +25,9 @@ public interface ScanProjectService extends IService<ScanProjectEntity> {
      */
     IPage<ScanProjectEntity> page(Map<String, Object> params);
 
-    /**
-    * 根据参数查询列表
-    * @param params
-    * @return
-    */
-    List<ScanProjectEntity> list(Map<String, Object> params);
-
     void saveProject(ScanProjectEntity project);
+
+    List<ScanProjectEntity> getByNameAndUserId(Long userId, String name);
 
 }
 

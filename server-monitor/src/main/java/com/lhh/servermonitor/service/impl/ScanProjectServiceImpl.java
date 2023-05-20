@@ -17,6 +17,7 @@ import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanProjectDao;
+import com.lhh.servermonitor.mqtt.MqIpSender;
 import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
@@ -56,6 +57,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     SyncService syncService;
     @Autowired
     RedisLock redisLock;
+    @Autowired
+    MqIpSender mqIpSender;
 
     /**
      * 分页查询列表数据
@@ -70,18 +73,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 new QueryWrapper<ScanProjectEntity>()
         );
         return page;
-    }
-
-    /**
-     * 查询列表数据
-     *
-     * @param params
-     * @return
-     */
-    @Override
-    public List<ScanProjectEntity> list(Map<String, Object> params) {
-        List<ScanProjectEntity> list = scanProjectDao.queryList(params);
-        return list;
     }
 
     @Override
@@ -102,7 +93,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
             List<ScanHostEntity> exitHostInfoList = scanHostService.getByDomainList(project.getHostList());
             exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts())).collect(Collectors.toList());
-
             List<String> sameHostList = exitHostInfoList.stream().map(ScanHostEntity::getDomain).collect(Collectors.toList());
             List<String> finalSameHostList = sameHostList.stream().distinct().collect(Collectors.toList());
 
@@ -137,7 +127,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String host : exitSubDoMainList) {
                     ScanProjectHostEntity projectHost = ScanProjectHostEntity.builder()
-                            .projectId(project.getId()).host(host)
+                            .projectId(project.getId()).host(host).isScanning(Const.INTEGER_0)
                             .build();
                     saveProjectHostList.add(projectHost);
                 }
@@ -157,6 +147,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .scanPorts(project.getScanPorts())
                             .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
                             .isDomain(Const.INTEGER_0)
+                            .isScanning(Const.INTEGER_1)
                             .build();
                     scanIpList.add(scanHost);
 
@@ -182,10 +173,10 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 scanProjectHostService.saveBatch(projectHostList);
             }
             JedisUtils.setPipeJson(redisMap);
-            redisMap.clear();
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
 //                scanPortInfoService.scanPortList(scanPortParamList);
-                syncService.dataHandler(scanPortParamList);
+//                syncService.dataHandler(scanPortParamList);
+                mqIpSender.sendScanningIpToMqtt(ScanParamDto.builder().dtoList(scanPortParamList).build());
                 List<ScanProjectContentEntity> contentList = new ArrayList<>();
                 for (ScanParamDto dto : scanPortParamList) {
                     if (!StringUtils.isEmpty(dto.getSubIp())) {
@@ -220,21 +211,35 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .portFlag(project.getPortFlag())
                             .build();
                     scanDomainParamList.add(dto);
-//                    redisMap.put(String.format(CacheConst.REDIS_TASK_DOMAIN, host), Const.STR_1);
                 }
-            }
-            JedisUtils.setPipeJson(redisMap);
-            if (!CollectionUtils.isEmpty(scanDomainParamList)) {
                 for (ScanParamDto dto : scanDomainParamList) {
                     try {
-                        scanService.scanDomainList(dto);
+                        scanService.scanDomainList2(dto);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
+            } else {
+                // 未关联到子域名也不存在于host表，说明不是主域名增加一条关联关系（主域名不需要，因为上面查询子域名的时候关联了）
+                // 不需要重新扫描的域名，在此维护scan_project_host表关联
+                if (CollectionUtils.isEmpty(saveProjectHostList)) {
+                    List<ScanProjectHostEntity> projectDomainList = new ArrayList<>();
+                    for (String host : finalSameHostList) {
+                        ScanProjectHostEntity item = ScanProjectHostEntity.builder()
+                                .projectId(project.getId()).host(host)
+                                .isScanning(Const.INTEGER_0)
+                                .build();
+                        projectDomainList.add(item);
+                    }
+                    scanProjectHostService.saveBatch(projectDomainList);
+                }
             }
         }
-//        JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getUserId() + Const.STR_TITLE + project.getName()));
+    }
+
+    @Override
+    public List<ScanProjectEntity> getByNameAndUserId(Long userId, String name) {
+        return scanProjectDao.getByNameAndUserId(userId, name);
     }
 
 }

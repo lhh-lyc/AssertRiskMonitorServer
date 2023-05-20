@@ -21,18 +21,9 @@ import java.util.Map;
 public interface ScanProjectDao extends BaseMapper<ScanProjectEntity> {
 
     /**
-    * 分页查询用户列表
-    * @param page
-    * @param params
-    * @return
-    */
-    IPage<ScanProjectEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
-
-    /**
      * 查询用户列表
-     * @param params
      * @return
      */
-    List<ScanProjectEntity> queryList(Map<String, Object> params);
+    List<ScanProjectEntity> getByNameAndUserId(@Param("userId") Long userId, @Param("name") String name);
 
 }

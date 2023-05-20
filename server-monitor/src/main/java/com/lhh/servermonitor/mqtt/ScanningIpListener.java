@@ -33,7 +33,7 @@ public class ScanningIpListener {
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         List<ScanParamDto> scanPortParamList = dto.getDtoList();
         try {
-            log.info(JSON.toJSONString(scanPortParamList));
+            log.info("扫描ip端口：" + JSON.toJSONString(scanPortParamList));
             syncService.dataHandler(scanPortParamList);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {

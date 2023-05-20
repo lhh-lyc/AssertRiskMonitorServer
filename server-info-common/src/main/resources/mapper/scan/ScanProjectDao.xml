@@ -39,7 +39,7 @@
 
     <select id="basicPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
         select
-        t1.id, t1.name, t1.scan_ports, t1.create_time,t2.is_completed
+        t1.id, t1.name, t1.scan_ports, t1.create_time, u.user_name, t2.is_completed
         from scan_project t1
         join sys_user u on u.user_id = t1.user_id
         and u.del_flg = 0
@@ -69,11 +69,10 @@
     </select>
 
     <select id="getProjectPortNum" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
-        select t.project_id as id, ifnull(count(distinct t.port_id), 0) as port_num from (
-        select t1.project_id, t3.port_id from scan_project_content t1
-        join scan_host t2 on t2.parent_domain = t1.parent_domain
+        select t1.project_id as id, ifnull(count(distinct t3.port_id), 0) as port_num from scan_project_content t1
+        left join scan_host t2 on t2.parent_domain = t1.parent_domain
         and t2.del_flg = 0
-        join scan_port t3 on t3.ip_long = t2.ip_long
+        left join scan_port t3 on t3.ip_long = t2.ip_long
         and t3.del_flg = 0
         where t1.del_flg = 0
         <if test="projectIdList != null and projectIdList.size() > 0">
@@ -82,8 +81,7 @@
                 #{projectId}
             </foreach>
         </if>
-        ) t
-        group by t.project_id
+        group by t1.project_id
     </select>
 
     <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">

@@ -6,11 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.ScanHostEntity;
-import com.lhh.serverbase.entity.ScanProjectContentEntity;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.entity.SshResponse;
+import com.lhh.serverbase.entity.*;
 import com.lhh.serverbase.utils.*;
+import com.lhh.servermonitor.mqtt.MqHostSender;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
@@ -48,6 +46,8 @@ public class ScanService {
     ScanPortInfoService scanPortInfoService;
     @Autowired
     SyncService syncService;
+    @Autowired
+    MqHostSender mqHostSender;
 
     public void scanDomainList(ScanParamDto scanDto) {
         String parentDomain = RexpUtil.getMajorDomain(scanDto.getHost());
@@ -73,21 +73,7 @@ public class ScanService {
         List<ScanHostEntity> saveHostList = new ArrayList<>();
         List<ScanHostEntity> updateHostList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
-//            List<ScanHostEntity> exitHostInfoList = scanHostService.getByDomainList(subdomainList);
-//            Map<String, ScanHostEntity> hostMap = exitHostInfoList.stream().collect(Collectors.toMap(ScanHostEntity::getDomain, Function.identity(), (key1, key2) -> key2));
             for (String subdomain : subdomainList) {
-                /*ScanHostEntity host = hostMap.get(subdomain);
-                if (host != null) {
-                    if (PortUtils.portEquals(host.getScanPorts(), scanDto.getScanPorts())) {
-                        // 已扫描域名跳过
-                        // 子域名循环，当子域名不等于输入域名域名且mysql父域名等于该域名时，说明是子域名已存在mysql并该更新父域名了
-                        if (!scanDto.getHost().equals(subdomain) && host.getParentDomain().equals(subdomain)) {
-                            host.setParentDomain(scanDto.getHost());
-                            updateHostList.add(host);
-                        }
-                        continue;
-                    }
-                }*/
                 ScanParamDto dto = new ScanParamDto();
                 CopyUtils.copyProperties(scanDto, dto);
                 dto.setSubDomain(subdomain);
@@ -163,6 +149,7 @@ public class ScanService {
                                         .type(Const.INTEGER_3)
                                         .isMajor(RexpUtil.isMajorDomain(sub.getSubDomain()) ? Const.INTEGER_1 : Const.INTEGER_0)
                                         .isDomain(Const.INTEGER_1)
+                                        .isScanning(Const.INTEGER_1)
                                         .subIpList(sub.getSubIpList())
                                         .build();
                                 saveHostList.add(host);
@@ -198,19 +185,54 @@ public class ScanService {
 //                scanPortInfoService.scanPortList(scanPortParamList);
                 syncService.dataHandler(scanPortParamList);
             }
-            /*List<ScanProjectContentEntity> contentList = new ArrayList<>();
-            if (!StringUtils.isEmpty(scanDto.getHost())) {
-                contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
-                    put("inputHost", scanDto.getHost());
-                }});
+        }
+    }
+
+    public void scanDomainList2(ScanParamDto scanDto) {
+        List<String> subdomainList = new ArrayList<>();
+        if (Const.INTEGER_1.equals(scanDto.getSubDomainFlag())) {
+            log.info(scanDto.getHost() + "子域名收集");
+            // 子域名列表
+            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, scanDto.getHost());
+            SshResponse response = null;
+            try {
+                response = ExecUtil.runCommand(cmd);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            if (!CollectionUtils.isEmpty(contentList)) {
-                for (ScanProjectContentEntity content : contentList) {
-                    // todo
-                    content.setIsCompleted(Const.INTEGER_1);
-                    scanProjectContentService.updateById(content);
+            subdomainList = response.getOutList();
+            subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
+            log.info(CollectionUtils.isEmpty(subdomainList) ? scanDto.getHost() + "未扫描到子域名" : scanDto.getHost() + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
+        }
+        if (!subdomainList.contains(scanDto.getHost())) {
+            subdomainList.add(scanDto.getHost());
+        }
+        List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
+        List<ScanParamDto> dtoList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(subdomainList)) {
+            // 查询域名关联是否已存在，防止服务重启等情况导致一个项目多个相同域名关联
+            List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), Const.STR_EMPTY);
+            List<String> exitPhList = phList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
+            for (String subdomain : subdomainList) {
+                // 保存项目-host关联关系
+                if (!exitPhList.contains(subdomain)) {
+                    ScanProjectHostEntity item = ScanProjectHostEntity.builder()
+                            .projectId(scanDto.getProjectId()).host(subdomain)
+                            .isScanning(Const.INTEGER_1)
+                            .build();
+                    projectHostList.add(item);
+
+                    ScanParamDto dto = new ScanParamDto();
+                    CopyUtils.copyProperties(scanDto, dto);
+                    dto.setSubDomain(subdomain);
+                    dtoList.add(dto);
                 }
-            }*/
+            }
+            // todo 增加事务
+            scanProjectHostService.saveBatch(projectHostList);
+            for (ScanParamDto dto : dtoList) {
+                mqHostSender.sendScanningHostToMqtt(dto);
+            }
         }
     }
 

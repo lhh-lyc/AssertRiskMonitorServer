@@ -103,7 +103,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     @Override
     public Integer getSubDomainNum(Map<String, Object> params) {
-        return scanHostDao.getDomainNum(params);
+        return scanHostDao.getSubDomainNum(params);
     }
 
 }

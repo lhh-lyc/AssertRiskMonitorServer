@@ -63,6 +63,10 @@ public class ScanHostEntity extends BaseEntity {
      * 是否为主域名（0.否 1.是）
      */
     private Integer isMajor;
+    /**
+     * 是否正在扫描中（0.否 1.是）防止重复扫描
+     */
+    private Integer isScanning;
 
     @TableField(exist = false)
     private List<String> subIpList;
