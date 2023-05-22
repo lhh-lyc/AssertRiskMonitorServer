@@ -180,8 +180,11 @@ public class ScanPortInfoService {
             log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
         }
         // 更新isScanning
+        log.info("开始更新ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
         scanHostService.updateEndScanDomain(ipLong);
+        log.info("更新结束ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+        log.info("删除缓存ip=" + ip + "数据(ipLong=" + ipLong + ")");
     }
 
     /**

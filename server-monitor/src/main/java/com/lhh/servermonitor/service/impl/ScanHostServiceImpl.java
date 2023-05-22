@@ -11,6 +11,7 @@ import com.lhh.servermonitor.dao.ScanHostDao;
 import com.lhh.servermonitor.dao.ScanProjectContentDao;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
 import com.lhh.servermonitor.service.ScanHostService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
+@Slf4j
 @Service("scanHostService")
 public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity> implements ScanHostService {
 
@@ -99,16 +100,22 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         scanHostDao.updateScanPorts(list);
     }
 
-    @Transactional
+//    @Transactional(rollbackFor=Exception.class)
     @Override
     public void updateEndScanDomain(Long ipLong) {
         // 修改所有域名解析为当前ip的数据状态 is_scanning=0
+        log.info("开始更新ipLong=" + ipLong + "数据状态(一)");
         scanHostDao.updateEndScanIp(ipLong);
+        log.info("更新结束ipLong=" + ipLong + "数据状态(一)");
         // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
+        log.info("开始更新ipLong=" + ipLong + "数据状态(二)");
         scanProjectHostDao.updateEndScanDomain(ipLong);
+        log.info("更新结束ipLong=" + ipLong + "数据状态(二)");
         // 根据主域名修改所有输入记录的数据状态 is_completed=1（主域名扫完，同步记录为扫完状态）
         // 暂时不能根据子域名更新，会被第二步影响导致其他子域名下ip没扫完而主域名下ip扫完了被更新
+        log.info("开始更新ipLong=" + ipLong + "数据状态(三)");
         scanProjectContentDao.updateEndScanContent(ipLong);
+        log.info("更新结束ipLong=" + ipLong + "数据状态(三)");
     }
 
 }

@@ -1,7 +1,9 @@
 package com.lhh.serverbase.common.constant;
 
+import com.lhh.serverbase.entity.SshResponse;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -88,7 +90,7 @@ public class Const {
 
     public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate 3000 --wait 0";
 
-    public static String STR_NMAP_SERVER = "cd /opt/assertRiskMonitorServer/tools/&&nmap -p %s %s -sS";
+    public static String STR_NMAP_SERVER = "nmap -p %s %s -sS";
 
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 

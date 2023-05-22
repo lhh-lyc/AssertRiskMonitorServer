@@ -81,7 +81,6 @@ public class MsgConst {
      */
     public static final Integer CODE_409 = 409;
 
-
     /**
      * 提示信息
      */
