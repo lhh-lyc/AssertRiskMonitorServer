@@ -25,36 +25,40 @@ public class SysDictController {
 
     /**
      * 保存
+     *
      * @return
      */
     @PostMapping("save")
     @ApiOperation(value = "保存")
     public void save(@RequestBody SysDictEntity sysDict) {
-            sysDictService.save(sysDict);
+        sysDictService.save(sysDict);
     }
 
     /**
      * 批量保存
+     *
      * @return
      */
     @PostMapping("saveBatch")
     @ApiOperation(value = "批量保存")
     public void save(@RequestBody List<SysDictEntity> sysDictList) {
-            sysDictService.saveBatch(sysDictList);
+        sysDictService.saveBatch(sysDictList);
     }
 
     /**
-    * 更新
-    * @return
-    */
+     * 更新
+     *
+     * @return
+     */
     @PostMapping("update")
     @ApiOperation(value = "更新")
     public void update(@RequestBody SysDictEntity sysDict) {
-            sysDictService.updateById(sysDict);
+        sysDictService.updateById(sysDict);
     }
 
     /**
      * 单个删除
+     *
      * @param id
      * @return
      */
@@ -62,19 +66,20 @@ public class SysDictController {
     @ApiOperation(value = "单个删除")
     public void delete(Long id) {
         if (id != null) {
-                sysDictService.removeById(id);
+            sysDictService.removeById(id);
         }
     }
 
     /**
      * 批量删除
+     *
      * @return
      */
     @PostMapping("deleteBatch")
     @ApiOperation(value = "批量删除")
     public void deleteBatch(@RequestBody Long[] ids) {
         List<Long> idList = Arrays.asList(ids);
-            sysDictService.removeByIds(idList);
+        sysDictService.removeByIds(idList);
     }
 
     /**
@@ -110,7 +115,7 @@ public class SysDictController {
     @GetMapping("info")
     @ApiOperation(value = "详情")
     public SysDictEntity getInfo(Long id) {
-            SysDictEntity sysDict = sysDictService.getById(id);
+        SysDictEntity sysDict = sysDictService.getById(id);
         return sysDict;
     }
 

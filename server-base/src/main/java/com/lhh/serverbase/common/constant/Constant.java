@@ -4,11 +4,11 @@ public class Constant {
     /**
      * 当前页码
      */
-    public static final String PAGE = "pageIndex";
+    public static final String PAGE = "page";
     /**
      * 每页显示记录数
      */
-    public static final String LIMIT = "pageSize";
+    public static final String LIMIT = "limit";
     /**
      * 排序字段
      */
