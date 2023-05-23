@@ -2,6 +2,7 @@ package com.lhh.serverinfocommon.service.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 
@@ -44,6 +45,8 @@ public interface ScanHostService extends IService<ScanHostEntity> {
     Integer getDomainNum(Map<String, Object> params);
 
     Integer getSubDomainNum(Map<String, Object> params);
+
+    List<KeyValueDto> companyRanking(Map<String, Object> params);
 
 }
 

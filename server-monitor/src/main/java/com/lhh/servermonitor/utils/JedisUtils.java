@@ -360,7 +360,7 @@ public class JedisUtils {
                 jedis.close();
             }
         }
-        return null;
+        return Const.STR_EMPTY;
     }
 
     /**

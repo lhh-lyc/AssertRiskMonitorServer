@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.feign.scan;
 
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -40,5 +41,8 @@ public interface ScanHostFeign {
 
     @GetMapping("/scan/host/getSubDomainNum")
     Integer getSubDomainNum(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/host/companyRanking")
+    List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params);
 
 }

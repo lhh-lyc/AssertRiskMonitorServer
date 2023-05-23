@@ -33,4 +33,9 @@ public class CacheConst {
      */
     public final static String REDIS_IS_SELF_VALID = "IS_SELF_VALID";
 
+    /**
+     * redis key: REDIS_DOMAIN_COMPANY
+     */
+    public final static String REDIS_DOMAIN_COMPANY = "DOMAIN_COMPANY:%s";
+
 }

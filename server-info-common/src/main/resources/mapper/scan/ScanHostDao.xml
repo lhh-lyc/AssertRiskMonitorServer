@@ -95,4 +95,36 @@
         </if>
     </select>
 
+    <select id="companyRanking" resultType="com.lhh.serverbase.dto.KeyValueDto">
+        SELECT t1.company as type,
+        <if test='type == "1"'>
+            COUNT(DISTINCT t1.parent_domain)
+        </if>
+        <if test='type == "2"'>
+            COUNT(DISTINCT t1.domain)
+        </if>
+        <if test='type == "3"'>
+            COUNT(DISTINCT t1.ip)
+        </if>
+        <if test='type == "4"'>
+            COUNT( DISTINCT t4.ip, t4.port )
+        </if> as value
+        FROM scan_host t1
+        join scan_project_content t2 on t2.parent_domain = t1.parent_domain
+        and t2.del_flg = 0
+        join scan_project t3 on t3.id = t2.project_id
+        and t3.del_flg = 0
+        <if test='type == "4"'>
+            join scan_port t4 on t4.ip = t1.ip
+            and t4.del_flg = 0
+        </if>
+        WHERE t1.del_flg = 0
+          and t1.company is not null
+        <if test="userId != null and userId != ''">
+            and t3.user_id = #{userId}
+        </if>
+        GROUP BY t1.company
+        ORDER BY value
+    </select>
+
 </mapper>

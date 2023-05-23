@@ -74,7 +74,8 @@ public class ScanningHostListener {
         }
 
         String parentDomain = RexpUtil.getMajorDomain(dto.getHost());
-        String company = HttpUtils.getDomainUnit(dto.getSubDomain());
+//        String company = HttpUtils.getDomainUnit(dto.getSubDomain());
+        String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
         List<ScanHostEntity> exitIpInfoList = scanHostService.getByIpList(ipList);
         Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(h->h.getIp() + Const.STR_UNDERLINE + h.getDomain()));
         List<ScanParamDto> scanPortParamList = new ArrayList<>();

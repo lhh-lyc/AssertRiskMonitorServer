@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.utils.Query;
@@ -104,6 +105,11 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     @Override
     public Integer getSubDomainNum(Map<String, Object> params) {
         return scanHostDao.getSubDomainNum(params);
+    }
+
+    @Override
+    public List<KeyValueDto> companyRanking(Map<String, Object> params) {
+        return scanHostDao.companyRanking(params);
     }
 
 }

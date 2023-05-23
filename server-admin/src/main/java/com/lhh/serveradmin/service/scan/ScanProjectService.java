@@ -19,9 +19,11 @@ import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
+import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,11 +107,29 @@ public class ScanProjectService {
         if (!CollectionUtils.isEmpty(validHostList)) {
             JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
             project.setHostList(validHostList);
-            projectSender.sendToMqtt(project);
+            putProject(project);
         } else {
             log.info("项目" + project.getId() + "输入域名包含" + JSON.toJSONString(project.getHostList()) + ",其中扫描域名包含" + JSON.toJSONString(validHostList) + ",不扫描域名包含" + JSON.toJSONString(notValidHostList));
         }
         return R.ok();
+    }
+
+    @Async
+    public void putProject(ScanProjectEntity project){
+        for (String host : project.getHostList()) {
+            if (!RexpUtil.isIP(host)) {
+                String company = HttpUtils.getDomainUnit(host);
+                JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
+            }
+        }
+        log.info("sleep start");
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        log.info("sleep end");
+        projectSender.sendToMqtt(project);
     }
 
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {

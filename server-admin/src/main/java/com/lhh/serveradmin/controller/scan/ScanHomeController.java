@@ -32,4 +32,9 @@ public class ScanHomeController {
         return R.ok(scanHomeService.getGroupTag(params));
     }
 
+    @GetMapping("companyRanking")
+    public R companyRanking(@RequestParam Map<String, Object> params){
+        return R.ok(scanHomeService.companyRanking(params));
+    }
+
 }

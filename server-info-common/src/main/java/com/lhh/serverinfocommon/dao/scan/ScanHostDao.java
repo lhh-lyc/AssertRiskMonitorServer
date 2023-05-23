@@ -3,6 +3,7 @@ package com.lhh.serverinfocommon.dao.scan;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -42,5 +43,7 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
     Integer getDomainNum(Map<String, Object> params);
 
     Integer getSubDomainNum(Map<String, Object> params);
+
+    List<KeyValueDto> companyRanking(Map<String, Object> params);
 
 }

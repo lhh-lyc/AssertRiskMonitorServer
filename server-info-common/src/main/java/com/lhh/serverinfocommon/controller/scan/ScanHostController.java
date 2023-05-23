@@ -1,6 +1,7 @@
 package com.lhh.serverinfocommon.controller.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverinfocommon.service.scan.ScanHostService;
@@ -146,6 +147,12 @@ public class ScanHostController {
     public Integer getSubDomainNum(@RequestParam Map<String, Object> params) {
         Integer num = scanHostService.getSubDomainNum(params);
         return num;
+    }
+
+    @GetMapping("companyRanking")
+    public List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params) {
+        List<KeyValueDto> list = scanHostService.companyRanking(params);
+        return list;
     }
 
 }

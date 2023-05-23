@@ -8,6 +8,7 @@ import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.dto.GroupTagDto;
 import com.lhh.serverbase.dto.HomeNumDto;
+import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
@@ -145,6 +146,11 @@ public class ScanHomeService {
             return list;
         }
         list = scanPortFeign.getGroupTag(params);
+        return list;
+    }
+
+    public List<KeyValueDto> companyRanking(Map<String, Object> params) {
+        List<KeyValueDto> list = scanHostFeign.companyRanking(params);
         return list;
     }
 
