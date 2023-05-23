@@ -23,6 +23,7 @@ import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -71,16 +72,19 @@ public class ScanProjectService {
                 isValid = true;
                 Integer isTop = Const.INTEGER_0;
                 Integer unknownTop = Const.INTEGER_0;
+                Integer isCompleted = Const.INTEGER_0;
                 // todo 考虑存入数据库
                 if (!RexpUtil.isIP(host)) {
                     if (RexpUtil.isTopDomain(host)) {
                         log.error(host + "为顶级域名，不预解析！");
                         isTop = Const.INTEGER_1;
+                        isCompleted = Const.INTEGER_1;
                         isValid = false;
                     }
                     if (RexpUtil.isOtherDomain(host)) {
                         log.error(host + "包含未知顶级域名，不预解析！");
                         unknownTop = Const.INTEGER_1;
+                        isCompleted = Const.INTEGER_1;
                         isValid = false;
                     }
                 }
@@ -91,7 +95,7 @@ public class ScanProjectService {
                 }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
                         .projectId(project.getId()).inputHost(host).parentDomain(RexpUtil.getMajorDomain(host))
-                        .scanPorts(project.getScanPorts()).isCompleted(Const.INTEGER_0)
+                        .scanPorts(project.getScanPorts()).isCompleted(isCompleted)
                         .isTop(isTop).unknownTop(unknownTop)
                         .build();
                 saveContentList.add(content);

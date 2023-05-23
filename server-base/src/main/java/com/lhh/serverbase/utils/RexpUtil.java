@@ -134,19 +134,23 @@ public class RexpUtil {
         if (isTopDomain(url)) {
             return Const.STR_EMPTY;
         }
-        Matcher matcher = Pattern.compile(RexpConst.RE_TOP, Pattern.CASE_INSENSITIVE).matcher(url);
-        matcher.find();
-        if (url.equals(matcher.group())) {
-            if (!Const.topList.contains(url)) {
-                return url;
-            }
-        } else {
-            String newUrl = url.substring(0, url.indexOf(matcher.group()));
-            if (!newUrl.contains(Const.STR_DOT)) {
-                return url;
+        try {
+            Matcher matcher = Pattern.compile(RexpConst.RE_TOP, Pattern.CASE_INSENSITIVE).matcher(url);
+            matcher.find();
+            if (url.equals(matcher.group())) {
+                if (!Const.topList.contains(url)) {
+                    return url;
+                }
             } else {
-                return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + matcher.group();
+                String newUrl = url.substring(0, url.indexOf(matcher.group()));
+                if (!newUrl.contains(Const.STR_DOT)) {
+                    return url;
+                } else {
+                    return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + matcher.group();
+                }
             }
+        } catch (Exception e) {
+            return Const.STR_EMPTY;
         }
         return Const.STR_EMPTY;
     }
