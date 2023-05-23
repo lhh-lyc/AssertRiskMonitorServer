@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSONObject;
 import com.lhh.serverbase.common.constant.Const;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@Slf4j
 public class HttpUtils {
 
     public static JSONObject httpGet(String url, Map<String, String> headerMap, Map<String, String> params){
@@ -52,7 +54,7 @@ public class HttpUtils {
     }
 
     public static String getDomainUnit(String domain){
-        System.out.println(domain + "-公司名开始查询");
+        log.info(domain + "-公司名开始查询");
         String unit = Const.STR_EMPTY;
         JSONObject data = null;
         try {
@@ -62,9 +64,13 @@ public class HttpUtils {
                     new HashMap<String, String>(){{put("app_id", "ytiuiclnnaoshorw");put("app_secret", "OWVLYVJSZnR3TkxaMTlJWlJHUmJtQT09");}},
                     new HashMap<String, String>(){{put("domain", new String(encode));}});
             Integer code = MapUtil.getInt(obj, "code");
+            if (code.equals(0)) {
+                log.info(domain + ":该域名未备案或已取消备案");
+                return Const.STR_EMPTY;
+            }
             while (code.equals(101)) {
                 Thread.sleep(1000);
-                System.out.println(domain + "-公司名查询等待中。。。。。。。");
+                log.info(domain + "-公司名查询等待中。。。。。。。");
                 obj = httpGet("https://www.mxnzp.com/api/beian/search",
                         new HashMap<String, String>(){{put("app_id", "ytiuiclnnaoshorw");put("app_secret", "OWVLYVJSZnR3TkxaMTlJWlJHUmJtQT09");}},
                         new HashMap<String, String>(){{put("domain", new String(encode));}});
@@ -72,8 +78,8 @@ public class HttpUtils {
             }
             String dataStr = MapUtil.getStr(obj, "data");
             data = JSONObject.parseObject(dataStr);
-            unit = MapUtil.getStr(data, "unit");
-            System.out.println(domain + "-公司名查询完成：" + unit);
+            unit = StringUtils.isEmpty(MapUtil.getStr(data, "unit")) ? Const.STR_EMPTY : MapUtil.getStr(data, "unit");
+            log.info(domain + "-公司名查询完成：" + unit);
         } catch (Exception e) {
             e.printStackTrace();
         }

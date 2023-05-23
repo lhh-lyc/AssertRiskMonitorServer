@@ -1,10 +1,14 @@
 package com.lhh.serveradmin.mqtt;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.lhh.serveradmin.utils.JedisUtils;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.CopyUtils;
+import com.lhh.serverbase.utils.HttpUtils;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -13,7 +17,9 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +48,26 @@ public class ProjectSender {
 
     @Autowired
     AmqpTemplate amqpTemplate;
+
+    @Async
+    public void putProject(ScanProjectEntity project){
+        for (String host : project.getHostList()) {
+            if (!RexpUtil.isIP(host)) {
+                String company = HttpUtils.getDomainUnit(host);
+                if (!StringUtils.isEmpty(company)) {
+                    JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
+                }
+            }
+        }
+        log.info("sleep start");
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        log.info("sleep end");
+        sendToMqtt(project);
+    }
 
     public void sendToMqtt(ScanProjectEntity project) {
         if (CollectionUtils.isEmpty(project.getHostList())) {
