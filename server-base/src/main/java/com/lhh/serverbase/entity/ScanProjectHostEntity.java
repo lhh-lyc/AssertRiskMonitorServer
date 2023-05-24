@@ -36,6 +36,10 @@ public class ScanProjectHostEntity extends BaseEntity {
      */
     private String host;
     /**
+     * 父级域名
+     */
+    private String parentDomain;
+    /**
      * 是否正在扫描中（0.否 1.是）防止重复扫描
      */
     private Integer isScanning;

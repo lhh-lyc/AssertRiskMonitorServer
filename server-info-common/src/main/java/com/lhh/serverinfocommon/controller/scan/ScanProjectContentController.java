@@ -124,6 +124,11 @@ public class ScanProjectContentController {
         return scanProjectHostList;
     }
 
+    @PostMapping("updateEndScanContent")
+    public void updateEndScanContent() {
+        scanProjectContentService.updateEndScanContent();
+    }
+
     @PostMapping("test")
     public void test() {
         List<ScanProjectContentEntity> list = scanProjectContentService.list(new HashMap<>());

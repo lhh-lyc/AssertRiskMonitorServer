@@ -20,6 +20,6 @@ import java.util.Map;
 @Mapper
 public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
-    void updateEndScanDomain(@Param("ipLong") Long ipLong);
+    void updateEndScanDomain(@Param("domain") String domain);
 
 }

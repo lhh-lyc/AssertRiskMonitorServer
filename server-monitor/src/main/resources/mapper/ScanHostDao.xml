@@ -18,7 +18,8 @@
         update scan_host
         set is_scanning = 0
         where del_flg = 0
-          and ip_long = #{ipLong}
+        and is_scanning = 1
+        and ip_long = #{ipLong}
     </update>
 
     <select id="getEndScanDomain" resultType="java.lang.String">

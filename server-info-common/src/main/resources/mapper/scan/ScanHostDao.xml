@@ -119,12 +119,14 @@
             and t4.del_flg = 0
         </if>
         WHERE t1.del_flg = 0
-          and t1.company is not null
+        and t1.company is not null
+        and t1.company != ''
         <if test="userId != null and userId != ''">
             and t3.user_id = #{userId}
         </if>
         GROUP BY t1.company
         ORDER BY value
+        limit #{limit}
     </select>
 
 </mapper>

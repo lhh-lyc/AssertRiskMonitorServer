@@ -51,4 +51,9 @@ public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectConten
         return scanProjectContentDao.getContentIpList(notIdList);
     }
 
+    @Override
+    public void updateEndScanContent() {
+        scanProjectContentDao.updateEndScanContent();
+    }
+
 }

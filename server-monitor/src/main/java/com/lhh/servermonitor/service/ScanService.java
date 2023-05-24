@@ -217,7 +217,8 @@ public class ScanService {
                 // 保存项目-host关联关系
                 if (!exitPhList.contains(subdomain)) {
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .projectId(scanDto.getProjectId()).host(subdomain)
+                            .projectId(scanDto.getProjectId())
+                            .parentDomain(scanDto.getHost()).host(subdomain)
                             .isScanning(Const.INTEGER_1)
                             .build();
                     projectHostList.add(item);

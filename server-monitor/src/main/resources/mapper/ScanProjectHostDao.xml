@@ -4,17 +4,11 @@
 <mapper namespace="com.lhh.servermonitor.dao.ScanProjectHostDao">
 
     <update id="updateEndScanDomain">
-        update scan_project_host t ,
-            (select domain, sum(is_scanning) as sum
-            from scan_host
-            where del_flg = 0
-            and domain in (
-            select domain from scan_host
-            WHERE del_flg = 0
-            and ip_long = #{ipLong})
-            group by domain
-            having sum = 0)
-            b set t.is_scanning=0 where t.host=b.domain
+        update scan_project_host
+        set is_scanning = 0
+        where del_flg = 0
+          and is_scanning = 1
+          and host = #{domain}
     </update>
 
 </mapper>

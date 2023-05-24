@@ -129,7 +129,12 @@ public class ScanningHostListener {
                 scanHostService.updateById(host);
             }
         }
-        mqIpSender.sendScanningIpToMqtt(ScanParamDto.builder().dtoList(scanPortParamList).build());
+//        mqIpSender.sendScanningIpToMqtt(ScanParamDto.builder().dtoList(scanPortParamList).build());
+        log.info("扫描ip端口：" + JSON.toJSONString(scanPortParamList));
+        syncService.dataHandler(scanPortParamList);
+        log.info("开始更新host=" + dto.getSubDomain() + "数据状态");
+        scanHostService.updateEndScanDomain(dto.getSubDomain());
+        log.info("更新结束host=" + dto.getSubDomain() + "数据状态");
         try {
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (IOException e) {

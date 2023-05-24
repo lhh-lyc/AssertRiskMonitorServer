@@ -20,7 +20,7 @@ public class ProjectCheckTask {
      * mysql里面的ip,全部不在redis里面就算做执行完成
      * @return
      */
-//    @Scheduled(cron = "0 0/10 * * * ? ")
+    @Scheduled(cron = "0 0/10 * * * ? ")
     @GetMapping("test")
     public R test() {
         log.info("定时任务开始");

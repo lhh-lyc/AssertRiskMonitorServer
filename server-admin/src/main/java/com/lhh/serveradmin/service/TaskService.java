@@ -22,7 +22,8 @@ public class TaskService {
     ScanProjectContentFeign scanProjectContentFeign;
 
     public void checkProject() {
-        List<ScanProjectContentEntity> updateList = new ArrayList<>();
+        scanProjectContentFeign.updateEndScanContent();
+        /*List<ScanProjectContentEntity> updateList = new ArrayList<>();
         Boolean flag;
         Set<String> projectKeySet = JedisUtils.keysS(String.format(CacheConst.REDIS_SCANNING_PROJECT, '*'));
         List<String> idList = new ArrayList<>();
@@ -50,6 +51,6 @@ public class TaskService {
             for (ScanProjectContentEntity contentEntity : updateList) {
                 scanProjectContentFeign.update(contentEntity);
             }
-        }
+        }*/
     }
 }

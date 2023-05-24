@@ -40,7 +40,9 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     void updateScanPorts(List<ScanHostEntity> list);
 
-    void updateEndScanDomain(Long ipLong);
+    void updateEndScanIp(Long ipLong);
+
+    void updateEndScanDomain(String domain);
 
 }
 

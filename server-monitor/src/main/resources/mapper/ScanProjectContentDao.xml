@@ -64,22 +64,4 @@
         </foreach>
     </update>
 
-    <update id="updateEndScanContent">
-        update scan_project_content t ,
-            (select parent_domain, sum(is_scanning) as sum
-            from scan_host
-            where del_flg = 0
-            and parent_domain in (
-            select distinct parent_domain
-            from scan_host
-            where del_flg = 0
-            and domain in (
-            select domain from scan_host
-            WHERE del_flg = 0
-            and ip_long = #{ipLong}))
-            group by parent_domain
-            having sum = 0) b
-        set t.is_completed=1 where t.parent_domain=b.parent_domain
-    </update>
-
 </mapper>

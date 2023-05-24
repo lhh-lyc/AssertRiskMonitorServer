@@ -120,7 +120,7 @@ public class ScanPortInfoService {
         List<ScanPortEntity> portEntityList = scanPortService.list(params);
         if (!CollectionUtils.isEmpty(portEntityList)) {
             // 更新isScanning
-            scanHostService.updateEndScanDomain(ipLong);
+            scanHostService.updateEndScanIp(ipLong);
             log.info(ip + "扫描端口已被扫描！");
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
             return;
@@ -181,7 +181,7 @@ public class ScanPortInfoService {
         }
         // 更新isScanning
         log.info("开始更新ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
-        scanHostService.updateEndScanDomain(ipLong);
+        scanHostService.updateEndScanIp(ipLong);
         log.info("更新结束ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
         log.info("删除缓存ip=" + ip + "数据(ipLong=" + ipLong + ")");

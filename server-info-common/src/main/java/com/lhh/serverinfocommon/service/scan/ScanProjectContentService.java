@@ -32,5 +32,7 @@ public interface ScanProjectContentService extends IService<ScanProjectContentEn
 
     List<ScanProjectContentEntity> getContentIpList(List<String> notIdList);
 
+    void updateEndScanContent();
+
 }
 

@@ -28,4 +28,7 @@ public interface ScanProjectContentFeign {
     @PostMapping("/scan/project/content/update")
     void update(@RequestBody ScanProjectContentEntity scanProjectHost);
 
+    @PostMapping("/scan/project/content/updateEndScanContent")
+    void updateEndScanContent();
+
 }

@@ -83,6 +83,8 @@ public class Const {
 
     public static Integer INTEGER_4 = 4;
 
+    public static Integer INTEGER_10 = 10;
+
     public static Integer INTEGER_100 = 100;
 
     // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令

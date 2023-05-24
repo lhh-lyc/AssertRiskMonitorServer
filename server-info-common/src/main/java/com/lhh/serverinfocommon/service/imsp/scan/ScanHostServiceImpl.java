@@ -1,5 +1,6 @@
 package com.lhh.serverinfocommon.service.imsp.scan;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -109,6 +110,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     @Override
     public List<KeyValueDto> companyRanking(Map<String, Object> params) {
+        Integer limit = params.get("limit") != null ? Const.INTEGER_10 : MapUtil.getInt(params, "limit");
+        params.put("limit", limit);
         return scanHostDao.companyRanking(params);
     }
 

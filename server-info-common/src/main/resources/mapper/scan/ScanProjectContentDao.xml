@@ -76,4 +76,15 @@
         and t2.id is null)
     </select>
 
+    <update id="updateEndScanContent">
+        update scan_project_content t ,
+            (select parent_domain, sum(is_scanning) as sum from scan_project_host
+            where del_flg = 0
+            group by parent_domain
+            having sum = 0) b
+        set t.is_completed=1 where t.parent_domain=b.parent_domain
+        and t.del_flg = 0
+        and t.is_completed=0
+    </update>
+
 </mapper>

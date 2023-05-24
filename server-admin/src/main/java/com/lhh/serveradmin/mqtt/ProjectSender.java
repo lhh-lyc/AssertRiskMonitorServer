@@ -59,13 +59,6 @@ public class ProjectSender {
                 }
             }
         }
-        log.info("sleep start");
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        log.info("sleep end");
         sendToMqtt(project);
     }
 
