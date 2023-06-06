@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.mqtt;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
@@ -10,6 +11,7 @@ import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,9 +99,21 @@ public class ProjectSender {
              * params5: 携带的附加参数
              */
             channel.queueDeclare(pubTopic, true, false, false, null);
+            channel.confirmSelect();
             //6. 将消息发送到队列
             for (ScanProjectEntity p : list) {
                 channel.basicPublish("", pubTopic, null, SerializationUtils.serialize(p));
+                channel.addConfirmListener(new ConfirmListener() {
+                    @Override
+                    public void handleAck(long l, boolean b) throws IOException {
+                        log.info("主域名投递success--" + JSON.toJSONString(p));
+                    }
+
+                    @Override
+                    public void handleNack(long l, boolean b) throws IOException {
+                        log.error("主域名投递failed--" + JSON.toJSONString(p));
+                    }
+                });
             }
             log.info("项目" + project.getId() + "推送mq成功");
         } catch (Exception e) {
@@ -128,7 +143,7 @@ public class ProjectSender {
         if (CollectionUtils.isEmpty(project.getHostList())) {
             return ;
         }
-//        List<ScanProjectEntity> list = splitList(project, subNum);
+        List<ScanProjectEntity> list = splitList(project, subNum);
         ConnectionFactory connectionFactory = new ConnectionFactory();
         //1.1 设置连接IP
         connectionFactory.setHost(host);
@@ -158,19 +173,15 @@ public class ProjectSender {
              * params5: 携带的附加参数
              */
             channel.queueDeclare(pubTopic, true, false, false, null);
+            channel.confirmSelect();
             //6. 将消息发送到队列
-            List<ScanProjectEntity> list = new ArrayList<>();
-            for (int i =0;i<10;i++) {
-                ScanProjectEntity p = ScanProjectEntity.builder().queueId(String.valueOf(i)).build();
-                List<String> l = new ArrayList<>();
-                for (int j =0;j<100;j++) {
-                    l.add(String.valueOf(i*100+j));
-                }
-                p.setHostList(l);
-                list.add(p);
-            }
             for (ScanProjectEntity p : list) {
                 channel.basicPublish("", pubTopic, null, SerializationUtils.serialize(p));
+                if (!channel.waitForConfirms()) {
+                    log.error("2主域名投递failed--" + JSON.toJSONString(p));
+                } else {
+                    log.info("2主域名投递success--" + JSON.toJSONString(p));
+                }
             }
             log.info("项目" + project.getId() + "推送mq成功");
         } catch (Exception e) {

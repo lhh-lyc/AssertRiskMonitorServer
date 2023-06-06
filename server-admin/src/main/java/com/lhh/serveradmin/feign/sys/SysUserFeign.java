@@ -27,7 +27,7 @@ public interface SysUserFeign {
     SysUserEntity info(@RequestParam("id") Long id);
 
     @PostMapping("/sys/user/save")
-    void save(@RequestBody SysUserEntity sysUser);
+    Long save(@RequestBody SysUserEntity sysUser);
 
     @PostMapping("/sys/user/update")
     void update(@RequestBody SysUserEntity sysUser);

@@ -21,7 +21,13 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     void updateScanPorts(@Param("list") List<ScanHostEntity> list);
 
-    void updateEndScanIp(@Param("ipLong") Long ipLong);
+    void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("domain") String domain);
+
+    /**
+     * @param ipLongList
+     * @return
+     */
+    List<ScanHostEntity> getByIpList(@Param("ipLongList") List<Long> ipLongList, @Param("domain") String domain);
 
     /**
      * 查询host表ip对应的子域名，是否分别都扫描完成

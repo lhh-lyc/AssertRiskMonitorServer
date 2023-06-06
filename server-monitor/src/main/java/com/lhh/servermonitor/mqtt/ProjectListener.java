@@ -38,7 +38,7 @@ public class ProjectListener {
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
-        log.info(JSON.toJSONString(project));
+        log.info("开始处理项目" + project.getQueueId());
         try {
 //                redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);

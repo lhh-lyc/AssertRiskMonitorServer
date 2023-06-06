@@ -47,20 +47,14 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     public List<ScanPortEntity> list(Map<String, Object> params) {
         QueryWrapper wrapper = Wrappers.query()
                 .eq("del_flg", Const.INTEGER_0)
-                .eq(params.get("ip") != null, "ip", params.get("ip"));
+                .eq(params.get("ipLong") != null, "ip_long", params.get("ipLong"));
         List<ScanPortEntity> list = list(wrapper);
         return list;
     }
 
     @Override
-    public List<ScanPortEntity> getByIpList(List<String> hostList) {
-        if (CollectionUtils.isEmpty(hostList)) {
-            return new ArrayList<>();
-        }
-        QueryWrapper wrapper = Wrappers.query()
-                .in("ip", hostList)
-                .eq("del_flg", Const.INTEGER_0);
-        List<ScanPortEntity> list = list(wrapper);
+    public List<ScanPortEntity> basicList(Map<String, Object> params) {
+        List<ScanPortEntity> list = scanPortDao.queryList(params);
         return list;
     }
 

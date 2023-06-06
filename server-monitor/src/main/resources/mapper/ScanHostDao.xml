@@ -17,10 +17,20 @@
     <update id="updateEndScanIp">
         update scan_host
         set is_scanning = 0
-        where del_flg = 0
-        and is_scanning = 1
+        where is_scanning = 1
         and ip_long = #{ipLong}
+        and domain = #{domain}
     </update>
+
+    <select id="getByIpList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select *
+        from scan_host
+        where domain = #{domain}
+        and ip_long in
+        <foreach item="ipLong" collection="ipLongList" open="(" separator="," close=")">
+            #{ipLong}
+        </foreach>
+    </select>
 
     <select id="getEndScanDomain" resultType="java.lang.String">
         select t.domain

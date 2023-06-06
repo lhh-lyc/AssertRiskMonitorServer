@@ -30,7 +30,7 @@ public interface ScanPortService extends IService<ScanPortEntity> {
     */
     List<ScanPortEntity> list(Map<String, Object> params);
 
-    List<ScanPortEntity> getByIpList(List<String> hostList);
+    List<ScanPortEntity> basicList(Map<String, Object> params);
 
 }
 

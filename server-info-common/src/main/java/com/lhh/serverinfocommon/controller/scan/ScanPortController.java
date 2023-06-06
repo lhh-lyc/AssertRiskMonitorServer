@@ -164,5 +164,13 @@ public class ScanPortController {
         return scanPortList;
     }
 
+    /**
+     * 根据表格字段查询列表
+     */
+    @PostMapping("/deleteByTag")
+    public void deleteByTag(@RequestBody Map<String, Object> params) {
+        scanPortService.deleteByTag(params);
+    }
+
 }
 

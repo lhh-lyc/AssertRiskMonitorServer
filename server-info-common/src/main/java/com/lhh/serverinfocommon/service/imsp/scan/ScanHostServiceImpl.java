@@ -1,6 +1,7 @@
 package com.lhh.serverinfocommon.service.imsp.scan;
 
 import cn.hutool.core.map.MapUtil;
+import com.baomidou.mybatisplus.core.conditions.interfaces.Compare;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -16,9 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service("scanHostService")
@@ -112,7 +111,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     public List<KeyValueDto> companyRanking(Map<String, Object> params) {
         Integer limit = params.get("limit") != null ? Const.INTEGER_10 : MapUtil.getInt(params, "limit");
         params.put("limit", limit);
-        return scanHostDao.companyRanking(params);
+        List<KeyValueDto> list = scanHostDao.companyRanking(params);
+        return list;
     }
 
 }

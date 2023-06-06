@@ -41,4 +41,7 @@ public interface ScanPortFeign {
     @PostMapping("/scan/port/deleteByIpPort")
     void deleteByIpPort(@RequestBody Map<String, Object> params);
 
+    @PostMapping("/scan/port/deleteByTag")
+    void deleteByTag(@RequestBody Map<String, Object> params);
+
 }

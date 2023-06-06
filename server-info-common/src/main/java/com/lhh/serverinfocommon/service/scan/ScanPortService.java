@@ -48,5 +48,7 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     void deleteByIpPort(Map<String, Object> params);
 
+    void deleteByTag(Map<String, Object> params);
+
 }
 

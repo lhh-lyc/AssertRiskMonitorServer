@@ -115,17 +115,20 @@ public class ScanPortInfoService {
     public void scanSingleIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();
         String ip = dto.getSubIp();
+        String domain = dto.getSubDomain();
         Long ipLong = IpLongUtils.ipToLong(ip);
-        params.put("ip", ip);
-        List<ScanPortEntity> portEntityList = scanPortService.list(params);
+        params.put("ipLong", ipLong);
+        List<ScanPortEntity> portEntityList = scanPortService.basicList(params);
         if (!CollectionUtils.isEmpty(portEntityList)) {
             // 更新isScanning
-            scanHostService.updateEndScanIp(ipLong);
-            log.info(ip + "扫描端口已被扫描！");
+            log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
+            log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
+            scanHostService.updateEndScanIp(ipLong, domain);
+            log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
             return;
         }
-        log.info("开始扫描" + ip + "端口");
+        log.info("开始扫描" + domain + ":" + ip + "端口");
         String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
         SshResponse response = null;
         try {
@@ -180,11 +183,14 @@ public class ScanPortInfoService {
             log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
         }
         // 更新isScanning
-        log.info("开始更新ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
-        scanHostService.updateEndScanIp(ipLong);
-        log.info("更新结束ip=" + ip + "数据状态(ipLong=" + ipLong + ")");
+        log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
+        try {
+            scanHostService.updateEndScanIp(ipLong, domain);
+        } catch (Exception e) {
+            log.error(domain + ":" + ip + "更新状态出现错误：", e);
+        }
+        log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
-        log.info("删除缓存ip=" + ip + "数据(ipLong=" + ipLong + ")");
     }
 
     /**

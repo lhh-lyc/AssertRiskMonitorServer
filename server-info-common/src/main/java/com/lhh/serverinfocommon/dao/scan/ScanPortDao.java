@@ -49,4 +49,8 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     void deleteByIpPort(Map<String, Object> params);
 
+    void deleteByIpList(@Param("ipLongList") List<Long> ipLongList);
+
+    void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
+
 }

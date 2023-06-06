@@ -36,13 +36,11 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<ScanHostEntity> getByDomainList(List<String> hostList);
 
-    List<ScanHostEntity> getByIpList(List<String> hostList);
+    List<ScanHostEntity> getByIpList(List<Long> hostList, String domain);
 
     void updateScanPorts(List<ScanHostEntity> list);
 
-    void updateEndScanIp(Long ipLong);
-
-    void updateEndScanDomain(String domain);
+    void updateEndScanIp(Long ipLong, String domain);
 
 }
 

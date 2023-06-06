@@ -118,4 +118,5 @@ public class MD5 {
     public static String getEncryptPwd(String psw, String salt) {
         return new Sha256Hash(psw, salt).toHex();
     }
+
 }

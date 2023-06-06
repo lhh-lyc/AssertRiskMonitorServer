@@ -52,7 +52,7 @@ public class ScanningIpListener {
         List<ScanParamDto> scanPortParamList = dto.getDtoList();
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(scanPortParamList));
-            syncService.dataHandler(scanPortParamList);
+//            syncService.dataHandler(scanPortParamList, message, channel);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

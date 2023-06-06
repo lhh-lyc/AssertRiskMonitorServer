@@ -110,7 +110,7 @@
             COUNT( DISTINCT t4.ip, t4.port )
         </if> as value
         FROM scan_host t1
-        join scan_project_content t2 on t2.parent_domain = t1.parent_domain
+        join scan_project_host t2 on t2.host = t1.domain
         and t2.del_flg = 0
         join scan_project t3 on t3.id = t2.project_id
         and t3.del_flg = 0
@@ -120,13 +120,25 @@
         </if>
         WHERE t1.del_flg = 0
         and t1.company is not null
-        and t1.company != ''
+        and t1.company != '-'
         <if test="userId != null and userId != ''">
             and t3.user_id = #{userId}
         </if>
         GROUP BY t1.company
-        ORDER BY value
+        ORDER BY value desc
         limit #{limit}
     </select>
+
+    <delete id="deleteByTag">
+        delete scan_host
+        from scan_host
+        where scan_host.is_scanning = 0
+        <foreach collection="tagList" item="field" index="index" separator=",">
+            AND scan_host.${field} in
+        </foreach>
+        <foreach collection="tagValueList" item="tagValue" index="index" separator="," close=")" open="(">
+            #{tagValue}
+        </foreach>
+    </delete>
 
 </mapper>

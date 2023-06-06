@@ -21,14 +21,6 @@ import java.util.Map;
 public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     /**
-    * 分页查询用户列表
-    * @param page
-    * @param params
-    * @return
-    */
-    IPage<ScanPortEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
-
-    /**
      * 查询用户列表
      * @param params
      * @return

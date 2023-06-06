@@ -11,4 +11,11 @@
           and host = #{domain}
     </update>
 
+    <select id="queryByHost" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">
+        select id, host, is_scanning from scan_project_host
+        where del_flg = 0
+        and is_scanning = 1
+        and host = #{domain}
+    </select>
+
 </mapper>

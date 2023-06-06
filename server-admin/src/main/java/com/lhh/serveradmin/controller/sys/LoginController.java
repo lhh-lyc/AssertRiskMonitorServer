@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.controller.sys;
 
+import cn.hutool.core.map.MapUtil;
 import com.lhh.serveradmin.jwt.common.ResponseResult;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.service.sys.SysUserService;
@@ -60,9 +61,11 @@ public class LoginController {
      * 修改登录用户密码
      */
     @PostMapping("/updatePwd")
-    @RequiresAuthentication
-    public R password(Long userId, String password, String newPassword) {
+    public R password(@RequestBody Map<String, Object> params) {
         //用户信息
+        Long userId = MapUtil.getLong(params, "userId");
+        String password = MapUtil.getStr(params, "password");
+        String newPassword = MapUtil.getStr(params, "newPassword");
         SysUserEntity user = sysUserService.info(userId);
         String tmpPwd = MD5.getEncryptPwd(password, user.getSalt());
         // 旧密码错误

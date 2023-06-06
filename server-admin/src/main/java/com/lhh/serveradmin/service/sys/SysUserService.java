@@ -14,16 +14,14 @@ import com.lhh.serverbase.entity.SysRoleEntity;
 import com.lhh.serverbase.entity.SysUserEntity;
 import com.lhh.serverbase.entity.SysUserRoleEntity;
 import com.lhh.serverbase.utils.MD5;
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,7 +87,18 @@ public class SysUserService {
     }
 
     public void save(SysUserEntity user) {
-        sysUserFeign.save(user);
+        String salt = RandomStringUtils.randomAlphanumeric(20);
+        user.setSalt(salt);
+        String pwd = MD5.encryptPwdFirst("123456");
+        String password = MD5.getEncryptPwd(pwd, salt);
+        user.setPassword(password);
+        Long userId = sysUserFeign.save(user);
+        List<SysUserRoleEntity> sysUserRoleList = new ArrayList<>();
+        for (Long roleId : user.getRoleIdList()) {
+            SysUserRoleEntity sysUserRoleEntity = SysUserRoleEntity.builder().userId(userId).roleId(roleId).build();
+            sysUserRoleList.add(sysUserRoleEntity);
+        }
+        sysUserRoleFeign.saveBatch(sysUserRoleList);
     }
 
     public void update(SysUserEntity user) {

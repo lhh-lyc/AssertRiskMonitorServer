@@ -60,7 +60,7 @@ public class ScanHomeService {
                 result = new HashMap<String, Object>(){{put("title", "子域名");put("num", subDomainNum);put("type", type);}};
                 break;
             case 5:
-                Integer ipNum = scanPortFeign.getGroupTagNum(new HashMap<String, Object>(){{put("type", type);}});
+                Integer ipNum = scanPortFeign.getGroupTagNum(params);
                 result = new HashMap<String, Object>(){{put("title", "IP");put("num", ipNum);put("type", type);}};
                 break;
             case 6:

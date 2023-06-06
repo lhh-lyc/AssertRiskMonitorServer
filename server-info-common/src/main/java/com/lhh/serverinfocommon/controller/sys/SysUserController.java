@@ -31,8 +31,9 @@ public class SysUserController {
      */
     @PostMapping("save")
     @ApiOperation(value = "保存")
-    public void save(@RequestBody SysUserEntity sysUser) {
+    public Long save(@RequestBody SysUserEntity sysUser) {
         sysUserService.save(sysUser);
+        return sysUser.getUserId();
     }
 
     /**

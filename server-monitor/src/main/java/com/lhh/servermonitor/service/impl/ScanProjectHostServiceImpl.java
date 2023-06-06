@@ -67,4 +67,15 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
         return list;
     }
 
+    @Override
+    public void updateEndScanDomain(String domain) {
+        ScanProjectHostEntity host = scanProjectHostDao.queryByHost(domain);
+        if (host != null) {
+            host.setIsScanning(Const.INTEGER_0);
+            updateById(host);
+        }
+        // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
+//        scanProjectHostDao.updateEndScanDomain(domain);
+    }
+
 }
