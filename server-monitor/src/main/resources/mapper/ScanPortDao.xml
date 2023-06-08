@@ -4,9 +4,18 @@
 <mapper namespace="com.lhh.servermonitor.dao.ScanPortDao">
 
     <select id="queryList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
-        select ip
+        select ip_long, port
         from scan_port
         where ip_long = #{ipLong}
+    </select>
+
+    <select id="basicByIpList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select ip_long, port
+        from scan_port
+        where ip_long in
+        <foreach collection="ipList" item="ipLong" index="index" separator="," close=")" open="(">
+            #{ipLong}
+        </foreach>
     </select>
 
 </mapper>

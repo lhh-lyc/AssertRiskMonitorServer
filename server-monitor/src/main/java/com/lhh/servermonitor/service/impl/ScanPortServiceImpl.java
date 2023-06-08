@@ -58,4 +58,9 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
         return list;
     }
 
+    @Override
+    public List<ScanPortEntity> basicByIpList(List<Long> ipList) {
+        return scanPortDao.basicByIpList(ipList);
+    }
+
 }

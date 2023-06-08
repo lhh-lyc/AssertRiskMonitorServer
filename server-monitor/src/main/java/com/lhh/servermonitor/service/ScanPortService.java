@@ -32,5 +32,7 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     List<ScanPortEntity> basicList(Map<String, Object> params);
 
+    List<ScanPortEntity> basicByIpList(List<Long> ipList);
+
 }
 

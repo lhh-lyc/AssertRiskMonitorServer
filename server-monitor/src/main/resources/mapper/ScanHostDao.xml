@@ -32,6 +32,15 @@
         </foreach>
     </select>
 
+    <select id="getIpByIpList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select host_id, ip_long, scan_ports
+        from scan_host
+        where ip_long in
+        <foreach item="ipLong" collection="ipLongList" open="(" separator="," close=")">
+            #{ipLong}
+        </foreach>
+    </select>
+
     <select id="getEndScanDomain" resultType="java.lang.String">
         select t.domain
         from (

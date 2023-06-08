@@ -7,6 +7,7 @@ import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.SysDictEntity;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.SysDictDao;
+import com.lhh.servermonitor.service.ScanPortInfoService;
 import com.lhh.servermonitor.service.ScanProjectService;
 import com.lhh.servermonitor.service.SysDictService;
 import com.lhh.servermonitor.sync.SyncService;
@@ -34,6 +35,8 @@ public class ScanningIpListener {
     SyncService syncService;
     @Autowired
     SysDictService sysDictService;
+    @Autowired
+    ScanPortInfoService scanPortInfoService;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
@@ -49,15 +52,15 @@ public class ScanningIpListener {
             }
         }
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
-        List<ScanParamDto> scanPortParamList = dto.getDtoList();
         try {
-            log.info("扫描ip端口：" + JSON.toJSONString(scanPortParamList));
+            log.info("扫描ip端口：" + JSON.toJSONString(dto));
+            scanPortInfoService.scanIpsPortList(dto);
 //            syncService.dataHandler(scanPortParamList, message, channel);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                e.printStackTrace();
+                log.error("扫描ip端口失败：" + e);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

@@ -34,7 +34,7 @@ public class InitService {
     MqIpSender mqIpSender;
 
     public void initTask() {
-        // 扫描中断的ip发送到mq，只允许一个服务发送
+        /*// 扫描中断的ip发送到mq，只允许一个服务发送
         if (Const.INTEGER_1.equals(isInit)) {
             Integer size = MAX_THREADS * EXPIRED_PAGE_SIZE;
             List<ScanParamDto> dtoList = new ArrayList<>();
@@ -70,7 +70,7 @@ public class InitService {
                     JedisUtils.setPipeJson(keyList);
                 }
             }
-        }
+        }*/
     }
 
 }

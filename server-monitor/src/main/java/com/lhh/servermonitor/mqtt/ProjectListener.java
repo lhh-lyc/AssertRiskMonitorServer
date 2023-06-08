@@ -48,7 +48,7 @@ public class ProjectListener {
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.info("项目" + project.getQueueId() + "处理失败");
+                log.error("项目" + project.getQueueId() + "处理失败", e);
                 e.printStackTrace();
             } catch (IOException ioException) {
                 ioException.printStackTrace();

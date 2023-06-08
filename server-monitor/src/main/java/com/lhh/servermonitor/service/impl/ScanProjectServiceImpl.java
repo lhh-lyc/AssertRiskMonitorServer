@@ -127,7 +127,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String host : exitSubDoMainList) {
                     ScanProjectHostEntity projectHost = ScanProjectHostEntity.builder()
-                            .projectId(project.getId()).host(host).isScanning(Const.INTEGER_0)
+                            .projectId(project.getId()).host(host).parentDomain(RexpUtil.getMajorDomain(host)).isScanning(Const.INTEGER_0)
                             .build();
                     saveProjectHostList.add(projectHost);
                 }
@@ -137,28 +137,19 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             //扫描新的ip
             Map<String, String> redisMap = new HashMap<>();
             List<String> newIpList = ipList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
-            List<ScanHostEntity> scanIpList = new ArrayList<>();
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newIpList)) {
                 for (String ip : newIpList) {
-                    ScanHostEntity scanHost = ScanHostEntity.builder()
-                            .domain(ip).parentDomain(ip)
-                            .ip(ip).ipLong(IpLongUtils.ipToLong(ip))
-                            .scanPorts(project.getScanPorts())
-                            .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
-                            .isDomain(Const.INTEGER_0)
-                            .isScanning(Const.INTEGER_1)
-                            .build();
-                    scanIpList.add(scanHost);
-
                     // 保存项目-host关联关系
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .host(ip).projectId(project.getId())
+                            .projectId(project.getId()).isScanning(Const.INTEGER_1)
+                            .host(ip).parentDomain(ip)
                             .build();
                     projectHostList.add(item);
 
                     if (Const.INTEGER_1.equals(project.getPortFlag())) {
                         ScanParamDto dto = ScanParamDto.builder()
+                                .projectId(project.getId())
                                 .subIp(ip)
                                 .scanPorts(project.getScanPorts())
                                 .build();
@@ -169,15 +160,14 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                         redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), JSON.toJSONString(ipMap));
                     }
                 }
-                scanHostService.saveBatch(scanIpList);
                 scanProjectHostService.saveBatch(projectHostList);
             }
             JedisUtils.setPipeJson(redisMap);
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
 //                scanPortInfoService.scanPortList(scanPortParamList);
 //                syncService.dataHandler(scanPortParamList);
-                mqIpSender.sendScanningIpToMqtt(ScanParamDto.builder().dtoList(scanPortParamList).build());
-                List<ScanProjectContentEntity> contentList = new ArrayList<>();
+                mqIpSender.sendScanningIpToMqtt(scanPortParamList);
+                /*List<ScanProjectContentEntity> contentList = new ArrayList<>();
                 for (ScanParamDto dto : scanPortParamList) {
                     if (!StringUtils.isEmpty(dto.getSubIp())) {
                         contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
@@ -191,7 +181,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             scanProjectContentService.updateById(content);
                         }
                     }
-                }
+                }*/
 //                if (!CollectionUtils.isEmpty(contentList)) {
 //                    scanProjectContentService.updateStatus(contentList);
 //                }

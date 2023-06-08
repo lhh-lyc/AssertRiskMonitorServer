@@ -131,6 +131,9 @@ public class RexpUtil {
      * @return
      */
     public static String getMajorDomain(String url) {
+        if (isIP(url)) {
+            return url;
+        }
         if (isTopDomain(url)) {
             return Const.STR_EMPTY;
         }

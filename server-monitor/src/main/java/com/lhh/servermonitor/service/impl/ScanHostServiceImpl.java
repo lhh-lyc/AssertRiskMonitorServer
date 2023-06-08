@@ -57,6 +57,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     @Override
     public List<ScanHostEntity> list(Map<String, Object> params) {
         QueryWrapper wrapper = Wrappers.query()
+                .eq(params.get("parentDomain") != null, "parent_domain", params.get("parentDomain"))
                 .eq(params.get("ipLong") != null, "ip_long", params.get("ipLong"));
         List<ScanHostEntity> list = list(wrapper);
         return list;
@@ -68,8 +69,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("parent_domain", hostList)
-                .eq("del_flg", Const.INTEGER_0);
+                .in("parent_domain", hostList);
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }
@@ -93,6 +93,11 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         }
         List<ScanHostEntity> list = scanHostDao.getByIpList(ipList, domain);
         return list;
+    }
+
+    @Override
+    public List<ScanHostEntity> getIpByIpList(List<Long> ipList) {
+        return scanHostDao.getIpByIpList(ipList);
     }
 
     @Override

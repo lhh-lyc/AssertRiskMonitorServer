@@ -1,6 +1,7 @@
 package com.lhh.serverbase.utils;
 
 import com.lhh.serverbase.common.constant.Const;
+import org.apache.commons.net.util.SubnetUtils;
 
 public class IpLongUtils {
 
@@ -40,6 +41,10 @@ public class IpLongUtils {
     public static void main(String[] args) {
         System.out.println("ip转整数型：" + ipToLong("85.208.116.239"));
         System.out.println("整数型转ip：" + longToIp(0));
+
+        SubnetUtils utils = new SubnetUtils("192.168.1.0/12");
+        String[] allIps = utils.getInfo().getAllAddresses();
+        System.out.println(allIps);
     }
 
 }

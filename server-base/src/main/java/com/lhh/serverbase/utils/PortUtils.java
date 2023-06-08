@@ -5,74 +5,10 @@ import com.lhh.serverbase.common.constant.RexpConst;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PortUtils {
-
-    public static String getNewPorts(String oldPorts, String newPorts) {
-        List<String> oldPortList = getPortList(oldPorts);
-        List<String> newPortList = getPortList(newPorts);
-        oldPortList.addAll(newPortList);
-        if (CollectionUtils.isEmpty(oldPortList)) {
-            return Const.STR_EMPTY;
-        }
-        List<Integer> list = oldPortList.stream().distinct().map(Integer::parseInt).sorted().collect(Collectors.toList());
-        List<List<Integer>> resultList = new ArrayList<>();
-        List<Integer> arrList = new ArrayList<>();
-        if (list.size() == 1) {
-            arrList.add(list.get(0));
-            resultList.add(arrList);
-        } else {
-            for (int i = 0; i < list.size(); i++) {
-                Integer nextNum = list.get(i + 1);
-                Integer nowNum = list.get(i);
-                if (nextNum - nowNum != 1) {
-                    arrList.add(nowNum);
-                    resultList.add(arrList);
-                    arrList = new ArrayList<>();
-                } else {
-                    arrList.add(nowNum);
-                }
-                if (i + 1 == list.size() - 1) {
-                    arrList.add(nextNum);
-                    resultList.add(arrList);
-                    break;
-                }
-            }
-        }
-        List<String> portList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(resultList)) {
-            for (List<Integer> i : resultList) {
-                if (Const.INTEGER_1.equals(i.size())) {
-                    portList.add(String.valueOf(i.get(0)));
-                } else {
-                    portList.add(i.get(0) + Const.STR_CROSSBAR + i.get(i.size() - 1));
-                }
-            }
-        }
-        return String.join(Const.STR_COMMA, portList);
-    }
-
-    public static Boolean portEquals(String oldPorts, String newPorts) {
-        List<String> oldPortList = getPortList(oldPorts);
-        List<String> newPortList = getPortList(newPorts);
-        oldPortList.sort(Comparator.comparing(String::hashCode));
-        newPortList.sort(Comparator.comparing(String::hashCode));
-        if (oldPortList.toString().equals(newPortList.toString())) {
-            return true;
-        } else {
-            newPortList.removeAll(oldPortList);
-            if (CollectionUtils.isEmpty(newPortList)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
 
     public static List<String> getPortList(String ports) {
         List<String> portList = new ArrayList<>();
@@ -92,6 +28,64 @@ public class PortUtils {
             }
         }
         return portList;
+    }
+
+    private static Set<Integer> parsePorts(String s) {
+        Set<Integer> set = new HashSet<>();
+        String[] ranges = s.split(",");
+        for (String r : ranges) {
+            String[] parts = r.split("-");
+            if (parts.length == 1) {
+                int port = Integer.parseInt(parts[0]);
+                set.add(port);
+            } else {
+                int start = Integer.parseInt(parts[0]);
+                int end = Integer.parseInt(parts[1]);
+                for (int port = start; port <= end; port++) {
+                    set.add(port);
+                }
+            }
+        }
+        return set;
+    }
+
+    public static String getNewPorts(String s1, String s2) {
+        Set<Integer> set1 = parsePorts(s1);
+        Set<Integer> set2 = parsePorts(s2);
+
+        Set<Integer> tmpSet = new HashSet<>();
+        tmpSet.addAll(set1);
+        tmpSet.addAll(set2);
+        Set<Integer> union = new TreeSet<>(tmpSet);
+        if (union.isEmpty()) {
+            return "";
+        }
+        if (union.size() == 1) {
+            return union.iterator().next().toString();
+        }
+
+        List<String> ranges = new ArrayList<>();
+        int start = union.iterator().next();
+        int end = start;
+        for (int port : union) {
+            if (port <end+1) {
+                continue;
+            }
+            if (port == end + 1) {
+                end = port;
+            } else {
+                ranges.add(start == end ? String.valueOf(end) : start + Const.STR_CROSSBAR + end);
+                start = end = port;
+            }
+        }
+        ranges.add(start == end ? String.valueOf(end) : start + Const.STR_CROSSBAR + end);
+        return String.join(",", ranges);
+    }
+
+    public static Boolean portEquals(String oldPorts, String newPorts) {
+        Set<Integer> set1 = parsePorts(oldPorts);
+        Set<Integer> set2 = parsePorts(newPorts);
+        return set1.equals(set2);
     }
 
 }

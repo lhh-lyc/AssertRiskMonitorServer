@@ -29,6 +29,8 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
      */
     List<ScanHostEntity> getByIpList(@Param("ipLongList") List<Long> ipLongList, @Param("domain") String domain);
 
+    List<ScanHostEntity> getIpByIpList(@Param("ipLongList") List<Long> ipLongList);
+
     /**
      * 查询host表ip对应的子域名，是否分别都扫描完成
      * @param ipLong

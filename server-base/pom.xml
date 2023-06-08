@@ -109,6 +109,11 @@
             <artifactId>easyexcel</artifactId>
             <version>3.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.6</version>
+        </dependency>
     </dependencies>
 
     <build>
