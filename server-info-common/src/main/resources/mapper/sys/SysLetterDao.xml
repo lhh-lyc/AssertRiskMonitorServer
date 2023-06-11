@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.sys.SysLetterDao">
+
+    <sql id="baseColumn">
+        id
+        ,
+                    user_id,
+                    content,
+                    scan_ports,
+                    status,
+                    remark,
+                    create_time,
+                    update_time,
+                    del_flg,
+                    create_id,
+                    update_id
+    </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.serverbase.entity.SysLetterEntity" id="sysLetterMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="scanPorts" column="scan_ports"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlg" column="del_flg"/>
+        <result property="createId" column="create_id"/>
+        <result property="updateId" column="update_id"/>
+    </resultMap>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.SysLetterEntity">
+        select
+        t1.*, t2.user_name,case when t1.status = 0 then '未读' else '已读' end as status_name
+        from sys_letter t1
+        join sys_user t2 on t2.user_id = t1.user_id
+        where t1.del_flg = 0
+        and t2.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.content != null and params.content != ''">
+            and t1.content like CONCAT('%',#{params.content},'%')
+        </if>
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.SysLetterEntity">
+        select
+        <include refid="baseColumn"/>
+        from sys_letter
+        where del_flg = 0
+        <if test="userId != null and userId != ''">
+            and user_id = #{userId}
+        </if>
+    </select>
+
+    <update id="readByUserId">
+        update sys_letter set status = 1
+        where user_id = #{userId}
+    </update>
+
+    <select id="unReadNum" resultType="java.lang.Integer">
+        select count(*) from sys_letter
+        where user_id = #{userId}
+        and status = 0
+    </select>
+
+</mapper>
