@@ -20,9 +20,8 @@ public class ReScanController {
     @Autowired
     ReScanService reScanService;
 
-    @ExportExcel(name = "用户资产", sheets = @Sheet(sheetName = "用户资产"))
-    @GetMapping("rescan")
-    public R rescan(@RequestParam Map<String, Object> params){
+    @PostMapping("reScan")
+    public R rescan(@RequestBody Map<String, Object> params){
         return reScanService.rescan(params);
     }
 

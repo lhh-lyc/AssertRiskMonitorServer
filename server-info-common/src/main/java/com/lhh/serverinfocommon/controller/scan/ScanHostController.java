@@ -149,8 +149,8 @@ public class ScanHostController {
         return num;
     }
 
-    @GetMapping("getParentDomainList")
-    public List<String> getParentDomainList(@RequestParam Map<String, Object> params) {
+    @PostMapping("getParentDomainList")
+    public List<String> getParentDomainList(@RequestBody Map<String, Object> params) {
         List<String> list = scanHostService.getParentDomainList(params);
         return list;
     }

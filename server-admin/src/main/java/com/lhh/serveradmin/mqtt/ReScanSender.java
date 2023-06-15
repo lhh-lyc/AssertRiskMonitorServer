@@ -67,8 +67,8 @@ public class ReScanSender {
         int count = (size + len - 1) / len;
         for (int i = 0; i < count; i++) {
             ReScanDto dto = ReScanDto.builder()
-                    .queueId(list.get(i) + Const.STR_UNDERLINE + count + Const.STR_UNDERLINE + (i+1))
-                    .hostList(list.subList(i * len, ((i + 1) * len > size ? size : len * (i + 1))))
+                    .queueId("重扫队列" + Const.STR_UNDERLINE + count + Const.STR_UNDERLINE + (i+1))
+                    .hostList(new ArrayList<>(list.subList(i * len, ((i + 1) * len > size ? size : len * (i + 1)))))
                     .build();
             result.add(dto);
         }
