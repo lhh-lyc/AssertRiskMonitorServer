@@ -15,6 +15,7 @@ import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.servermonitor.config.RabbitMqConfig;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.mqtt.MqIpSender;
@@ -22,7 +23,11 @@ import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
+import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -59,6 +64,19 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     RedisLock redisLock;
     @Autowired
     MqIpSender mqIpSender;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    @Value("${mqtt-setting.exchange}")
+    private String exchange;
+    @Value("${mqtt-setting.host-route-key}")
+    private String hostRouteKey;
+
+    @Override
+    public void sendToMqtt(ScanProjectEntity project) {
+        CorrelationData correlationId = new CorrelationData(project.toString());
+        //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
+        rabbitTemplate.convertAndSend(exchange, hostRouteKey, SerializationUtils.serialize(project), correlationId);
+    }
 
     /**
      * 分页查询列表数据
@@ -78,7 +96,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Override
     public void saveProject(ScanProjectEntity project) {
         // mq分割project，合并缓存问题
-//        redisLock.saveProjectRedis(project);
+        redisLock.saveProjectRedis(project);
         ScanProjectEntity oldProject = scanProjectDao.selectById(project.getId());
         if (oldProject == null) {
             log.info("项目id=" + project.getId() + "已被删除");
@@ -119,7 +137,9 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
 
             // 子域名关联
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
-            List<ScanProjectHostEntity> exitProjectHostEntityList = scanProjectHostService.list(new HashMap<String, Object>(){{put("projectId", project.getId());}});
+            List<ScanProjectHostEntity> exitProjectHostEntityList = scanProjectHostService.list(new HashMap<String, Object>() {{
+                put("projectId", project.getId());
+            }});
             List<String> exitProjectHostList = exitProjectHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
             List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalSameHostList);
             List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).collect(Collectors.toList());

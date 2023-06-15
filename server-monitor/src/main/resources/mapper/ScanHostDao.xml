@@ -69,4 +69,20 @@
         having sum = 0) t
     </select>
 
+    <select id="basicList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select ip_long, scan_ports
+        from scan_host
+        where ip_long = #{ipLong}
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore scan_host
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.parentDomain},#{host.domain},#{host.ipLong},#{host.scanPorts},#{host.company}
+            ,#{host.type},#{host.isMajor},#{host.isDomain},#{host.isScanning},
+            #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
+        </foreach>
+    </insert>
+
 </mapper>

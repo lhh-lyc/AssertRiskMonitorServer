@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.Query;
@@ -115,6 +116,16 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
             updateById(host);
         }
 //        scanHostDao.updateEndScanIp(ipLong, domain);
+    }
+
+    @Override
+    public void saveBatch(List<ScanHostEntity> list) {
+        scanHostDao.saveBatch(list);
+    }
+
+    @Override
+    public List<ScanHostEntity> basicList(Map<String, Object> params) {
+        return scanHostDao.basicList(params);
     }
 
 }

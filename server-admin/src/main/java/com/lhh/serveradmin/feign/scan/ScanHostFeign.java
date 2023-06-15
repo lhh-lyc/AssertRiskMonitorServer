@@ -19,7 +19,7 @@ public interface ScanHostFeign {
     List<ScanHostEntity> getByDomainList(@RequestBody List<String> hostList);
 
     @PostMapping("/scan/host/getByIpList")
-    List<ScanHostEntity> getByIpList(@RequestBody List<String> hostList);
+    List<ScanHostEntity> getByIpList(@RequestBody List<Long> hostList);
 
     @GetMapping("/scan/host/getDomainGroupList")
     List<ScanResultDto> getDomainGroupList(@RequestParam Map<String, Object> params);
@@ -44,5 +44,8 @@ public interface ScanHostFeign {
 
     @GetMapping("/scan/host/companyRanking")
     List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/host/getParentDomainList")
+    List<String> getParentDomainList(@RequestParam Map<String, Object> params);
 
 }

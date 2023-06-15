@@ -65,13 +65,13 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     }
 
     @Override
-    public List<ScanHostEntity> getByIpList(List<String> hostList) {
+    public List<ScanHostEntity> getByIpList(List<Long> hostList) {
         if (CollectionUtils.isEmpty(hostList)) {
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
                 .eq("del_flg", Const.INTEGER_0)
-                .in("ip", hostList);
+                .in("ip_long", hostList);
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }
@@ -87,7 +87,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
                 .eq("del_flg", Const.INTEGER_0)
                 .eq(params.get("domain") != null, "domain", params.get("domain"))
                 .eq(params.get("parentDomain") != null, "parent_domain", params.get("parentDomain"))
-                .eq(params.get("ip") != null, "ip", params.get("ip"));
+                .eq(params.get("ipLong") != null, "ipLong", params.get("ipLong"));
         List<ScanHostEntity> list = list(wrapper);
         return list;
     }
@@ -105,6 +105,11 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     @Override
     public Integer getSubDomainNum(Map<String, Object> params) {
         return scanHostDao.getSubDomainNum(params);
+    }
+
+    @Override
+    public List<String> getParentDomainList(Map<String, Object> params) {
+        return scanHostDao.getParentDomainList(params);
     }
 
     @Override

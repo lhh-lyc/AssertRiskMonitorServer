@@ -16,22 +16,9 @@
                     update_id
             </sql>
 
-    <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.lhh.serverbase.entity.ScanHostEntity" id="scanHostMap">
-                    <result property="hostId" column="host_id"/>
-                    <result property="domain" column="domain"/>
-                    <result property="parentDomain" column="parent_domain"/>
-                    <result property="ip" column="ip"/>
-                    <result property="createTime" column="create_time"/>
-                    <result property="updateTime" column="update_time"/>
-                    <result property="delFlg" column="del_flg"/>
-                    <result property="createId" column="create_id"/>
-                    <result property="updateId" column="update_id"/>
-            </resultMap>
-
     <select id="queryDomainGroupList" resultType="com.lhh.serverbase.dto.ScanResultDto">
         select
-        t3.id as project_id,t1.parent_domain, t1.domain, t1.company,t1.ip, t1.is_domain, t1.is_major
+        t3.id as project_id,t1.parent_domain, t1.domain, t1.company,INET_NTOA(t1.ip_long) as ip, t1.is_domain, t1.is_major
         from scan_host t1
         left join scan_project_host t2 on t2.`host` = t1.domain
         and t2.del_flg = 0
@@ -104,10 +91,10 @@
             COUNT(DISTINCT t1.domain)
         </if>
         <if test='type == "3"'>
-            COUNT(DISTINCT t1.ip)
+            COUNT(DISTINCT t1.ip_long)
         </if>
         <if test='type == "4"'>
-            COUNT( DISTINCT t4.ip, t4.port )
+            COUNT( DISTINCT t4.ip_long, t4.port )
         </if> as value
         FROM scan_host t1
         join scan_project_host t2 on t2.host = t1.domain
@@ -115,7 +102,7 @@
         join scan_project t3 on t3.id = t2.project_id
         and t3.del_flg = 0
         <if test='type == "4"'>
-            join scan_port t4 on t4.ip = t1.ip
+            join scan_port t4 on t4.ip_long = t1.ip_long
             and t4.del_flg = 0
         </if>
         WHERE t1.del_flg = 0
@@ -127,6 +114,30 @@
         GROUP BY t1.company
         ORDER BY value desc
         limit #{limit}
+    </select>
+
+    <select id="getParentDomainList" resultType="java.lang.String">
+        select distinct parent_domain from scan_host
+        <where>
+            <if test="companyList != null and companyList.size() > 0">
+                company IN
+                <foreach collection="companyList" item="company" index="index" separator="," close=")" open="(">
+                    #{company}
+                </foreach>
+            </if>
+            <if test="parentDomainList != null and parentDomainList.size() > 0">
+                parent_domain IN
+                <foreach collection="parentDomainList" item="parentDomain" index="index" separator="," close=")" open="(">
+                    #{parentDomain}
+                </foreach>
+            </if>
+            <if test="domainList != null and domainList.size() > 0">
+                domain IN
+                <foreach collection="domainList" item="domain" index="index" separator="," close=")" open="(">
+                    #{domain}
+                </foreach>
+            </if>
+        </where>
     </select>
 
     <delete id="deleteByTag">

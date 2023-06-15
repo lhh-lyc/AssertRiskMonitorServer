@@ -31,6 +31,7 @@ public class ScanPortEntity extends BaseEntity {
     /**
      * ip
      */
+    @TableField(exist = false)
     private String ip;
     /**
      * ip

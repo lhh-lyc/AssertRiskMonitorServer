@@ -69,8 +69,9 @@
     </select>
 
     <select id="getProjectPortNum" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
-        select t1.project_id as id, ifnull(count(distinct t3.port_id), 0) as port_num from scan_project_content t1
-        left join scan_host t2 on t2.parent_domain = t1.parent_domain
+        select t1.project_id as id, ifnull(count(distinct t3.port_id), 0) as port_num
+        from scan_project_host t1
+        LEFT JOIN scan_host t2 ON t2.parent_domain = t1.host
         and t2.del_flg = 0
         left join scan_port t3 on t3.ip_long = t2.ip_long
         and t3.del_flg = 0

@@ -18,6 +18,8 @@ import java.util.Map;
  */
 public interface ScanProjectService extends IService<ScanProjectEntity> {
 
+    void sendToMqtt(ScanProjectEntity project);
+
     /**
      * 分页查询列表数据
      * @param params

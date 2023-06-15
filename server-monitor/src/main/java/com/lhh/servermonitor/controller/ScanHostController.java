@@ -2,6 +2,7 @@ package com.lhh.servermonitor.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.servermonitor.service.ScanHostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +24,11 @@ import java.util.Map;
 public class ScanHostController {
     @Autowired
     private ScanHostService scanHostService;
+
+    @PostMapping("saveTest")
+    public void saveTest(@RequestBody List<ScanHostEntity> project){
+        scanHostService.saveBatch(project);
+    }
 
     /**
      * 保存

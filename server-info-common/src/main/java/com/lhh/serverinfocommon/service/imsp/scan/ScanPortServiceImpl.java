@@ -64,12 +64,12 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     }
 
     @Override
-    public List<ScanPortEntity> getByIpList(List<String> hostList) {
+    public List<ScanPortEntity> getByIpList(List<Long> hostList) {
         if (CollectionUtils.isEmpty(hostList)) {
             return new ArrayList<>();
         }
         QueryWrapper wrapper = Wrappers.query()
-                .in("ip", hostList);
+                .in("ip_long", hostList);
         List<ScanPortEntity> list = list(wrapper);
         return list;
     }

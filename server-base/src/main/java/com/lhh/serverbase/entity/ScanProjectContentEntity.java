@@ -62,5 +62,5 @@ public class ScanProjectContentEntity extends BaseEntity {
     private String ports;
 
     @TableField(exist = false)
-    private List<String> ipList;
+    private List<Long> ipList;
 }

@@ -99,6 +99,13 @@
             <artifactId>allbs-excel</artifactId>
             <version>2.0.0</version>
         </dependency>
+
+        <!-- 以后使用redisson作为所有分布式锁，分布式对象等功能框架-->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.12.0</version>
+        </dependency>
     </dependencies>
 
 </project>

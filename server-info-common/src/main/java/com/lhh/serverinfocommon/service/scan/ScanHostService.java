@@ -34,7 +34,7 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<ScanHostEntity> getByDomainList(List<String> hostList);
 
-    List<ScanHostEntity> getByIpList(List<String> hostList);
+    List<ScanHostEntity> getByIpList(List<Long> hostList);
 
     List<ScanResultDto> queryDomainGroupList(Map<String, Object> params);
 
@@ -45,6 +45,8 @@ public interface ScanHostService extends IService<ScanHostEntity> {
     Integer getDomainNum(Map<String, Object> params);
 
     Integer getSubDomainNum(Map<String, Object> params);
+
+    List<String> getParentDomainList(Map<String, Object> params);
 
     List<KeyValueDto> companyRanking(Map<String, Object> params);
 

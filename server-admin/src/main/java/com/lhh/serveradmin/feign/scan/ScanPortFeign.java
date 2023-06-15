@@ -18,7 +18,7 @@ import java.util.Map;
 public interface ScanPortFeign {
 
     @PostMapping("/scan/port/getByIpList")
-    List<ScanPortEntity> getByIpList(@RequestBody List<String> ipList);
+    List<ScanPortEntity> getByIpList(@RequestBody List<Long> ipList);
 
     @GetMapping("/scan/port/getHomeNum")
     HomeNumDto getHomeNum(@RequestParam Map<String, Object> params);

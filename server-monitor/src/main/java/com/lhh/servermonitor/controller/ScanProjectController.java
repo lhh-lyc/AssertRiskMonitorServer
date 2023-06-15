@@ -25,6 +25,12 @@ public class ScanProjectController {
     @Autowired
     private ScanProjectService scanProjectService;
 
+    @PostMapping("test")
+    public R test(@RequestBody ScanProjectEntity project){
+        scanProjectService.sendToMqtt(project);
+        return R.ok();
+    }
+
     @PostMapping("saveProject")
     public R saveProject(@RequestBody ScanProjectEntity project) {
         scanProjectService.saveProject(project);

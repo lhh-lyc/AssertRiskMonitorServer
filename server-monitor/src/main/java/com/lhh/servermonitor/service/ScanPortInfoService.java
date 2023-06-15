@@ -277,17 +277,17 @@ public class ScanPortInfoService {
         log.info("更新结束project_host=" + dto.getSubIp() + "数据状态");
     }
 
-        /**
-         * java代码获取开放端口
-         */
+    /**
+     * java代码获取开放端口
+     */
     public void scanSingleIpPortList(ScanParamDto dto) {
         Map<String, Object> params = new HashMap<>();
         String ip = dto.getSubIp();
         String domain = dto.getSubDomain();
         Long ipLong = IpLongUtils.ipToLong(ip);
         params.put("ipLong", ipLong);
-        List<ScanPortEntity> portEntityList = scanPortService.basicList(params);
-        if (!CollectionUtils.isEmpty(portEntityList)) {
+        List<ScanHostEntity> ipList = scanHostService.basicList(params);
+        if (!CollectionUtils.isEmpty(ipList) && PortUtils.portEquals(ipList.get(0).getScanPorts(), dto.getScanPorts())) {
             // 更新isScanning
             log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
             log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
@@ -337,12 +337,16 @@ public class ScanPortInfoService {
                     }
                 }
 
+                List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
+                List<Integer> exitPortList = exitPortEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
                 for (String port : scanPortList) {
-                    ScanPortEntity scanPort = ScanPortEntity.builder()
-                            .ip(ip).ipLong(ipLong).port(Integer.valueOf(port))
-                            .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
-                            .build();
-                    portList.add(scanPort);
+                    if (!exitPortList.contains(Integer.valueOf(port))) {
+                        ScanPortEntity scanPort = ScanPortEntity.builder()
+                                .ip(ip).ipLong(ipLong).port(Integer.valueOf(port))
+                                .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
+                                .build();
+                        portList.add(scanPort);
+                    }
                 }
 
                 // todo 保存端口可以延后步骤

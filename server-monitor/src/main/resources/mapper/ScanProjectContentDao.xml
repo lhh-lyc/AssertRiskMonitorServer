@@ -9,21 +9,21 @@
         <result property="inputHost" column="province_code"/>
         <result property="scanPorts" column="province_name"/>
         <result property="isCompleted" column="is_completed"/>
-        <collection property="ipList" ofType="String">
+        <collection property="ipList" ofType="Integer">
             <constructor>
-                <arg column="ip"/>
+                <arg column="ip_long"/>
             </constructor>
         </collection>
     </resultMap>
 
     <select id="getContentIpList" resultMap="contentMap">
-        select t.*, t2.ip from scan_project_content t
+        select t.*, t2.ip_long from scan_project_content t
         join scan_project_host t1 on t1.project_id = t.project_id
         join scan_host t2 on t2.domain = t1.`host`
         where t.del_flg = 0
         and t1.del_flg = 0
         and t2.del_flg = 0
-        and t2.ip != '-'
+        and t2.ipLong != 0
         <if test="notIdList != null and notIdList.size() > 0">
             and t1.project_id not in
             <foreach collection="notIdList" item="projectId" index="index" separator="," close=")" open="(">

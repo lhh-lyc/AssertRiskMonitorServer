@@ -46,6 +46,8 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     List<KeyValueDto> companyRanking(Map<String, Object> params);
 
+    List<String> getParentDomainList(Map<String, Object> params);
+
     void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
 
 }

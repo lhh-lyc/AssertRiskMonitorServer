@@ -114,7 +114,7 @@ public class ScanHostController {
     }
 
     @PostMapping("getByIpList")
-    public List<ScanHostEntity> getByIpList(@RequestBody List<String> hostList) {
+    public List<ScanHostEntity> getByIpList(@RequestBody List<Long> hostList) {
         List<ScanHostEntity> scanHostList = scanHostService.getByIpList(hostList);
         return scanHostList;
     }
@@ -147,6 +147,12 @@ public class ScanHostController {
     public Integer getSubDomainNum(@RequestParam Map<String, Object> params) {
         Integer num = scanHostService.getSubDomainNum(params);
         return num;
+    }
+
+    @GetMapping("getParentDomainList")
+    public List<String> getParentDomainList(@RequestParam Map<String, Object> params) {
+        List<String> list = scanHostService.getParentDomainList(params);
+        return list;
     }
 
     @GetMapping("companyRanking")

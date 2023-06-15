@@ -5,6 +5,8 @@ import java.util.Map;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanPortEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,10 @@ public interface ScanHostService extends IService<ScanHostEntity> {
     void updateScanPorts(List<ScanHostEntity> list);
 
     void updateEndScanIp(Long ipLong, String domain);
+
+    void saveBatch(List<ScanHostEntity> list);
+
+    List<ScanHostEntity> basicList(Map<String, Object> params);
 
 }
 

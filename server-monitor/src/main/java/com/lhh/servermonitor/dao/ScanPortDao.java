@@ -3,6 +3,7 @@ package com.lhh.servermonitor.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -28,5 +29,7 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
     List<ScanPortEntity> queryList(Map<String, Object> params);
 
     List<ScanPortEntity> basicByIpList(@Param("ipList") List<Long> ipList);
+
+    void saveBatch(@Param("list") List<ScanPortEntity> list);
 
 }

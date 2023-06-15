@@ -38,4 +38,9 @@ public class CacheConst {
      */
     public final static String REDIS_DOMAIN_COMPANY = "DOMAIN_COMPANY:%s";
 
+    /**
+     * redis key: REDIS_RESCAN_DOMAIN
+     */
+    public final static String REDIS_RESCAN_DOMAIN = "RESCAN_DOMAIN:%s";
+
 }

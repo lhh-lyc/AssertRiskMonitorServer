@@ -11,6 +11,7 @@ import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.ImportExcelUtils;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverbase.vo.ScanPortVo;
@@ -99,14 +100,14 @@ public class ExportService {
         List<ScanHostEntity> updateHostList = new ArrayList<>();
         List<ScanPortEntity> savePortList = new ArrayList<>();
         List<String> domainList = new ArrayList<>();
-        List<String> ipList = new ArrayList<>();
+        List<Long> ipList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(dataList)) {
             for (List<String> data : dataList) {
                 if (StringUtils.isEmpty(data.get(3)) || StringUtils.isEmpty(data.get(4))) {
                     continue;
                 }
                 domainList.add(data.get(2));
-                ipList.add(data.get(3));
+                ipList.add(IpLongUtils.ipToLong(data.get(3)));
             }
         }
 

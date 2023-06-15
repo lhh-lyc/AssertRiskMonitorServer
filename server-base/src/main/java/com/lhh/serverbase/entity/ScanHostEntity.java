@@ -38,6 +38,7 @@ public class ScanHostEntity extends BaseEntity {
     /**
      * ip
      */
+    @TableField(exist = false)
     private String ip;
     /**
      * ip

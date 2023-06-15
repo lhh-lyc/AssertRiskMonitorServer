@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanPortEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -45,5 +47,9 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
      * @return
      */
     List<String> getEndScanMajor(@Param("ipLong") Long ipLong);
+
+    void saveBatch(@Param("list") List<ScanHostEntity> list);
+
+    List<ScanHostEntity> basicList(Map<String, Object> params);
 
 }

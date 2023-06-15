@@ -127,7 +127,7 @@ public class ScanPortController {
      * 根据条件查询列表数据
      */
     @PostMapping("getByIpList")
-    public List<ScanPortEntity> getByIpList(@RequestBody List<String> ipList) {
+    public List<ScanPortEntity> getByIpList(@RequestBody List<Long> ipList) {
         List<ScanPortEntity> scanPortList = scanPortService.getByIpList(ipList);
         return scanPortList;
     }
