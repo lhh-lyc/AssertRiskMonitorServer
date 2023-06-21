@@ -285,111 +285,47 @@ public class ScanPortInfoService {
         String ip = dto.getSubIp();
         String domain = dto.getSubDomain();
         Long ipLong = IpLongUtils.ipToLong(ip);
-        params.put("ipLong", ipLong);
-        List<ScanHostEntity> ipList = scanHostService.basicList(params);
-        if (!CollectionUtils.isEmpty(ipList) && PortUtils.portEquals(ipList.get(0).getScanPorts(), dto.getScanPorts())) {
+        if (Const.STR_CROSSBAR.equals(ip)) {
             // 更新isScanning
             log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
             log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
-            scanHostService.updateEndScanIp(ipLong, domain);
+            scanHostService.updateEndScanIp(ipLong, dto.getScanPorts());
             log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
             return;
         }
+        params.put("ipLong", ipLong);
+        List<ScanHostEntity> ipList = scanHostService.basicList(params);
+        List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
+        // 第二个判断是为了判断扫描端口不同的情况
+        // 第三个判断是为了防止host表先存了数据导致不扫描port
+        if (!CollectionUtils.isEmpty(ipList)
+                && PortUtils.portEquals(ipList.get(0).getScanPorts(), dto.getScanPorts())
+                && !CollectionUtils.isEmpty(exitPortEntityList)) {
+            // 更新isScanning
+            log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
+            log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
+            scanHostService.updateEndScanIp(ipLong, ipList.get(0).getScanPorts());
+            log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
+            JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+            return;
+        }
+        String portParam = PortUtils.getNewPorts(ipList.get(0).getScanPorts(), dto.getScanPorts());
         log.info("开始扫描" + domain + ":" + ip + "端口");
-        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
+        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, portParam);
         SshResponse response = null;
         try {
             response = ExecUtil.runCommand(cmd);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<String> portStrList = Arrays.asList(response.getOut().split("\n"));
         List<String> scanPortList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(portStrList)) {
-            for (String port : portStrList) {
-                if (!StringUtils.isEmpty(port)) {
-                    port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH)).trim();
-                    scanPortList.add(port);
-                }
-            }
-        }
-
-        if (scanPortList.size() >= 1000) {
-            log.info(ip + "扫描端口超过1000，已忽略！");
-        } else {
-            if (!CollectionUtils.isEmpty(scanPortList)) {
-                List<ScanPortEntity> portList = new ArrayList<>();
-                String ports = String.join(Const.STR_COMMA, scanPortList);
-                String nmapCmd = String.format(Const.STR_NMAP_SERVER, ports, ip);
-                SshResponse nmapResponse = null;
-                try {
-                    nmapResponse = ExecUtil.runCommand(nmapCmd);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                List<String> responseLineList = Arrays.asList(nmapResponse.getOut().split("\n"));
-                List<String> serverLineList = responseLineList.stream().filter(r -> !StringUtils.isEmpty(r) && r.contains(Const.STR_SLASH) && scanPortList.contains(r.substring(0, r.indexOf(Const.STR_SLASH)))).collect(Collectors.toList());
-                Map<String, String> serverMap = new HashMap<>();
-                if (!CollectionUtils.isEmpty(serverLineList)) {
-                    for (String server : serverLineList) {
-                        serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)));
-                    }
-                }
-
-                List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
-                List<Integer> exitPortList = exitPortEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
-                for (String port : scanPortList) {
-                    if (!exitPortList.contains(Integer.valueOf(port))) {
-                        ScanPortEntity scanPort = ScanPortEntity.builder()
-                                .ip(ip).ipLong(ipLong).port(Integer.valueOf(port))
-                                .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
-                                .build();
-                        portList.add(scanPort);
-                    }
-                }
-
-                // todo 保存端口可以延后步骤
-                scanPortService.saveBatch(portList);
-            }
-            log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
-        }
-        // 更新isScanning
-        log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
-        try {
-            scanHostService.updateEndScanIp(ipLong, domain);
-        } catch (Exception e) {
-            log.error(domain + ":" + ip + "更新状态出现错误：", e);
-        }
-        log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
-        JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
-    }
-
-    /**
-     * 重新扫描，覆盖
-     */
-    public void reloadIpPortList(ScanParamDto dto) {
-        Map<String, Object> params = new HashMap<>();
-        String ip = dto.getSubIp();
-        params.put("ip", ip);
-        List<ScanPortEntity> portEntityList = scanPortService.list(params);
-        List<Integer> exitPorts = CollectionUtils.isEmpty(portEntityList) ? new ArrayList<>() : portEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
-
-        log.info("开始扫描" + ip + "端口");
-        String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
-        SshResponse response = null;
-        try {
-            response = ExecUtil.runCommand(cmd);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        List<String> portStrList = Arrays.asList(response.getOut().split("\n"));
-        List<String> scanPortList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(portStrList)) {
-            for (String port : portStrList) {
-                if (!StringUtils.isEmpty(port)) {
-                    port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH)).trim();
-                    if (!exitPorts.contains(Integer.valueOf(port))) {
+        if (!StringUtils.isEmpty(response.getOut())) {
+            List<String> portStrList = Arrays.asList(response.getOut().split("\n"));
+            if (!CollectionUtils.isEmpty(portStrList)) {
+                for (String port : portStrList) {
+                    if (!StringUtils.isEmpty(port)) {
+                        port = port.substring(port.indexOf("port ") + 5, port.indexOf(Const.STR_SLASH)).trim();
                         scanPortList.add(port);
                     }
                 }
@@ -418,19 +354,33 @@ public class ScanPortInfoService {
                     }
                 }
 
+                exitPortEntityList = scanPortService.basicList(params);
+                List<Integer> exitPortList = exitPortEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
                 for (String port : scanPortList) {
-                    ScanPortEntity scanPort = ScanPortEntity.builder()
-                            .ip(ip).port(Integer.valueOf(port))
-                            .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
-                            .build();
-                    portList.add(scanPort);
+                    if (!exitPortList.contains(Integer.valueOf(port))) {
+                        ScanPortEntity scanPort = ScanPortEntity.builder()
+                                .ip(ip).ipLong(ipLong).port(Integer.valueOf(port))
+                                .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
+                                .build();
+                        portList.add(scanPort);
+                    }
                 }
 
                 // todo 保存端口可以延后步骤
-                scanPortService.saveBatch(portList);
+                if (!CollectionUtils.isEmpty(portList)) {
+                    scanPortService.saveBatch(portList);
+                }
             }
-            log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
+            log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
         }
+        // 更新isScanning
+        log.info("开始更新" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
+        try {
+            scanHostService.updateEndScanIp(ipLong, portParam);
+        } catch (Exception e) {
+            log.error(domain + ":" + ip + "更新状态出现错误：", e);
+        }
+        log.info("更新结束" + domain + ":" + ip + "数据状态(ipLong=" + ipLong + ")");
         JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
     }
 

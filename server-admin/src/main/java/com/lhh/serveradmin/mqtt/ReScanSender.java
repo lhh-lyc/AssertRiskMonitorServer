@@ -1,34 +1,25 @@
 package com.lhh.serveradmin.mqtt;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.lhh.serveradmin.utils.JedisUtils;
-import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ReScanDto;
-import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.serverbase.utils.CopyUtils;
-import com.lhh.serverbase.utils.HttpUtils;
-import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
 @Component
 public class ReScanSender {
 
-    @Value("${mqtt-setting.sub-num}")
-    private Integer subNum;
+    @Value("${mqtt-setting.re-sub-num}")
+    private Integer reSubNum;
     @Value("${mqtt-setting.exchange}")
     private String exchange;
     @Value("${mqtt-setting.reDomain-route-key}")
@@ -43,7 +34,7 @@ public class ReScanSender {
         if (CollectionUtils.isEmpty(list)) {
             return ;
         }
-        List<ReScanDto> hostList = splitList(list, 10);
+        List<ReScanDto> hostList = splitList(list, reSubNum);
         for (ReScanDto p : hostList) {
             CorrelationData correlationId = new CorrelationData(p.toString());
             rabbitTemplate.convertAndSend(exchange, reDomainRouteKey, SerializationUtils.serialize(p), correlationId);
@@ -54,7 +45,7 @@ public class ReScanSender {
         if (CollectionUtils.isEmpty(list)) {
             return ;
         }
-        List<ReScanDto> hostList = splitList(list, subNum);
+        List<ReScanDto> hostList = splitList(list, reSubNum);
         for (ReScanDto p : hostList) {
             CorrelationData correlationId = new CorrelationData(p.toString());
             rabbitTemplate.convertAndSend(exchange, reIpRouteKey, SerializationUtils.serialize(p), correlationId);

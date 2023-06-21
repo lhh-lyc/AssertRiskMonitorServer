@@ -4,12 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
 import com.lhh.servermonitor.service.ScanProjectHostService;
 import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,8 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
 
     @Autowired
     private ScanProjectHostDao scanProjectHostDao;
+    @Autowired
+    RedissonClient redisson;
 
     /**
      * 分页查询列表数据
@@ -69,13 +74,17 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
 
     @Override
     public void updateEndScanDomain(String domain) {
-        ScanProjectHostEntity host = scanProjectHostDao.queryByHost(domain);
-        if (host != null) {
-            host.setIsScanning(Const.INTEGER_0);
-            updateById(host);
-        }
         // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
-//        scanProjectHostDao.updateEndScanDomain(domain);
+        String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
+        RLock lock = redisson.getLock(lockKey);
+        lock.lock();
+        try {
+            scanProjectHostDao.updateEndScanDomain(domain);
+        } catch (Exception e) {
+            log.error("更新project_host表domain扫描状态出错", e);
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

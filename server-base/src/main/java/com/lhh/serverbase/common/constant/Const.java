@@ -18,6 +18,11 @@ public class Const {
      * 字符串："1"
      */
     public final static String STR_1 = "1";
+
+    /**
+     * 全范围端口字符串："1-65535"
+     */
+    public final static String STR_1_65535 = "1-65535";
     /**
      * 字符串：""
      */

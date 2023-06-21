@@ -7,8 +7,7 @@
         update scan_project_host
         set is_scanning = 0
         where del_flg = 0
-          and is_scanning = 1
-          and host = #{domain}
+        and host = #{domain}
     </update>
 
     <select id="queryByHost" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">

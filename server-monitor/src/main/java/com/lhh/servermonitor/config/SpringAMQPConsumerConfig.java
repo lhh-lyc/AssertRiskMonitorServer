@@ -14,13 +14,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SpringAMQPConsumerConfig {
 
-    @Value("${mqtt-setting.host}")
+    @Value("${spring.rabbitmq.host}")
     private String host;
-    @Value("${mqtt-setting.port}")
-    private Integer port;
-    @Value("${mqtt-setting.userName}")
+    @Value("${spring.rabbitmq.port}")
+    private int port;
+    @Value("${spring.rabbitmq.username}")
     private String userName;
-    @Value("${mqtt-setting.password}")
+    @Value("${spring.rabbitmq.password}")
     private String password;
     @Value(value = "${mqtt-setting.concurrent_consumers}")
     private Integer concurrentConsumers;

@@ -8,6 +8,26 @@ public class CacheConst {
     public final static String REDIS_LOCK_PROJECT = "LOCK_PROJECT:%s";
 
     /**
+     * redis key: LOCK_PROJECT_DOMAIN_SCAN_CHANGE:
+     */
+    public final static String REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE = "LOCK_PROJECT_DOMAIN_SCAN_CHANGE:%s";
+
+    /**
+     * redis key: LOCK_DOMAIN_SCAN_CHANGE:
+     */
+    public final static String REDIS_LOCK_DOMAIN_SCAN_CHANGE = "LOCK_DOMAIN_SCAN_CHANGE:%s";
+
+    /**
+     * redis key: LOCK_IP_SCAN_CHANGE:
+     */
+    public final static String REDIS_LOCK_IP_SCAN_CHANGE = "LOCK_IP_SCAN_CHANGE:%s";
+
+    /**
+     * redis key: LOCK_IP_SCAN_RETURN:
+     */
+    public final static String REDIS_LOCK_IP_SCAN_RETURN = "LOCK_IP_SCAN_RETURN:%s";
+
+    /**
      * redis key: SCANNING_PROJECT:
      */
     public final static String REDIS_SCANNING_PROJECT = "SCANNING_PROJECT:%s";
@@ -42,5 +62,15 @@ public class CacheConst {
      * redis key: REDIS_RESCAN_DOMAIN
      */
     public final static String REDIS_RESCAN_DOMAIN = "RESCAN_DOMAIN:%s";
+
+    /**
+     * redis key: REDIS_TASK_PARENT_DOMAIN
+     */
+    public final static String REDIS_TASK_PARENT_DOMAIN = "TASK_PARENT_DOMAIN";
+
+    /**
+     * redis key: REDIS_LOCK_TASK_PARENT_DOMAIN
+     */
+    public final static String REDIS_LOCK_TASK_PARENT_DOMAIN = "LOCK_TASK_PARENT_DOMAIN";
 
 }

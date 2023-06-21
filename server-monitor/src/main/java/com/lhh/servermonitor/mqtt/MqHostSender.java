@@ -49,7 +49,6 @@ public class MqHostSender {
         Integer num = Const.INTEGER_0;
         try {
             //6. 将消息发送到队列
-            log.info(dtoList.get(0).getHost() + "本次预计投递数量:" + dtoList.size());
             for (ScanParamDto dto : dtoList) {
                 num++;
                 log.info(dto.getSubDomain() + "域名开始投递");
@@ -57,7 +56,6 @@ public class MqHostSender {
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, hostRouteKey, SerializationUtils.serialize(dto), correlationId);
             }
-            log.info(dtoList.get(0).getHost() + "循环投递数量:" + num);
         } catch (Exception e) {
             reset = true;
             resetList.add(dtoList.get(num));

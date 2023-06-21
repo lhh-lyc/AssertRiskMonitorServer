@@ -17,11 +17,10 @@ spring:
     host: localhost
     port: 6379
     password: 123456
-    db: 1
     pool:
-      max-idle: 8
+      max-idle: 1000
       min-idle: 0
-      max-active: 8
+      max-active: 1000
       max-wait: -1
     timeout: 5000
   #flyway
@@ -31,11 +30,27 @@ spring:
     schemas: schema
     #baseline-version: 1 #低于该版本号的sql全部禁用 - 测试使用
     out-of-order: false #对于开发环境, 可能是多人协作开发, 很可能先 apply 了自己本地的最新 SQL 代码, 然后发现其他同事早先时候提交的 SQL 代码还没有 apply, 所以 开发环境应该设置 spring.flyway.outOfOrder=true, 这样 flyway 将能加载漏掉的老版本 SQL 文件; 而生产环境应该设置 spring.flyway.outOfOrder=false
+  rabbitmq:
+    port: 5672
+    host: localhost
+    username: guest
+    password: guest
+    #这个配置是保证提供者确保消息推送到交换机中，不管成不成功，都会回调
+    publisher-confirm-type: correlated
+    #保证交换机能把消息推送到队列中
+    publisher-returns: true
+    virtual-host: /
+    #这个配置是保证消费者会消费消息，手动确认
+    listener:
+      simple:
+        acknowledge-mode: manual
+    template:
+      mandatory: true
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:10001/eureka/
+      defaultZone: http://localhost:7001/eureka/
   instance:
     prefer-ip-address: true
     instance-id: ${spring.cloud.client.ip-address}:${server.port}
@@ -45,5 +60,35 @@ server-setting:
   host_name: 49.235.104.19
   user_name: root
   pwd: Lhh110112
-  exec_timeout: 60
+  exec_timeout: 6000
 
+dir-setting:
+  subfinder-dir: /mnt/webSafe/utils/subfinder
+
+mqtt-setting:
+  # mqtt服务器broker
+  host: localhost
+  port: 5672
+  userName: guest
+  password: guest
+  exchange: amp.topic
+  taskParent-route-key: key.taskParentDomain
+  taskParent-pub-topic: taskParentDomain
+  taskSubDomain-route-key: key.taskScanSubDomain
+  taskSubDomain-pub-topic: taskScanSubDomain
+  taskIp-route-key: key.taskScanIp
+  taskIp-pub-topic: taskScanIp
+  concurrent_consumers: 3
+  maxConcurrent_consumers: 10
+  prefetch_count: 1
+  task-sub-num: 10
+
+sync-setting:
+  # 扫描端口最大线程数控制
+  MAX_THREADS: 3
+  # 扫描端口跑批分页大小
+  EXPIRED_PAGE_SIZE: 10
+
+monitor-setting:
+  # 一个服务部署为1，其他服务都为0
+  is-init: 1

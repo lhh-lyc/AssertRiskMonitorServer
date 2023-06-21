@@ -4,17 +4,21 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.Query;
+import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanHostDao;
 import com.lhh.servermonitor.dao.ScanProjectContentDao;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
 import com.lhh.servermonitor.service.ScanHostService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +39,8 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     private ScanProjectHostDao scanProjectHostDao;
     @Autowired
     private ScanProjectContentDao scanProjectContentDao;
+    @Autowired
+    RedissonClient redisson;
 
     /**
      * 分页查询列表数据
@@ -69,9 +75,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         if (CollectionUtils.isEmpty(hostList)) {
             return new ArrayList<>();
         }
-        QueryWrapper wrapper = Wrappers.query()
-                .in("parent_domain", hostList);
-        List<ScanHostEntity> list = list(wrapper);
+        List<ScanHostEntity> list = scanHostDao.getByParentDomainList(hostList);
         return list;
     }
 
@@ -107,15 +111,47 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     }
 
     @Override
-    public void updateEndScanIp(Long ipLong, String domain) {
+    public void updateEndScanDomain(String domain) {
         // 修改所有域名解析为当前ip的数据状态 is_scanning=0
-        List<ScanHostEntity> list = scanHostDao.getByIpList(Arrays.asList(ipLong), domain);
-        if (!CollectionUtils.isEmpty(list) && Const.INTEGER_1.equals(list.get(0).getIsScanning())) {
-            ScanHostEntity host = list.get(0);
-            host.setIsScanning(Const.INTEGER_0);
-            updateById(host);
+        String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN_SCAN_CHANGE, domain);
+        RLock lock = redisson.getLock(lockKey);
+        lock.lock();
+        try {
+            scanHostDao.updateEndScanDomain(domain);
+        } catch (Exception e) {
+            log.error("批量更新host表domain状态扫描状态出错", e);
+        } finally {
+            lock.unlock();
         }
-//        scanHostDao.updateEndScanIp(ipLong, domain);
+    }
+
+    @Override
+    public void updateEndScanIp(Long ipLong, String scanPorts) {
+        // 修改所有域名解析为当前ip的数据状态 is_scanning=0
+        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_CHANGE, ipLong);
+        RLock lock = redisson.getLock(lockKey);
+        lock.lock();
+        try {
+            scanHostDao.updateEndScanIp(ipLong, scanPorts);
+        } catch (Exception e) {
+            log.error("更新host表ip扫描状态出错", e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void returnScanStatus(Long ipLong) {
+        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_RETURN, ipLong);
+        RLock lock = redisson.getLock(lockKey);
+        lock.lock();
+        try {
+            scanHostDao.returnScanStatus(ipLong);
+        } catch (Exception e) {
+            log.error("更新host表ip扫描状态出错", e);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

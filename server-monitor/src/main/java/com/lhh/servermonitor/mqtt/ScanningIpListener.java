@@ -55,7 +55,6 @@ public class ScanningIpListener {
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
             scanPortInfoService.scanIpsPortList(dto);
-//            syncService.dataHandler(scanPortParamList, message, channel);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

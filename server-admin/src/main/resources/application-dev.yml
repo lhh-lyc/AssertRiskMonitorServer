@@ -48,11 +48,6 @@ ribbon:
 
 # mqtt配置
 mqtt-setting:
-  # mqtt服务器broker
-  host: 127.0.0.1
-  port: 5672
-  userName: guest
-  password: guest
   exchange: amp.topic
   project-route-key: key.project
   project-pub-topic: projectData
@@ -60,7 +55,5 @@ mqtt-setting:
   reDomain-pub-topic: reScanDomain
   reIp-route-key: key.reScanIp
   reIp-pub-topic: reScanIp
-  concurrent_consumers: 1
-  maxConcurrent_consumers: 10
-  prefetch_count: 1
   sub-num: 2
+  re-sub-num: 10

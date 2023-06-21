@@ -49,7 +49,6 @@ public class MqIpSender {
         Integer num = Const.INTEGER_0;
         try {
             //6. 将消息发送到队列
-            log.info("项目id=" + dtoList.get(0).getProjectId()+ ":本次预计投递数量:" + dtoList.size());
             for (ScanParamDto dto : dtoList) {
                 num++;
                 log.info(dto.getSubIp() + "ip开始投递");
@@ -57,7 +56,6 @@ public class MqIpSender {
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, ipRouteKey, SerializationUtils.serialize(dto), correlationId);
             }
-            log.info("项目id=" + dtoList.get(0).getProjectId()+ ":循环投递数量:" + num);
         } catch (Exception e) {
             reset = true;
             resetList.add(dtoList.get(num));

@@ -13,6 +13,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 public class RedisLock {
@@ -33,6 +35,7 @@ public class RedisLock {
             if (!StringUtils.isEmpty(projectRedisValue)) {
                 ScanProjectEntity redisProject = JSON.parseObject(projectRedisValue, ScanProjectEntity.class);
                 redisProject.getHostList().addAll(project.getHostList());
+                redisProject.setHostList(redisProject.getHostList().stream().distinct().collect(Collectors.toList()));
                 JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getUserId() + Const.STR_TITLE + project.getName()), JSON.toJSONString(redisProject));
             } else {
                 JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getUserId() + Const.STR_TITLE + project.getName()), JSON.toJSONString(project));

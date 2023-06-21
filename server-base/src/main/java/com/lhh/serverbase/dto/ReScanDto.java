@@ -19,6 +19,8 @@ public class ReScanDto implements Serializable {
 
     private String queueId;
 
+    private String parentDomain;
+
     private List<String> hostList;
 
 }

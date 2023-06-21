@@ -66,11 +66,6 @@ dir-setting:
   subfinder-dir: /mnt/webSafe/utils/subfinder
 
 mqtt-setting:
-  # mqtt服务器broker
-  host: localhost
-  port: 5672
-  userName: guest
-  password: guest
   exchange: amp.topic
   host-route-key: key.host
   scanning-host-pub-topic: scanningHostData

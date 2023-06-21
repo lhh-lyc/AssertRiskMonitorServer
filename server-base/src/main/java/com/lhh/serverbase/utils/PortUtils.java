@@ -31,6 +31,9 @@ public class PortUtils {
     }
 
     private static Set<Integer> parsePorts(String s) {
+        if (StringUtils.isEmpty(s)) {
+            return new HashSet<>();
+        }
         Set<Integer> set = new HashSet<>();
         String[] ranges = s.split(",");
         for (String r : ranges) {

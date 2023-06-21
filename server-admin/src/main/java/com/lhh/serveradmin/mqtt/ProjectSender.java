@@ -41,9 +41,11 @@ public class ProjectSender {
     public void putProject(ScanProjectEntity project){
         for (String host : project.getHostList()) {
             if (!RexpUtil.isIP(host)) {
-                String company = HttpUtils.getDomainUnit(host);
-                if (!StringUtils.isEmpty(company)) {
-                    JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
+                if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
+                    String company = HttpUtils.getDomainUnit(host);
+                    if (!StringUtils.isEmpty(company)) {
+                        JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
+                    }
                 }
             }
         }

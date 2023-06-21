@@ -142,7 +142,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             }});
             List<String> exitProjectHostList = exitProjectHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
             List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalSameHostList);
-            List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).collect(Collectors.toList());
+            List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).distinct().collect(Collectors.toList());
             exitSubDoMainList.removeAll(exitProjectHostList);
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String host : exitSubDoMainList) {
@@ -162,12 +162,11 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 for (String ip : newIpList) {
                     // 保存项目-host关联关系
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                            .projectId(project.getId()).isScanning(Const.INTEGER_1)
+                            .projectId(project.getId()).isScanning(Const.INTEGER_0)
                             .host(ip).parentDomain(ip)
                             .build();
-                    projectHostList.add(item);
-
                     if (Const.INTEGER_1.equals(project.getPortFlag())) {
+                        item.setIsScanning(Const.INTEGER_1);
                         ScanParamDto dto = ScanParamDto.builder()
                                 .projectId(project.getId())
                                 .subIp(ip)
@@ -179,6 +178,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                         ipMap.put("status", Const.STR_0);
                         redisMap.put(String.format(CacheConst.REDIS_SCANNING_IP, ip), JSON.toJSONString(ipMap));
                     }
+                    projectHostList.add(item);
                 }
                 scanProjectHostService.saveBatch(projectHostList);
             }

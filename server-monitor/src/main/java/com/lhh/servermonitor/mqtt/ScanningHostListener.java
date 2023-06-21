@@ -88,7 +88,7 @@ public class ScanningHostListener {
 //            Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(h->h.getIp() + Const.STR_UNDERLINE + h.getDomain()));
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             List<ScanHostEntity> saveHostList = new ArrayList<>();
-            List<ScanHostEntity> updateHostList = new ArrayList<>();
+            List<Long> updateIpList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(ipList)) {
                 for (String ip : ipList) {
                     String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + dto.getSubDomain());
@@ -97,18 +97,17 @@ public class ScanningHostListener {
                     if (Const.INTEGER_1.equals(dto.getPortFlag())) {
                         ScanParamDto ipDto = ScanParamDto.builder()
                                 .subDomain(dto.getSubDomain())
-                                .subIp(ip).scanPorts(dto.getScanPorts())
+                                .subIp(ip).scanPorts(scanPorts)
                                 .build();
                         scanPortParamList.add(ipDto);
 
-                        // 更新域名扫描端口
+                        // 已有域名ip，端口范围不一样时，重新修改为正在扫描状态
                         if (!CollectionUtils.isEmpty(exitIpList)) {
                             for (ScanHostEntity host : exitIpList) {
                                 if (!PortUtils.portEquals(host.getScanPorts(), dto.getScanPorts())) {
-                                    host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), scanPorts));
+                                    updateIpList.add(host.getIpLong());
                                 }
                             }
-                            updateHostList.addAll(exitIpList);
                         }
                     }
                     // 新的域名与ip组合
@@ -131,18 +130,16 @@ public class ScanningHostListener {
             if (!CollectionUtils.isEmpty(saveHostList)) {
                 scanHostService.saveBatch(saveHostList);
             }
-            if (!CollectionUtils.isEmpty(updateHostList)) {
-                // todo
-    //                scanHostService.updateScanPorts(updateHostList);
-                for (ScanHostEntity host : updateHostList) {
-                    scanHostService.updateById(host);
+            if (!CollectionUtils.isEmpty(updateIpList)) {
+                for (Long ip : updateIpList) {
+                    scanHostService.returnScanStatus(ip);
                 }
             }
             scanPortParamList.stream().forEach(d -> {
                 //业务处理
                 scanPortInfoService.scanSingleIpPortList(d);
             });
-//            syncService.dataHandler(scanPortParamList, message, channel);
+
             log.info("开始更新project_host=" + dto.getSubDomain() + "数据状态");
             try {
                 scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
@@ -150,6 +147,17 @@ public class ScanningHostListener {
                 log.error("更新project_host=" + dto.getSubDomain() + "数据状态出现问题,异常详情：", e);
             }
             log.info("更新结束project_host=" + dto.getSubDomain() + "数据状态");
+            // 不扫描端口批量更新域名ip状态
+            if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
+                // 更新isScanning
+                log.info("开始批量更新" + dto.getSubDomain() + "数据状态");
+                try {
+                    scanHostService.updateEndScanDomain(dto.getSubDomain());
+                } catch (Exception e) {
+                    log.error(dto.getSubDomain() + "批量更新状态出现错误：", e);
+                }
+                log.info("批量更新结束" + dto.getSubDomain() + "数据状态");
+            }
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

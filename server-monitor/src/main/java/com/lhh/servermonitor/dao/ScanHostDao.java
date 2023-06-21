@@ -23,7 +23,13 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     void updateScanPorts(@Param("list") List<ScanHostEntity> list);
 
-    void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("domain") String domain);
+    void updateEndScanDomain(@Param("domain") String domain);
+
+    void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("scanPorts") String scanPorts);
+
+    void returnScanStatus(@Param("ipLong") Long ipLong);
+
+    List<ScanHostEntity> getByParentDomainList(@Param("hostList") List<String> hostList);
 
     /**
      * @param ipLongList

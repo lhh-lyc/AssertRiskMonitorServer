@@ -63,7 +63,7 @@ public class ScanService {
             }
             subdomainList = response.getOutList();
             subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
-            log.info(CollectionUtils.isEmpty(subdomainList) ? scanDto.getHost() + "未扫描到子域名" : scanDto.getHost() + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
+            log.info(CollectionUtils.isEmpty(subdomainList) ? "执行工具命令返回" + JSON.toJSONString(response) + ";" + scanDto.getHost() + "未扫描到子域名" : scanDto.getHost() + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
         }
         if (!subdomainList.contains(scanDto.getHost())) {
             subdomainList.add(scanDto.getHost());

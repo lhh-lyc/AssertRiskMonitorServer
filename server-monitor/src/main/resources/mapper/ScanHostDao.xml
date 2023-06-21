@@ -14,13 +14,32 @@
         </foreach>
     </update>
 
-    <update id="updateEndScanIp">
+    <update id="updateEndScanDomain">
         update scan_host
         set is_scanning = 0
-        where is_scanning = 1
-        and ip_long = #{ipLong}
-        and domain = #{domain}
+        where domain = #{domain}
     </update>
+
+    <update id="updateEndScanIp">
+        update scan_host
+        set is_scanning = 0,scan_ports = #{scanPorts}
+        where ip_long = #{ipLong}
+    </update>
+
+    <update id="returnScanStatus">
+        update scan_host
+        set is_scanning = 1
+        where ip_long = #{ipLong}
+    </update>
+
+    <select id="getByParentDomainList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select domain, ip_long, parent_domain
+        from scan_host
+        where parent_domain in
+        <foreach item="host" collection="hostList" open="(" separator="," close=")">
+            #{host}
+        </foreach>
+    </select>
 
     <select id="getByIpList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
         select *

@@ -19,13 +19,13 @@ import org.springframework.retry.support.RetryTemplate;
 //@PropertySource("classpath:application.properties")//指定配置文件
 public class RabbitMqConfig {
     @Value("${spring.rabbitmq.host}")
-    private   String host;
+    private String host;
     @Value("${spring.rabbitmq.port}")
-    private  int port;
+    private int port;
     @Value("${spring.rabbitmq.username}")
-    private  String username;
+    private String username;
     @Value("${spring.rabbitmq.password}")
-    private  String password;
+    private String password;
     @Value("${mqtt-setting.exchange}")
     private String exchange;
     @Value("${mqtt-setting.host-route-key}")
