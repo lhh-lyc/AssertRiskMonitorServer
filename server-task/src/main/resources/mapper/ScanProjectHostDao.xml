@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverTask.dao.ScanProjectHostDao">
+
+    <update id="updateEndScanDomain">
+        update scan_project_host
+        set is_scanning = 0
+        where del_flg = 0
+          and is_scanning = 1
+          and host = #{domain}
+    </update>
+
+    <select id="queryByHost" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">
+        select id, host, project_id, parent_domain from scan_project_host
+        where del_flg = 0
+          and host = #{domain}
+    </select>
+
+    <select id="queryByHostList" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">
+        select id, host, project_id, parent_domain from scan_project_host
+        where del_flg = 0
+        and host in
+        <foreach collection="hostList" item="host" index="index" separator="," close=")" open="(">
+            #{host}
+        </foreach>
+    </select>
+
+</mapper>

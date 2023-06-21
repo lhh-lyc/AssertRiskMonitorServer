@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverTask.dao.ScanPortDao">
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select ip_long, port
+        from scan_port
+        where ip_long = #{ipLong}
+    </select>
+
+    <select id="basicByIpList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select ip_long, port
+        from scan_port
+        where ip_long in
+        <foreach collection="ipList" item="ipLong" index="index" separator="," close=")" open="(">
+            #{ipLong}
+        </foreach>
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore scan_port
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.ipLong},#{host.port},#{host.serverName},
+            #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+</mapper>
