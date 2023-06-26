@@ -6,10 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanProjectHostDao;
+import com.lhh.servermonitor.service.NetErrorDataService;
 import com.lhh.servermonitor.service.ScanProjectHostService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -18,13 +21,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-
+@Slf4j
 @Service("scanProjectHostService")
 public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, ScanProjectHostEntity> implements ScanProjectHostService {
 
     @Autowired
     private ScanProjectHostDao scanProjectHostDao;
+    @Autowired
+    private NetErrorDataService netErrorDataService;
     @Autowired
     RedissonClient redisson;
 
@@ -74,17 +80,54 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
 
     @Override
     public void updateEndScanDomain(String domain) {
+        log.info("开始更新project_host=" + domain + "数据状态");
         // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
         RLock lock = redisson.getLock(lockKey);
-        lock.lock();
+        boolean success = true;
         try {
-            scanProjectHostDao.updateEndScanDomain(domain);
+            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (success) {
+                scanProjectHostDao.updateEndScanDomain(domain);
+            }
         } catch (Exception e) {
-            log.error("更新project_host表domain扫描状态出错", e);
+            NetErrorDataEntity err = NetErrorDataEntity.builder()
+                    .obj(domain).type(Const.INTEGER_1)
+                    .build();
+            netErrorDataService.save(err);
+            log.error("更新project_host=" + domain + "数据状态出现问题,异常详情：", e);
         } finally {
-            lock.unlock();
+            // 判断当前线程是否持有锁
+            if (success && lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
         }
+        log.info("更新结束project_host=" + domain + "数据状态");
+    }
+
+    @Override
+    public void endScanDomain(String domain) {
+        log.info("开始补充更新project_host=" + domain + "数据状态");
+        // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
+        String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
+        RLock lock = redisson.getLock(lockKey);
+        boolean success = true;
+        try {
+            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (success) {
+                scanProjectHostDao.updateEndScanDomain(domain);
+            }
+        } catch (Exception e) {
+            log.error("补充更新project_host=" + domain + "数据状态出现问题,异常详情：", e);
+        } finally {
+            // 判断当前线程是否持有锁
+            if (success && lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
+        }
+        log.info("补充更新结束project_host=" + domain + "数据状态");
     }
 
 }

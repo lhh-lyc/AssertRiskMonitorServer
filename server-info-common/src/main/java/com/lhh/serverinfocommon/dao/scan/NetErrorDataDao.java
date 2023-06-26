@@ -3,7 +3,7 @@ package com.lhh.serverinfocommon.dao.scan;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
+import com.lhh.serverbase.entity.NetErrorDataEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 系统_用户角色表
+ * 系统_用户表
  *
  * @author lyc
- * @date 2023-03-06 19:24:41
+ * @date 2023-06-25 15:49:24
  */
 @Mapper
-public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
+public interface NetErrorDataDao extends BaseMapper<NetErrorDataEntity> {
 
     /**
     * 分页查询用户列表
@@ -25,17 +25,13 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
     * @param params
     * @return
     */
-    IPage<ScanProjectHostEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
+    IPage<NetErrorDataEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
 
     /**
      * 查询用户列表
      * @param params
      * @return
      */
-    List<ScanProjectHostEntity> queryList(Map<String, Object> params);
-
-    void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
-
-    void updateEndScanDomain(@Param("domain") String domain);
+    List<NetErrorDataEntity> queryList(Map<String, Object> params);
 
 }

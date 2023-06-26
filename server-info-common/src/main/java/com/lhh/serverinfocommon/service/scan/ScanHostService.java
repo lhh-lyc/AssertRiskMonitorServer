@@ -50,5 +50,7 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<KeyValueDto> companyRanking(Map<String, Object> params);
 
+    void endScanIp(Long ipLong, String scanPorts);
+
 }
 

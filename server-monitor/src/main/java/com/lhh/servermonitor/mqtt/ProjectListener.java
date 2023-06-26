@@ -40,7 +40,8 @@ public class ProjectListener {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
         log.info("开始处理项目" + project.getQueueId());
         try {
-//                redisLock.saveProjectRedis(project);
+            // mq分割project，合并缓存问题
+            redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);

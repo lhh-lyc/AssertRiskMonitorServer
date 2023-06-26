@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.controller;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.servermonitor.service.ScanProjectHostService;
@@ -109,6 +110,12 @@ public class ScanProjectHostController {
     public ScanProjectHostEntity getInfo(Long id) {
         ScanProjectHostEntity scanProjectHost = scanProjectHostService.getById(id);
         return scanProjectHost;
+    }
+
+    @PostMapping("endScanDomain")
+    public void endScanDomain(@RequestBody Map<String, Object> params) {
+        String domain = MapUtil.getStr(params, "domain");
+        scanProjectHostService.endScanDomain(domain);
     }
 
 }

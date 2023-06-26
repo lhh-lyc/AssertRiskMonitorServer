@@ -1,5 +1,6 @@
 package com.lhh.serverinfocommon.controller.scan;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
@@ -159,6 +160,13 @@ public class ScanHostController {
     public List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params) {
         List<KeyValueDto> list = scanHostService.companyRanking(params);
         return list;
+    }
+
+    @PostMapping("endScanIp")
+    public void endScanIp(@RequestBody Map<String, Object> params) {
+        Long ip = MapUtil.getLong(params, "ipLong");
+        String scanPorts = MapUtil.getStr(params, "scanPorts");
+        scanHostService.endScanIp(ip, scanPorts);
     }
 
 }

@@ -140,13 +140,7 @@ public class ScanningHostListener {
                 scanPortInfoService.scanSingleIpPortList(d);
             });
 
-            log.info("开始更新project_host=" + dto.getSubDomain() + "数据状态");
-            try {
-                scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
-            } catch (Exception e) {
-                log.error("更新project_host=" + dto.getSubDomain() + "数据状态出现问题,异常详情：", e);
-            }
-            log.info("更新结束project_host=" + dto.getSubDomain() + "数据状态");
+            scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
             // 不扫描端口批量更新域名ip状态
             if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
                 // 更新isScanning

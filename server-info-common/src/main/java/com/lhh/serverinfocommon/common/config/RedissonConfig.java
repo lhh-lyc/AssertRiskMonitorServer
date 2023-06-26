@@ -1,4 +1,4 @@
-package com.lhh.servermonitor.config;
+package com.lhh.serverinfocommon.common.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

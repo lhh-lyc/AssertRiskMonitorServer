@@ -33,7 +33,9 @@ public interface ScanProjectHostService extends IService<ScanProjectHostEntity> 
 
     List<ScanProjectHostEntity> selByProIdAndHost(Long projectId, String host);
 
-    void updateEndScanDomain(String domain);
+    void updateEndScanDomain(String domain) throws Exception;
+
+    void endScanDomain(String domain);
 
 }
 

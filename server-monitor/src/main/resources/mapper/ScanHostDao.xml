@@ -3,16 +3,6 @@
 
 <mapper namespace="com.lhh.servermonitor.dao.ScanHostDao">
 
-    <update id="updateScanPorts">
-        <foreach collection="list" item="item" separator=";">
-            update
-            `scan_host`
-            set
-            `scan_ports` = #{item.scanPorts}
-            where
-            host_id = #{item.hostId}
-        </foreach>
-    </update>
 
     <update id="updateEndScanDomain">
         update scan_host

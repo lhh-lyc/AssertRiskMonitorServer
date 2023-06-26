@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
@@ -13,18 +14,24 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverinfocommon.dao.scan.ScanHostDao;
 import com.lhh.serverinfocommon.service.scan.ScanHostService;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-
+@Slf4j
 @Service("scanHostService")
 public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity> implements ScanHostService {
 
     @Autowired
     private ScanHostDao scanHostDao;
+    @Autowired
+    RedissonClient redisson;
 
     /**
      * 分页查询列表数据
@@ -118,6 +125,29 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         params.put("limit", limit);
         List<KeyValueDto> list = scanHostDao.companyRanking(params);
         return list;
+    }
+
+    @Override
+    public void endScanIp(Long ipLong, String scanPorts) {
+        log.info("开始补充更新host表" + ipLong + "数据状态");
+        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_CHANGE, ipLong);
+        RLock lock = redisson.getLock(lockKey);
+        boolean success = true;
+        try {
+            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (success) {
+                scanHostDao.updateEndScanIp(ipLong, scanPorts);
+            }
+        } catch (Exception e) {
+            log.error("补充更新host表" + ipLong + "扫描状态出错", e);
+        } finally {
+            // 判断当前线程是否持有锁
+            if (success && lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
+        }
+        log.info("补充更新结束host表" + ipLong + "数据状态");
     }
 
 }

@@ -152,4 +152,10 @@
         </foreach>
     </delete>
 
+    <update id="updateEndScanIp">
+        update scan_host
+        set is_scanning = 0,scan_ports = #{scanPorts}
+        where ip_long = #{ipLong}
+    </update>
+
 </mapper>

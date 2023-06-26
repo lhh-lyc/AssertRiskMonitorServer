@@ -1,18 +1,19 @@
 package com.lhh.serveradmin.service;
 
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
+import com.lhh.serveradmin.feign.scan.ScanningChangeFeign;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,6 +21,8 @@ public class TaskService {
 
     @Autowired
     ScanProjectContentFeign scanProjectContentFeign;
+    @Autowired
+    ScanningChangeFeign scanningChangeFeign;
 
     public void checkProject() {
         scanProjectContentFeign.updateEndScanContent();
@@ -53,4 +56,36 @@ public class TaskService {
             }
         }*/
     }
+
+    public void scanningChange() {
+        List<NetErrorDataEntity> list = scanningChangeFeign.list(new HashMap<>());
+        List<NetErrorDataEntity> hList = list.stream().filter(i->Const.INTEGER_1.equals(i.getType())).collect(Collectors.toList());
+        List<NetErrorDataEntity> ipList = list.stream().filter(i->Const.INTEGER_2.equals(i.getType())).collect(Collectors.toList());
+        List<Long> delIds = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(ipList)) {
+            for (NetErrorDataEntity data : ipList) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("ipLong", data.getObj());
+                params.put("scanPorts", data.getScanPorts());
+                scanningChangeFeign.endScanIp(params);
+                delIds.add(data.getId());
+            }
+        }
+        if (!CollectionUtils.isEmpty(delIds)) {
+            scanningChangeFeign.delErrorData(delIds);
+            delIds.clear();
+        }
+        if (!CollectionUtils.isEmpty(hList)) {
+            for (NetErrorDataEntity data : hList) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("domain", data.getObj());
+                scanningChangeFeign.endScanDomain(params);
+                delIds.add(data.getId());
+            }
+        }
+        if (!CollectionUtils.isEmpty(delIds)) {
+            scanningChangeFeign.delErrorData(delIds);
+        }
+    }
+
 }

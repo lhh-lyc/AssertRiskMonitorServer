@@ -10,21 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class ProjectCheckTask {
+public class ScanningStatusTask {
 
     @Autowired
     TaskService taskService;
 
     /**
-     * REDIS_SCANNING_PROJECT 未执行完的任务
-     * mysql里面的ip,全部不在redis里面就算做执行完成
+     * 网络原因导致更新状态失败，重新更新
      * @return
      */
-    @Scheduled(cron = "0 0/10 * * * ? ")
-    @GetMapping("checkProject")
-    public R checkProject() {
+    @Scheduled(cron = "0 9/10 * * * ? ")
+    @GetMapping("scanningChange")
+    public R scanningChange() {
         log.info("定时任务开始");
-        taskService.checkProject();
+        taskService.scanningChange();
         return R.ok();
     }
 

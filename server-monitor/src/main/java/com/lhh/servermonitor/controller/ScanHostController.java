@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.controller;
 
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
@@ -26,57 +27,62 @@ public class ScanHostController {
     private ScanHostService scanHostService;
 
     @PostMapping("saveTest")
-    public void saveTest(@RequestBody List<ScanHostEntity> project){
+    public void saveTest(@RequestBody List<ScanHostEntity> project) {
         scanHostService.saveBatch(project);
     }
 
     /**
      * 保存
+     *
      * @return
      */
     @PostMapping("save")
     public void save(@RequestBody ScanHostEntity scanHost) {
-            scanHostService.save(scanHost);
+        scanHostService.save(scanHost);
     }
 
     /**
      * 批量保存
+     *
      * @return
      */
     @PostMapping("saveBatch")
     public void save(@RequestBody List<ScanHostEntity> scanHostList) {
-            scanHostService.saveBatch(scanHostList);
+        scanHostService.saveBatch(scanHostList);
     }
 
     /**
-    * 更新
-    * @return
-    */
+     * 更新
+     *
+     * @return
+     */
     @PostMapping("update")
     public void update(@RequestBody ScanHostEntity scanHost) {
-            scanHostService.updateById(scanHost);
+        scanHostService.updateById(scanHost);
     }
 
     /**
      * 单个删除
+     *
      * @param id
      * @return
      */
     @PostMapping("delete")
     public void delete(Long id) {
         if (id != null) {
-                scanHostService.removeById(id);
+            scanHostService.removeById(id);
         }
     }
 
     /**
      * 批量删除
+     *
      * @return
      */
     @PostMapping("deleteBatch")
     public void deleteBatch(@RequestBody Long[] ids) {
         List<Long> idList = Arrays.asList(ids);
-            scanHostService.removeByIds(idList);
+        scanHostService.removeByIds(idList);
     }
 
     /**
@@ -108,8 +114,15 @@ public class ScanHostController {
 
     @GetMapping("info")
     public ScanHostEntity getInfo(Long id) {
-            ScanHostEntity scanHost = scanHostService.getById(id);
+        ScanHostEntity scanHost = scanHostService.getById(id);
         return scanHost;
+    }
+
+    @PostMapping("endScanIp")
+    public void endScanIp(@RequestBody Map<String, Object> params) {
+        Long ip = MapUtil.getLong(params, "ipLong");
+        String scanPorts = MapUtil.getStr(params, "scanPorts");
+        scanHostService.endScanIp(ip, scanPorts);
     }
 
 }

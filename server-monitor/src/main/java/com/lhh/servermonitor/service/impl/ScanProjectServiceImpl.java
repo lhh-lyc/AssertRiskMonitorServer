@@ -95,8 +95,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
 
     @Override
     public void saveProject(ScanProjectEntity project) {
-        // mq分割project，合并缓存问题
-        redisLock.saveProjectRedis(project);
         ScanProjectEntity oldProject = scanProjectDao.selectById(project.getId());
         if (oldProject == null) {
             log.info("项目id=" + project.getId() + "已被删除");

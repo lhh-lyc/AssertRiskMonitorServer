@@ -66,7 +66,7 @@ public class CacheConst {
     /**
      * redis key: REDIS_TASK_PARENT_DOMAIN
      */
-    public final static String REDIS_TASK_PARENT_DOMAIN = "TASK_PARENT_DOMAIN";
+    public final static String REDIS_TASK_PARENT_DOMAIN = "TASK_PARENT_DOMAIN:%s";
 
     /**
      * redis key: REDIS_LOCK_TASK_PARENT_DOMAIN

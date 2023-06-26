@@ -50,4 +50,6 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
 
+    void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("scanPorts") String scanPorts);
+
 }
