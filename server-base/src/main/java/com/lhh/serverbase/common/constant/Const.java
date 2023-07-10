@@ -70,6 +70,14 @@ public class Const {
 
     public static String STR_BLANK = " ";
     /**
+     * 字符串：*号
+     */
+    public final static String STR_ASTERISK = "*";
+    /**
+     * 字符串：udp端口输入前缀
+     */
+    public final static String STR_U = "U:";
+    /**
      * 字符串：\n 换行
      */
     public final static String STR_LINEFEED = "\n";
@@ -97,7 +105,7 @@ public class Const {
 
     public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate 3000 --wait 0";
 
-    public static String STR_NMAP_SERVER = "nmap -p %s %s -sS";
+    public static String STR_NMAP_SERVER = "nmap -p %s %s -sS -Pn";
 
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 

@@ -79,7 +79,8 @@ public class ScanService {
                 if (!exitPhList.contains(subdomain)) {
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
                             .projectId(scanDto.getProjectId())
-                            .parentDomain(scanDto.getHost()).host(subdomain)
+                            .parentDomain(scanDto.getHost().equals(subdomain) ? RexpUtil.getMajorDomain(subdomain) : scanDto.getHost())
+                            .host(subdomain)
                             .isScanning(Const.INTEGER_1)
                             .build();
                     projectHostList.add(item);

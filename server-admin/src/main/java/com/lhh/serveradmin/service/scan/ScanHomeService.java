@@ -14,6 +14,7 @@ import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.HttpContextUtils;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,13 +111,13 @@ public class ScanHomeService {
             for (ScanAddRecordEntity record : recordList) {
                 switch (record.getAddRecordType()) {
                     case 1:
-                        describe = record.getParentName() + "  检测出  " + record.getSubName();
-                        break;
-                    case 2:
                         describe = record.getParentName() + "  新增子域名  " + record.getSubName();
                         break;
+                    case 2:
+                        describe = IpLongUtils.longToIp(Long.valueOf(record.getParentName())) + "  新增开放端口  " + record.getSubName();
+                        break;
                     default:
-                        describe = record.getParentName() + "  新增开放端口  " + record.getSubName();
+                        describe = record.getParentName() + "  检测出  " + record.getSubName();
                 }
                 record.setDescribe(describe);
             }

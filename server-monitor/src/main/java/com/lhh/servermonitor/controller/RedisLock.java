@@ -1,16 +1,12 @@
 package com.lhh.servermonitor.controller;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.lhh.serverbase.common.constant.CacheConst;
-import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -33,7 +29,7 @@ public class RedisLock {
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 String projectStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
                 if (!StringUtils.isEmpty(projectStr)) {

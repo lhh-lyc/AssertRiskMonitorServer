@@ -234,7 +234,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     List<ScanProjectHostEntity> projectDomainList = new ArrayList<>();
                     for (String host : finalSameHostList) {
                         ScanProjectHostEntity item = ScanProjectHostEntity.builder()
-                                .projectId(project.getId()).host(host)
+                                .projectId(project.getId())
+                                .parentDomain(RexpUtil.getMajorDomain(host)).host(host)
                                 .isScanning(Const.INTEGER_0)
                                 .build();
                         projectDomainList.add(item);

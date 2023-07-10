@@ -6,6 +6,7 @@ import com.lhh.serverTask.mqtt.MqHostSender;
 import com.lhh.serverTask.utils.ExecUtil;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ReScanDto;
+import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,7 +33,7 @@ public class ParentDomainService {
     @Autowired
     private ScanProjectHostService scanProjectHostService;
     @Autowired
-    private ScanHostDao scanHostDao;
+    private ScanAddRecordService scanAddRecordService;
     @Autowired
     private MqHostSender mqHostSender;
 
@@ -52,23 +54,33 @@ public class ParentDomainService {
                 subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
                 log.info(CollectionUtils.isEmpty(subdomainList) ? host+ "未扫描到子域名" : host + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
                 if (!CollectionUtils.isEmpty(subdomainList)) {
-                    log.info("重新扫描:"+String.join(Const.STR_COMMA, subdomainList));
                     mqHostSender.sendReScanHostToMqtt(host, subdomainList);
-                }
-                // 保存新增的项目-子域名关联关系
-                List<ScanProjectHostEntity> proHostEntityList = scanProjectHostDao.queryByHostList(subdomainList);
-                List<String> proHostList = proHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
-                subdomainList.removeAll(proHostList);
-                if (!CollectionUtils.isEmpty(subdomainList)) {
-                    List<ScanProjectHostEntity> saveList = new ArrayList<>();
-                    ScanProjectHostEntity parent = scanProjectHostDao.queryByHost(host);
-                    for (String s : subdomainList) {
-                        ScanProjectHostEntity sub = ScanProjectHostEntity.builder()
-                                .parentDomain(host).host(s).projectId(parent.getProjectId()).isScanning(Const.INTEGER_0)
-                                .build();
-                        saveList.add(sub);
+
+                    // 保存新增的项目-子域名关联关系
+                    List<ScanProjectHostEntity> proHostEntityList = scanProjectHostDao.queryByHostList(subdomainList);
+                    List<String> proHostList = proHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
+                    subdomainList.removeAll(proHostList);
+
+                    List<ScanAddRecordEntity> recordList = new ArrayList<>();
+                    if (!CollectionUtils.isEmpty(subdomainList)) {
+                        List<ScanProjectHostEntity> saveList = new ArrayList<>();
+                        List<ScanProjectHostEntity> parentList = scanProjectHostDao.queryProjectByParent(host);
+                        List<Long> projectIdList = parentList.stream().map(ScanProjectHostEntity::getProjectId).collect(Collectors.toList());
+                        for (String s : subdomainList) {
+                            for (Long projectId : projectIdList) {
+                                ScanProjectHostEntity sub = ScanProjectHostEntity.builder()
+                                        .parentDomain(host).host(s).projectId(projectId).isScanning(Const.INTEGER_0)
+                                        .build();
+                                saveList.add(sub);
+                                ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                                        .projectId(projectId).parentName(host).subName(s).addRecordType(Const.INTEGER_1)
+                                        .build();
+                                recordList.add(record);
+                            }
+                        }
+                        scanProjectHostService.saveBatch(saveList);
+                        scanAddRecordService.saveBatch(recordList);
                     }
-                    scanProjectHostService.saveBatch(saveList);
                 }
             }
         }

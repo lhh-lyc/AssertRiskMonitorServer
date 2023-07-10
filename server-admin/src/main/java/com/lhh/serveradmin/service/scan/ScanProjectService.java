@@ -47,12 +47,6 @@ public class ScanProjectService {
     @Resource
     private PassJavaJwtTokenUtil jwtTokenUtil;
 
-    public R test(ScanProjectEntity project) {
-//        projectSender.sendToMqtt(project);
-        projectSender.sendToMqtt2(project);
-        return R.ok();
-    }
-
     public R saveProject(ScanProjectEntity project) {
         Long userId = Long.valueOf(jwtTokenUtil.getUserId());
         Map<String, Object> params = new HashMap<>();

@@ -47,4 +47,7 @@ public class ScanProjectHostEntity extends BaseEntity {
     @TableField(exist = false)
     private String ports;
 
+    @TableField(exist = false)
+    private Long ipLong;
+
 }

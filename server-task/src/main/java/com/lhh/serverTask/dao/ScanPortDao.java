@@ -16,10 +16,12 @@ import java.util.List;
 @Mapper
 public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
-    List<ScanPortEntity> queryList(@Param("ip") Long ip);
+    List<ScanPortEntity> queryList(@Param("ipLong") Long ipLong);
 
     List<ScanPortEntity> basicByIpList(@Param("ipList") List<Long> ipList);
 
     void saveBatch(@Param("list") List<ScanPortEntity> list);
+
+    void deleteBatch(@Param("idList") List<Long> idList);
 
 }

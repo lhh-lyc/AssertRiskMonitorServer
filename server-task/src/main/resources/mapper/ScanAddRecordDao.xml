@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverTask.dao.ScanAddRecordDao">
+
+    <sql id="baseColumn">
+                    id,
+                    project_id,
+                    add_record_type,
+                    parent_name,
+                    sub_name,
+                    create_time,
+                    update_time,
+                    del_flg,
+                    create_id,
+                    update_id
+            </sql>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanAddRecordEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_add_record
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanAddRecordEntity">
+        select
+        t1.*, t2.name as project_name
+        from scan_add_record t1
+        join scan_project t2 on t2.id = t1.project_id
+        where t1.del_flg = 0
+        and t2.del_flg = 0
+        <if test="userId != null and userId != ''">
+            and t2.user_id = #{userId}
+        </if>
+        <if test="type != null and type != ''">
+            and t1.add_record_type = #{type}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and DATE_FORMAT(t1.create_time, '%Y-%m-%d') <![CDATA[ >= ]]> #{beginTime}
+            and DATE_FORMAT(t1.create_time, '%Y-%m-%d') <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+
+</mapper>

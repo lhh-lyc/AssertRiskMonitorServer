@@ -73,4 +73,14 @@ public class CacheConst {
      */
     public final static String REDIS_LOCK_TASK_PARENT_DOMAIN = "LOCK_TASK_PARENT_DOMAIN";
 
+    /**
+     * redis key: REDIS_TASKING_IP
+     */
+    public final static String REDIS_TASKING_IP = "TASKING_IP:%s";
+
+    /**
+     * redis key: REDIS_NEXT_TASK
+     */
+    public final static String REDIS_NEXT_TASK = "NEXT_TASK";
+
 }

@@ -24,13 +24,6 @@ public class RexpUtil {
     }
 
     /**
-     * 1.顶级域名不解析
-     * 2.未收录域名不解析
-     * 3.
-     */
-
-
-    /**
      * 验证二级域名是否合法
      *
      * @param domain
@@ -47,16 +40,17 @@ public class RexpUtil {
         String domainName = "";
         String b = "";
         Boolean flag;
+        System.out.println("u:123".matches(RexpConst.tPortRex));
 //        flag = isMajorDomain("freetyst.vip.migu.cn");
 //        System.out.println(flag);
 //        domainName = "baidu.com";
 //        b = getMajorDomain(domainName);
 //        System.out.println(b);
-        domainName = "culanjing.com.cn";
-        b = getMajorDomain(domainName);
-        flag = isMajorDomain(domainName);
-        System.out.println(b);
-        System.out.println(flag);
+//        domainName = "culanjing.com.cn";
+//        b = getMajorDomain(domainName);
+//        flag = isMajorDomain(domainName);
+//        System.out.println(b);
+//        System.out.println(flag);
 //        domainName = "cat.ac.cn";
 //        b = getMajorDomain(domainName);
 //        System.out.println(b);
@@ -166,6 +160,32 @@ public class RexpUtil {
      */
     public static Boolean isTopDomain(String url) {
         return Const.topList.contains(url);
+    }
+
+    /**
+     * 验证是否为udp端口
+     *
+     * @param domain
+     * @return
+     */
+    public static boolean isUdpPort(String domain) {
+        if (domain.matches(RexpConst.uPortRex)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 验证是否为tcp端口
+     *
+     * @param domain
+     * @return
+     */
+    public static boolean isTcpPort(String domain) {
+        if (domain.matches(RexpConst.tPortRex)) {
+            return true;
+        }
+        return false;
     }
 
 }

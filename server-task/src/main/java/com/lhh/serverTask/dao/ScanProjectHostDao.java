@@ -18,7 +18,9 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
     void updateEndScanDomain(@Param("domain") String domain);
 
-    ScanProjectHostEntity queryByHost(@Param("domain") String domain);
+    List<ScanProjectHostEntity> queryProjectByParent(@Param("parentDomain") String parentDomain);
+
+    List<Long> queryProjectIdByIp(@Param("ipLong") Long ipLong);
 
     List<ScanProjectHostEntity> queryByHostList(@Param("hostList") List<String> hostList);
 

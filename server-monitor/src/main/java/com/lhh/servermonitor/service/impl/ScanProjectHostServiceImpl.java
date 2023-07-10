@@ -86,7 +86,7 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanProjectHostDao.updateEndScanDomain(domain);
             }
@@ -114,7 +114,7 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanProjectHostDao.updateEndScanDomain(domain);
             }

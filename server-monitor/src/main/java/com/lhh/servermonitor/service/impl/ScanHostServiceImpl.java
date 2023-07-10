@@ -116,7 +116,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanHostDao.updateEndScanDomain(domain);
             }
@@ -139,7 +139,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanHostDao.updateEndScanIp(ipLong, scanPorts);
             }
@@ -165,7 +165,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanHostDao.returnScanStatus(ipLong);
             }
@@ -201,7 +201,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         RLock lock = redisson.getLock(lockKey);
         boolean success = true;
         try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if (success) {
                 scanHostDao.updateEndScanIp(ipLong, scanPorts);
             }

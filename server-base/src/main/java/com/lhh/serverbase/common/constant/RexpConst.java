@@ -37,4 +37,14 @@ public class RexpConst {
      */
     public static String portsRex = "^([0-9]+-[0-9]+$)";
 
+    /**
+     * udp端口输入校验
+     */
+    public static String uPortRex = "u:(\\d+(-?\\d+)?)";
+
+    /**
+     * tcp端口输入校验
+     */
+    public static String tPortRex = "(\\d+(-?\\d+)?)";
+
 }

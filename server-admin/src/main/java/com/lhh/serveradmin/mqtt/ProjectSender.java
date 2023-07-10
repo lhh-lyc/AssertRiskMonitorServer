@@ -64,15 +64,6 @@ public class ProjectSender {
         }
     }
 
-    public void sendToMqtt2(ScanProjectEntity project) {
-        List<ScanProjectEntity> list = splitList(project, subNum);
-        for (ScanProjectEntity p : list) {
-            CorrelationData correlationId = new CorrelationData(p.toString());
-            //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
-            rabbitTemplate.convertAndSend(exchange, projectRouteKey, SerializationUtils.serialize(p), correlationId);
-        }
-    }
-
     public static List<ScanProjectEntity> splitList(ScanProjectEntity project, int len) {
         List<String> list = project.getHostList();
         if (list == null || list.isEmpty() || len < 1) {

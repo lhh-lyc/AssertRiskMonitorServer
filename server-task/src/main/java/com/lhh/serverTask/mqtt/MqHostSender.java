@@ -1,9 +1,9 @@
 package com.lhh.serverTask.mqtt;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ReScanDto;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.utils.SerializationUtils;
@@ -22,11 +22,8 @@ public class MqHostSender {
     private Integer reSubNum;
     @Value("${mqtt-setting.exchange}")
     private String exchange;
-    @Value("${mqtt-setting.taskParent-route-key}")
+    @Value("${mqtt-setting.taskSubDomain-route-key}")
     private String taskSubDomainRouteKey;
-
-    @Autowired
-    AmqpTemplate amqpTemplate;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -38,7 +35,7 @@ public class MqHostSender {
         List<ReScanDto> hostList = splitList(host, domainList, reSubNum);
         try {
             for (ReScanDto dto : hostList) {
-                log.info(host + "域名开始投递");
+                log.info("子域名开始投递" + String.join(Const.STR_COMMA, dto.getHostList()));
                 CorrelationData correlationId = new CorrelationData(dto.toString());
                 rabbitTemplate.convertAndSend(exchange, taskSubDomainRouteKey, SerializationUtils.serialize(dto), correlationId);
             }

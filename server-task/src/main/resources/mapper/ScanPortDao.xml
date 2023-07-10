@@ -4,7 +4,7 @@
 <mapper namespace="com.lhh.serverTask.dao.ScanPortDao">
 
     <select id="queryList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
-        select ip_long, port
+        select port_id, ip_long, port
         from scan_port
         where ip_long = #{ipLong}
     </select>
@@ -26,5 +26,13 @@
             #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
         </foreach>
     </insert>
+
+    <delete id="deleteBatch">
+        delete from scan_port
+        where port_id in
+        <foreach collection="idList" item="id" index="index" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </delete>
 
 </mapper>

@@ -110,14 +110,14 @@ public class RabbitMqConfig {
     //声明队列
     @Bean
     public Queue queueA() {
-        return new Queue(taskSubDomainRouteKey, true); //队列持久：不会随着服务器重启造成丢失
+        return new Queue(taskSubDomainPubTopic, true); //队列持久：不会随着服务器重启造成丢失
     }
 
     //队列绑定交换机，指定routingkey
     @Bean
     public Binding binding() {
         //绑定队列到交换机上通过路由
-        return BindingBuilder.bind(queueA()).to(defaultExchange()).with(taskSubDomainPubTopic);
+        return BindingBuilder.bind(queueA()).to(defaultExchange()).with(taskSubDomainRouteKey);
     }
 
     //声明队列
@@ -143,7 +143,7 @@ public class RabbitMqConfig {
     @Bean
     public Binding bindingC() {
         //绑定队列到交换机上通过路由
-        return BindingBuilder.bind(queueB()).to(defaultExchange()).with(taskParentRouteKey);
+        return BindingBuilder.bind(queueC()).to(defaultExchange()).with(taskParentRouteKey);
     }
 
 }

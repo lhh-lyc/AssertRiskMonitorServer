@@ -4,10 +4,12 @@ import com.lhh.serverTask.dao.ScanHostDao;
 import com.lhh.serverTask.dao.ScanProjectHostDao;
 import com.lhh.serverTask.service.ScanHostService;
 import com.lhh.serverTask.service.ScanPortInfoService;
+import com.lhh.serverTask.utils.RedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ReScanDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RabbitListener(bindings = {@QueueBinding(
-        value = @Queue(value = "reScanSubDomain", durable = "true", autoDelete = "false", exclusive = "false"),
+        value = @Queue(value = "taskScanSubDomain", durable = "true", autoDelete = "false", exclusive = "false"),
         exchange = @Exchange(name = "amp.topic"))})
 public class SubDomainListener {
 
@@ -45,6 +47,8 @@ public class SubDomainListener {
     private ScanHostService scanHostService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    RedisUtils redisUtils;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
@@ -63,6 +67,7 @@ public class SubDomainListener {
                         ipList.stream().forEach(ip -> {
                             //业务处理
                             Boolean flag = scanPortInfoService.scanSingleIpPortList(domain, ip);
+                            redisUtils.setString(String.format(CacheConst.REDIS_TASKING_IP, ip), flag.toString(), 60*60L);
                             if (flag) {
                                 valiIpList.add(ip);
                             }
@@ -70,13 +75,13 @@ public class SubDomainListener {
                         //
                         List<ScanHostEntity> exitHostList = scanHostDao.queryByDomain(domain);
                         List<Long> exitIpList = exitHostList.stream().map(ScanHostEntity::getIpLong).collect(Collectors.toList());
-                        List<Long> ipParam = valiIpList.stream().map(Long::valueOf).collect(Collectors.toList());
+                        List<Long> ipParam = valiIpList.stream().map(i->IpLongUtils.ipToLong(i)).collect(Collectors.toList());
                         ipParam.removeAll(exitIpList);
                         if (!CollectionUtils.isEmpty(ipParam)) {
                             List<ScanHostEntity> saveList = new ArrayList<>();
                             for (Long ip : ipParam) {
                                    ScanHostEntity host = ScanHostEntity.builder()
-                                           .parentDomain(parentDomain).domain(domain)
+                                           .parentDomain(parentDomain).domain(domain).type(Const.INTEGER_3)
                                            .ipLong(ip).scanPorts(Const.STR_1_65535).company(company)
                                            .isMajor(Const.INTEGER_0).isDomain(Const.INTEGER_1).isScanning(Const.INTEGER_0)
                                            .build();
