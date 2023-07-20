@@ -47,4 +47,9 @@ public class RexpConst {
      */
     public static String tPortRex = "(\\d+(-?\\d+)?)";
 
+    /**
+     * 获取title
+     */
+    public static String titleRex = "<title>(.*?)</title>";
+
 }

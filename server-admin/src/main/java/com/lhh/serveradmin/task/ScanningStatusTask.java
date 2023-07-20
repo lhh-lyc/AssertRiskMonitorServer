@@ -22,7 +22,7 @@ public class ScanningStatusTask {
     @Scheduled(cron = "0 9/10 * * * ? ")
     @GetMapping("scanningChange")
     public R scanningChange() {
-        log.info("定时任务开始");
+        log.info("scanningChange定时任务开始");
         taskService.scanningChange();
         return R.ok();
     }

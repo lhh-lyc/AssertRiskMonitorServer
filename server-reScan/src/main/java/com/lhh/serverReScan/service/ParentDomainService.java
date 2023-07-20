@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 @Service
 public class ParentDomainService {
 
-    @Value("${dir-setting.subfinder-dir}")
-    private String subfinderDir;
+    @Value("${dir-setting.tool-dir}")
+    private String toolDir;
 
     @Autowired
     private ScanProjectHostDao scanProjectHostDao;
@@ -45,7 +45,7 @@ public class ParentDomainService {
                 List<String> subdomainList = new ArrayList<>();
                 log.info(host + "子域名收集");
                 // 子域名列表
-                String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, host);
+                String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, toolDir, host);
                 SshResponse response = null;
                 try {
                     response = ExecUtil.runCommand(cmd);

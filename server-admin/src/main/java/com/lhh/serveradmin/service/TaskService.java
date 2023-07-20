@@ -1,18 +1,34 @@
 package com.lhh.serveradmin.service;
 
+import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson2.JSON;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
 import com.lhh.serveradmin.feign.scan.ScanningChangeFeign;
+import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.dto.CmsJsonDto;
+import com.lhh.serverbase.dto.FingerprintListDTO;
+import com.lhh.serverbase.entity.CmsJsonEntity;
 import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
+import com.lhh.serverbase.utils.CopyUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,9 +36,15 @@ import java.util.stream.Collectors;
 public class TaskService {
 
     @Autowired
+    StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    RedissonClient redisson;
+    @Autowired
     ScanProjectContentFeign scanProjectContentFeign;
     @Autowired
     ScanningChangeFeign scanningChangeFeign;
+    @Autowired
+    CmsJsonFeign cmsJsonFeign;
 
     public void checkProject() {
         scanProjectContentFeign.updateEndScanContent();
@@ -59,8 +81,8 @@ public class TaskService {
 
     public void scanningChange() {
         List<NetErrorDataEntity> list = scanningChangeFeign.list(new HashMap<>());
-        List<NetErrorDataEntity> hList = list.stream().filter(i->Const.INTEGER_1.equals(i.getType())).collect(Collectors.toList());
-        List<NetErrorDataEntity> ipList = list.stream().filter(i->Const.INTEGER_2.equals(i.getType())).collect(Collectors.toList());
+        List<NetErrorDataEntity> hList = list.stream().filter(i -> Const.INTEGER_1.equals(i.getType())).collect(Collectors.toList());
+        List<NetErrorDataEntity> ipList = list.stream().filter(i -> Const.INTEGER_2.equals(i.getType())).collect(Collectors.toList());
         List<Long> delIds = new ArrayList<>();
         if (!CollectionUtils.isEmpty(ipList)) {
             for (NetErrorDataEntity data : ipList) {
@@ -86,6 +108,64 @@ public class TaskService {
         if (!CollectionUtils.isEmpty(delIds)) {
             scanningChangeFeign.delErrorData(delIds);
         }
+    }
+
+    public void fingerJson() {
+        String response = null;
+        try {
+            response = HttpUtil.get("https://cdn.jsdelivr.net/gh/EASY233/Finger/library/finger.json");
+        } catch (Exception e) {
+            log.error("fingerJson请求错误", e);
+            return;
+        }
+        Gson gson = new Gson();
+        FingerprintListDTO fingerprintListDTO = gson.fromJson(response, FingerprintListDTO.class);
+        List<CmsJsonDto> cmsJsonDtoList = fingerprintListDTO.getFingerprint();
+        if (CollectionUtils.isEmpty(cmsJsonDtoList)) {
+            log.info("fingerJson查询为空" + response);
+            return;
+        }
+
+        List<CmsJsonEntity> queryList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(cmsJsonDtoList)) {
+            for (CmsJsonDto dto : cmsJsonDtoList) {
+                CmsJsonEntity entity = CmsJsonEntity.builder()
+                        .cms(dto.getCms()).method(dto.getMethod())
+                        .location(dto.getLocation())
+                        .keywordList(dto.getKeyword())
+                        .build();
+                if (!CollectionUtils.isEmpty(dto.getKeyword())) {
+                    entity.setKeyword(String.join(Const.STR_COMMA, dto.getKeyword()));
+                }
+                queryList.add(entity);
+            }
+        }
+        List<CmsJsonEntity> list = cmsJsonFeign.list(new HashMap<>());
+        if (!CollectionUtils.isEmpty(list)) {
+            for (CmsJsonEntity json : list) {
+                json.setKeywordList(new ArrayList<>(Arrays.asList(json.getKeyword().split(Const.STR_COMMA))));
+            }
+        }
+        queryList.addAll(list);
+        List<CmsJsonEntity> domList = queryList.stream().filter(f->"keyword".equals(f.getMethod())).collect(Collectors.toList());
+        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
+        Map<String, String> faviconMap = queryList.stream().filter(f->"faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
+                CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1 , key2) -> key1));
+        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
+        log.info("fingerJson更新结束");
+    }
+
+    private static List<CmsJsonEntity> mergeObjects(List<CmsJsonEntity> objects) {
+        Map<String, CmsJsonEntity> mergedMap = new HashMap<>();
+        for (CmsJsonEntity obj : objects) {
+            String key = obj.getCms() + obj.getMethod() + obj.getLocation();
+            if (mergedMap.containsKey(key)) {
+                mergedMap.get(key).addKeywords(obj.getKeywordList());
+            } else {
+                mergedMap.put(key, obj);
+            }
+        }
+        return new ArrayList<>(mergedMap.values());
     }
 
 }

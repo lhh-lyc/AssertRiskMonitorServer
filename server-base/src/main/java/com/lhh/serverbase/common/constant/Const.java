@@ -1,6 +1,9 @@
 package com.lhh.serverbase.common.constant;
 
+import cn.hutool.Hutool;
+import cn.hutool.http.HttpUtil;
 import com.lhh.serverbase.entity.SshResponse;
+import com.lhh.serverbase.utils.RexpUtil;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -64,11 +67,11 @@ public class Const {
      */
     public final static String STR_SLASH = "/";
 
-    public static String STR_COLON = ":";
+    public final static String STR_COLON = ":";
 
-    public static String STR_TITLE = ";";
+    public final static String STR_TITLE = ";";
 
-    public static String STR_BLANK = " ";
+    public final static String STR_BLANK = " ";
     /**
      * 字符串：*号
      */
@@ -100,12 +103,25 @@ public class Const {
 
     public static Integer INTEGER_100 = 100;
 
+    public static Integer INTEGER_200 = 200;
+
+    public static Integer INTEGER_300 = 300;
+
+    public static Integer INTEGER_400 = 400;
+
     // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
-    public static String STR_SUBFINDER_SUBDOMAIN = "cd %s&&./subfinder -d %s -silent";
+    public static String STR_SUBFINDER_SUBDOMAIN = "cd %s/subfinder&&./subfinder -d %s -silent";
 
     public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate 3000 --wait 0";
 
     public static String STR_NMAP_SERVER = "nmap -p %s %s -sS -Pn";
+
+    public static String STR_FINGER = "cd %s/Finger&&python3 Finger.py -u %s -o nothing";
+
+    /**
+     * 需要加入faviconHash.py脚本，自己写的，主要内容是拼接的url:port解析出favicon的hash
+     */
+    public static String STR_FAVICON_HASH = "cd %s/Finger&&python3 faviconHash.py %s";
 
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 

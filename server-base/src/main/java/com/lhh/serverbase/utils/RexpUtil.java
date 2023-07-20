@@ -3,6 +3,7 @@ package com.lhh.serverbase.utils;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.RexpConst;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,7 +113,7 @@ public class RexpUtil {
         try {
             matcher.group();
         } catch (Exception e) {
-            log.error(url + "顶级域名未维护！");
+            log.info(url + "顶级域名未维护！");
             return true;
         }
         return false;
@@ -186,6 +187,23 @@ public class RexpUtil {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 获取title
+     *
+     * @param domain
+     * @return
+     */
+    public static String getTitle(String domain) {
+        Pattern pattern = Pattern.compile(RexpConst.titleRex);
+        Matcher matcher = pattern.matcher(domain);
+        String result = Const.STR_EMPTY;
+        if (matcher.find()) {
+             result = matcher.group(1);
+        }
+        result = StringUtils.isEmpty(result) ? Const.STR_CROSSBAR : result;
+        return result;
     }
 
 }

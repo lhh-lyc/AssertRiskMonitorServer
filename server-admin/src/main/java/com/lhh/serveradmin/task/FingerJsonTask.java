@@ -10,21 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class ProjectCheckTask {
+public class FingerJsonTask {
 
     @Autowired
     TaskService taskService;
 
     /**
-     * REDIS_SCANNING_PROJECT 未执行完的任务
-     * mysql里面的ip,全部不在redis里面就算做执行完成
+     * 获取finger匹配的favicon hash值
      * @return
      */
-    @Scheduled(cron = "0 0/10 * * * ? ")
-    @GetMapping("checkProject")
-    public R checkProject() {
-        log.info("checkProject定时任务开始");
-        taskService.checkProject();
+    @Scheduled(cron = "0 * * * * ? ")
+    @GetMapping("fingerJson")
+    public R fingerJson() {
+        log.info("FingerJson定时任务开始");
+        taskService.fingerJson();
         return R.ok();
     }
 

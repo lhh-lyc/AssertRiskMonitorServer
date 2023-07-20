@@ -6,18 +6,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
+import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.utils.*;
-import com.lhh.servermonitor.service.ScanHostService;
-import com.lhh.servermonitor.service.ScanPortInfoService;
-import com.lhh.servermonitor.service.ScanProjectHostService;
+import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.*;
+import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,10 +29,8 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,13 +47,37 @@ public class ScanningHostListener {
     @Autowired
     ScanHostService scanHostService;
     @Autowired
+    ScanPortService scanPortService;
+    @Autowired
     ScanPortInfoService scanPortInfoService;
     @Autowired
+    ScanHostPortService scanHostPortService;
+    @Autowired
     MqIpSender mqIpSender;
+    @Autowired
+    RedissonClient redisson;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
+        String lockKey = String.format(CacheConst.REDIS_LOCK_SUBDOMAIN, dto.getSubDomain());
+        RLock lock = redisson.getLock(lockKey);
+        boolean success = true;
+        try {
+            success = lock.tryLock(1, TimeUnit.SECONDS);
+            if (success) {
+                deal(dto, message, channel);
+            }
+        } catch (Exception e) {} finally {
+            // 判断当前线程是否持有锁
+            if (success && lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
+        }
+    }
+
+    public void deal(ScanParamDto dto, Message message, Channel channel){
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
             List<String> ipList = getDomainIpList(dto.getSubDomain());
@@ -82,17 +106,14 @@ public class ScanningHostListener {
             }
 
             String parentDomain = RexpUtil.getMajorDomain(dto.getHost());
-//        String company = HttpUtils.getDomainUnit(dto.getSubDomain());
             String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
             List<ScanHostEntity> exitIpList = scanHostService.getByIpList(ipLongList, dto.getSubDomain());
-//            Map<String, List<ScanHostEntity>> ipMap = exitIpInfoList.stream().collect(Collectors.groupingBy(h->h.getIp() + Const.STR_UNDERLINE + h.getDomain()));
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             List<ScanHostEntity> saveHostList = new ArrayList<>();
             List<Long> updateIpList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(ipList)) {
                 for (String ip : ipList) {
                     String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + dto.getSubDomain());
-//                    List<ScanHostEntity> exitIpList = ipMap.get(ip + Const.STR_UNDERLINE + dto.getSubDomain());
                     // 扫描端口ip
                     if (Const.INTEGER_1.equals(dto.getPortFlag())) {
                         ScanParamDto ipDto = ScanParamDto.builder()
@@ -140,6 +161,9 @@ public class ScanningHostListener {
                 scanPortInfoService.scanSingleIpPortList(d);
             });
 
+            List<Integer> portList = scanPortService.queryDomainPortList(dto.getSubDomain());
+            scanHostPortService.scanSingleHostPortList(dto.getSubDomain(), portList);
+
             scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
             // 不扫描端口批量更新域名ip状态
             if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
@@ -158,7 +182,7 @@ public class ScanningHostListener {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
                 log.error("host" + dto.getSubDomain() + "处理异常", e);
             } catch (IOException ioException) {
-                log.error("产生异常的参数",ioException);
+                log.error("产生异常的参数", ioException);
             }
         }
     }

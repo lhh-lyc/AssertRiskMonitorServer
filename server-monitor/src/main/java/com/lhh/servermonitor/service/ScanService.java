@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 @Service
 public class ScanService {
 
-    @Value("${dir-setting.subfinder-dir}")
-    private String subfinderDir;
+    @Value("${dir-setting.tool-dir}")
+    private String toolDir;
 
     @Autowired
     ScanHostService scanHostService;
@@ -54,7 +54,7 @@ public class ScanService {
         if (Const.INTEGER_1.equals(scanDto.getSubDomainFlag())) {
             log.info(scanDto.getHost() + "子域名收集");
             // 子域名列表
-            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, subfinderDir, scanDto.getHost());
+            String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, toolDir, scanDto.getHost());
             SshResponse response = null;
             try {
                 response = ExecUtil.runCommand(cmd);

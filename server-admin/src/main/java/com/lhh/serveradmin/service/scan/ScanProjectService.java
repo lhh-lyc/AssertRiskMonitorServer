@@ -73,13 +73,13 @@ public class ScanProjectService {
                 // todo 考虑存入数据库
                 if (!RexpUtil.isIP(host)) {
                     if (RexpUtil.isTopDomain(host)) {
-                        log.error(host + "为顶级域名，不预解析！");
+                        log.info(host + "为顶级域名，不预解析！");
                         isTop = Const.INTEGER_1;
                         isCompleted = Const.INTEGER_1;
                         isValid = false;
                     }
                     if (RexpUtil.isOtherDomain(host)) {
-                        log.error(host + "包含未知顶级域名，不预解析！");
+                        log.info(host + "包含未知顶级域名，不预解析！");
                         unknownTop = Const.INTEGER_1;
                         isCompleted = Const.INTEGER_1;
                         isValid = false;

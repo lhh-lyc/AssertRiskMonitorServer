@@ -8,6 +8,11 @@ public class CacheConst {
     public final static String REDIS_LOCK_PROJECT = "LOCK_PROJECT:%s";
 
     /**
+     * redis key: LOCK_SUBDOMAIN:
+     */
+    public final static String REDIS_LOCK_SUBDOMAIN = "LOCK_SUBDOMAIN:%s";
+
+    /**
      * redis key: LOCK_PROJECT_DOMAIN_SCAN_CHANGE:
      */
     public final static String REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE = "LOCK_PROJECT_DOMAIN_SCAN_CHANGE:%s";
@@ -26,6 +31,11 @@ public class CacheConst {
      * redis key: LOCK_IP_SCAN_RETURN:
      */
     public final static String REDIS_LOCK_IP_SCAN_RETURN = "LOCK_IP_SCAN_RETURN:%s";
+
+    /**
+     * redis key: LOCK_CMS_JSON
+     */
+    public final static String REDIS_LOCK_CMS_JSON = "LOCK_CMS_JSON";
 
     /**
      * redis key: SCANNING_PROJECT:
@@ -82,5 +92,15 @@ public class CacheConst {
      * redis key: REDIS_NEXT_TASK
      */
     public final static String REDIS_NEXT_TASK = "NEXT_TASK";
+
+    /**
+     * redis key: REDIS_CMS_JSON_LIST
+     */
+    public final static String REDIS_CMS_JSON_LIST = "CMS_JSON_LIST";
+
+    /**
+     * redis key: REDIS_CMS_JSON_MAP
+     */
+    public final static String REDIS_CMS_JSON_MAP = "CMS_JSON_MAP";
 
 }

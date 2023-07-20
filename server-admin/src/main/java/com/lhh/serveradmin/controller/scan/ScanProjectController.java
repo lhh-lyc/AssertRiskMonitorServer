@@ -2,7 +2,6 @@ package com.lhh.serveradmin.controller.scan;
 
 import com.lhh.serveradmin.service.scan.ScanProjectService;
 import com.lhh.serverbase.common.response.R;
-import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
