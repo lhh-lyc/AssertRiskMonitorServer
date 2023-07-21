@@ -42,17 +42,17 @@ public class HttpxCustomizeUtils {
 
     public static Map<String, String> getUrlMap(StringRedisTemplate stringRedisTemplate, String toolDir, String initialUrl) throws IOException {
         Integer statusCode;
-        Map<String, Object> firstHttps = new HashMap<>();
-        String url = "http://" + initialUrl;
-        Map<String, Object> firstHttp = urlConn(url);
-        statusCode = MapUtil.getInt(firstHttp, "statusCode");
-        String body = MapUtil.getStr(firstHttp, "body");
-        if (Const.INTEGER_0.equals(statusCode) || (statusCode > Const.INTEGER_300/* && statusCode <= Const.INTEGER_400*/)) {
-            firstHttps = urlConn("https://" + initialUrl);
-            statusCode = MapUtil.getInt(firstHttps, "statusCode");
+        Map<String, Object> firstHttp = new HashMap<>();
+        String url = "https://" + initialUrl;
+        Map<String, Object> firstHttps = urlConn(url);
+        statusCode = MapUtil.getInt(firstHttps, "statusCode");
+        String body = MapUtil.getStr(firstHttps, "body");
+        if (Const.INTEGER_0.equals(statusCode) || (statusCode >= Const.INTEGER_300 && statusCode <= Const.INTEGER_400)) {
+            firstHttp = urlConn("http://" + initialUrl);
+            statusCode = MapUtil.getInt(firstHttp, "statusCode");
             if (!Const.INTEGER_0.equals(statusCode)) {
-                url = "https://" + initialUrl;
-                body = MapUtil.getStr(firstHttps, "body");
+                url = "http://" + initialUrl;
+                body = MapUtil.getStr(firstHttp, "body");
             }
         }
         // 使用 Jsoup 解析 HTML 文档
@@ -70,18 +70,11 @@ public class HttpxCustomizeUtils {
     public static String getCms(StringRedisTemplate stringRedisTemplate, String toolDir, Map<String, Object> firstHttp, Map<String, Object> firstHttps){
         String cms;
         Integer statusCode;
-        String httpUrl = MapUtil.getStr(firstHttp, "url");
-        String httpsUrl = MapUtil.getStr(firstHttps, "url");
-        statusCode = MapUtil.getInt(firstHttp, "statusCode");
-        if (Const.INTEGER_0.equals(statusCode) || Const.INTEGER_400.equals(statusCode)){
-            statusCode = MapUtil.getInt(firstHttps, "statusCode");
-            if (Const.INTEGER_0.equals(statusCode) || Const.INTEGER_400.equals(statusCode)) {
-                log.info(httpUrl + "或" + httpsUrl + "请求均异常或返回状态码均为400！");
-                return Const.STR_CROSSBAR;
-            }
-            cms = getAllCms(stringRedisTemplate, toolDir, MapUtil.getStr(firstHttps, "url"), firstHttps);
-        } else {
+        statusCode = MapUtil.getInt(firstHttps, "statusCode");
+        if (Const.INTEGER_0.equals(statusCode) || (statusCode >= Const.INTEGER_300 && statusCode <= Const.INTEGER_400)){
             cms = getAllCms(stringRedisTemplate, toolDir, MapUtil.getStr(firstHttp, "url"), firstHttp);
+        } else {
+            cms = getAllCms(stringRedisTemplate, toolDir, MapUtil.getStr(firstHttps, "url"), firstHttps);
         }
         return cms;
     }
