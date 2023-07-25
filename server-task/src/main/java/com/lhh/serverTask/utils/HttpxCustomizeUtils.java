@@ -1,4 +1,4 @@
-package com.lhh.servermonitor.utils;
+package com.lhh.serverTask.utils;
 
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
@@ -93,7 +93,7 @@ public class HttpxCustomizeUtils {
         Map<String, Object> result = new HashMap<>();
         int statusCode = 0;
         StringBuilder response = null;
-        Map<String, java.util.List<String>> headers = new HashMap<>();
+        Map<String, List<String>> headers = new HashMap<>();
         try {
             // 创建信任所有证书的TrustManager
             TrustManager[] trustAllCerts = new TrustManager[]{

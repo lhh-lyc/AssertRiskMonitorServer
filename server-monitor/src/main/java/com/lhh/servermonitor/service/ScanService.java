@@ -1,17 +1,15 @@
 package com.lhh.servermonitor.service;
 
-import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.*;
-import com.lhh.serverbase.utils.*;
+import com.lhh.serverbase.entity.ScanProjectHostEntity;
+import com.lhh.serverbase.entity.SshResponse;
+import com.lhh.serverbase.utils.CopyUtils;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.mqtt.MqHostSender;
 import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.ExecUtil;
-import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,10 +21,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j

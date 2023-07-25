@@ -38,14 +38,12 @@ public class ProjectSender {
     private RabbitTemplate rabbitTemplate;
 
     @Async
-    public void putProject(ScanProjectEntity project){
+    public void putProject(ScanProjectEntity project) {
         for (String host : project.getHostList()) {
-            if (!RexpUtil.isIP(host)) {
-                if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
-                    String company = HttpUtils.getDomainUnit(host);
-                    if (!StringUtils.isEmpty(company)) {
-                        JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
-                    }
+            if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
+                String company = HttpUtils.getDomainUnit(host);
+                if (!StringUtils.isEmpty(company)) {
+                    JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
                 }
             }
         }
@@ -54,7 +52,7 @@ public class ProjectSender {
 
     public void sendToMqtt(ScanProjectEntity project) {
         if (CollectionUtils.isEmpty(project.getHostList())) {
-            return ;
+            return;
         }
         List<ScanProjectEntity> list = splitList(project, subNum);
         for (ScanProjectEntity p : list) {
@@ -75,7 +73,7 @@ public class ProjectSender {
         for (int i = 0; i < count; i++) {
             ScanProjectEntity subProject = new ScanProjectEntity();
             CopyUtils.copyProperties(project, subProject);
-            subProject.setQueueId(project.getId() + Const.STR_UNDERLINE + count + Const.STR_UNDERLINE + (i+1));
+            subProject.setQueueId(project.getId() + Const.STR_UNDERLINE + count + Const.STR_UNDERLINE + (i + 1));
             List<String> subList = list.subList(i * len, ((i + 1) * len > size ? size : len * (i + 1)));
             subProject.setHostList(new ArrayList<>(subList));
             result.add(subProject);

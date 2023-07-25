@@ -39,9 +39,11 @@ public class ScanHostPortService {
     /**
      * 解析url请求title/cms
      * @param domain
-     * @param portList
      */
-    public void scanSingleHostPortList(String domain, List<Integer> portList) {
+    public void scanSingleHostPortList(String domain) {
+        List<Integer> portList = scanPortService.queryDomainPortList(domain);
+        List<Integer> ports = scanHostPortDao.queryPortList(domain);
+        portList.removeAll(ports);
         if (!CollectionUtils.isEmpty(portList)) {
             List<ScanHostPortEntity> saveList = new ArrayList<>();
             for (Integer port : portList) {

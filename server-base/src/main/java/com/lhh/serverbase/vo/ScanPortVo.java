@@ -73,5 +73,23 @@ public class ScanPortVo {
     @ColumnWidth(20)
     @ExcelProperty("服务")
     private String serverName;
+    /**
+     * ip
+     */
+    @ColumnWidth(20)
+    @ExcelProperty("url")
+    private String url;
+    /**
+     * ip
+     */
+    @ColumnWidth(20)
+    @ExcelProperty("title")
+    private String title;
+    /**
+     * ip
+     */
+    @ColumnWidth(20)
+    @ExcelProperty("cms")
+    private String cms;
 
 }

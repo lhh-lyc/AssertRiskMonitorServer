@@ -33,6 +33,11 @@ public class CacheConst {
     public final static String REDIS_LOCK_IP_SCAN_RETURN = "LOCK_IP_SCAN_RETURN:%s";
 
     /**
+     * redis key: LOCK_SCANNING_IP:
+     */
+    public final static String REDIS_LOCK_SCANNING_IP = "LOCK_SCANNING_IP:%s";
+
+    /**
      * redis key: LOCK_CMS_JSON
      */
     public final static String REDIS_LOCK_CMS_JSON = "LOCK_CMS_JSON";

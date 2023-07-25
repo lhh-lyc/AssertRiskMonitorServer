@@ -20,7 +20,7 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
     List<ScanProjectHostEntity> queryProjectByParent(@Param("parentDomain") String parentDomain);
 
-    List<Long> queryProjectIdByIp(@Param("ipLong") Long ipLong);
+    List<Long> queryProjectIdByParentDomain(@Param("parentDomain") String parentDomain);
 
     List<ScanProjectHostEntity> queryByHostList(@Param("hostList") List<String> hostList);
 

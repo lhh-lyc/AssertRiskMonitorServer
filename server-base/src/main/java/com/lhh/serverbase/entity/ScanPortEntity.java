@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -69,5 +70,20 @@ public class ScanPortEntity extends BaseEntity {
     private Long userId;
     @TableField(exist = false)
     private String userName;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String url;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String title;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String cms;
 
 }

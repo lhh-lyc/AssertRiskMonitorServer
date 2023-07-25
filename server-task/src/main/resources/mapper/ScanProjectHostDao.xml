@@ -17,11 +17,10 @@
           and parent_domain = #{parentDomain}
     </select>
 
-    <select id="queryProjectIdByIp" resultType="java.lang.Long">
-        select distinct t1.project_id from scan_project_host t1
-        join scan_host t2 on t2.domain = t1.host
-        where t1.del_flg = 0
-        and t2.ip_long = #{ipLong}
+    <select id="queryProjectIdByParentDomain" resultType="java.lang.Long">
+        select distinct project_id from scan_project_host
+        where del_flg = 0
+        and parent_domain = #{parentDomain}
     </select>
 
     <select id="queryByHostList" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">

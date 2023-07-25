@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.lhh.servermonitor.dao.ScanHostPortDao">
+<mapper namespace="com.lhh.serverTask.dao.ScanHostPortDao">
 
     <sql id="baseColumn">
                     id,
@@ -44,9 +44,9 @@
         from scan_host_port
     </select>
 
-    <select id="queryPortList" resultType="java.lang.Integer">
+    <select id="queryPortList" resultType="com.lhh.serverbase.entity.ScanHostPortEntity">
         select
-        port
+        id, domain, port, url, title, cms
         from scan_host_port
         where del_flg = 0
         and domain = #{domain}
@@ -60,5 +60,13 @@
             1,#{host.createTime},1,#{host.updateTime},0)
         </foreach>
     </insert>
+
+    <delete id="deleteBatch">
+        delete from scan_host_port
+        where id =
+        <foreach collection="idList" item="id" index="index" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </delete>
 
 </mapper>

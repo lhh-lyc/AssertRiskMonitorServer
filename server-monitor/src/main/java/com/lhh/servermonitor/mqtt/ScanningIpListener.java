@@ -3,12 +3,9 @@ package com.lhh.servermonitor.mqtt;
 import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.SysDictEntity;
-import com.lhh.servermonitor.controller.RedisLock;
-import com.lhh.servermonitor.dao.SysDictDao;
+import com.lhh.servermonitor.service.ScanHostPortService;
 import com.lhh.servermonitor.service.ScanPortInfoService;
-import com.lhh.servermonitor.service.ScanProjectService;
 import com.lhh.servermonitor.service.SysDictService;
 import com.lhh.servermonitor.sync.SyncService;
 import com.rabbitmq.client.Channel;
@@ -20,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,10 +33,12 @@ public class ScanningIpListener {
     SysDictService sysDictService;
     @Autowired
     ScanPortInfoService scanPortInfoService;
+    @Autowired
+    ScanHostPortService scanHostPortService;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
-        List<SysDictEntity> dictList = sysDictService.list(new HashMap<String, Object>(){{put("type", "stop_scan_ip");}});
+        /*List<SysDictEntity> dictList = sysDictService.list(new HashMap<String, Object>(){{put("type", "stop_scan_ip");}});
         Integer value = Integer.valueOf(dictList.get(0).getValue());
         Boolean stopFlag = Const.INTEGER_1.equals(value);
         while (stopFlag) {
@@ -50,11 +48,12 @@ public class ScanningIpListener {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
             scanPortInfoService.scanIpsPortList(dto);
+            scanHostPortService.scanSingleHostPortList(dto.getSubIp());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

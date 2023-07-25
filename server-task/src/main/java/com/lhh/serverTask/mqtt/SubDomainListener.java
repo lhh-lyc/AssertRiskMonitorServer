@@ -2,6 +2,7 @@ package com.lhh.serverTask.mqtt;
 
 import com.lhh.serverTask.dao.ScanHostDao;
 import com.lhh.serverTask.dao.ScanProjectHostDao;
+import com.lhh.serverTask.service.ScanHostPortService;
 import com.lhh.serverTask.service.ScanHostService;
 import com.lhh.serverTask.service.ScanPortInfoService;
 import com.lhh.serverTask.utils.RedisUtils;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,8 @@ public class SubDomainListener {
     @Resource
     private ScanHostService scanHostService;
     @Resource
+    private ScanHostPortService scanHostPortService;
+    @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     RedisUtils redisUtils;
@@ -59,15 +63,14 @@ public class SubDomainListener {
                 String company = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
                 company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
                 for (String domain : dto.getHostList()) {
-                    List<String> ipList = getDomainIpList(domain);
+                    List<String> ipList = RexpUtil.isIP(domain) ? new ArrayList<>(Arrays.asList(domain)) : getDomainIpList(domain);
                     if (!CollectionUtils.isEmpty(ipList)) {
                         log.info("重新扫描:"+String.join(Const.STR_COMMA, ipList));
                         // 扫描出端口的才保存
                         List<String> valiIpList = new ArrayList<>();
                         ipList.stream().forEach(ip -> {
                             //业务处理
-                            Boolean flag = scanPortInfoService.scanSingleIpPortList(domain, ip);
-                            redisUtils.setString(String.format(CacheConst.REDIS_TASKING_IP, ip), flag.toString(), 60*60L);
+                            Boolean flag = scanPortInfoService.scanSingleIpPortList(parentDomain, domain, ip);
                             if (flag) {
                                 valiIpList.add(ip);
                             }
@@ -90,13 +93,16 @@ public class SubDomainListener {
                             scanHostService.saveBatch(saveList);
                         }
                     }
+                    // 重新解析cms、url、title
+                    scanHostPortService.scanSingleHostPortList(domain);
                 }
             }
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+            log.info("host:" + parentDomain + "处理完毕");
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.error("host" + parentDomain + "处理异常", e);
+                log.error("host:" + parentDomain + "处理异常", e);
             } catch (IOException ioException) {
                 log.error("产生异常的参数",ioException);
             }

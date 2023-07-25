@@ -26,4 +26,9 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
         scanPortDao.deleteBatch(idList);
     }
 
+    @Override
+    public List<Integer> queryDomainPortList(String domain) {
+        return scanPortDao.queryDomainPortList(domain);
+    }
+
 }

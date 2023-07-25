@@ -153,7 +153,8 @@
 
     <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
         select
-        t1.*, INET_NTOA(t1.ip_long) as ip, t2.domain, t2.parent_domain, t2.company, t4.name as project_name, u.user_id, u.user_name
+        t1.*, INET_NTOA(t1.ip_long) as ip, t2.domain, t2.parent_domain, t2.company,
+        t4.name as project_name, t5.url, t5.title, t5.cms, u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip_long = t1.ip_long
         and t2.del_flg = 0
@@ -161,6 +162,9 @@
         and t3.del_flg = 0
         LEFT join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
+        left join scan_host_port t5 on t5.domain = t2.domain
+        and t5.`port` = t1.`port`
+        and t5.del_flg = 0
         LEFT join sys_user u on u.user_id = t4.user_id
         and u.del_flg = 0
         where t1.del_flg = 0
@@ -193,7 +197,8 @@
     <select id="exportList" resultType="com.lhh.serverbase.vo.ScanPortVo">
         select
         DISTINCT
-        t1.*, t2.domain, t2.parent_domain, t2.company, t4.name as project_name, u.user_id, u.user_name
+        t1.*, INET_NTOA(t1.ip_long) as ip, t2.domain, t2.parent_domain, t2.company,
+        t4.name as project_name, t5.url, t5.title, t5.cms, u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip_long = t1.ip_long
         and t2.del_flg = 0
@@ -201,6 +206,9 @@
         and t3.del_flg = 0
         join scan_project t4 on t4.id = t3.project_id
         and t4.del_flg = 0
+        left join scan_host_port t5 on t5.domain = t2.domain
+        and t5.`port` = t1.`port`
+        and t5.del_flg = 0
         LEFT join sys_user u on u.user_id = t4.user_id
         and u.del_flg = 0
         where t1.del_flg = 0

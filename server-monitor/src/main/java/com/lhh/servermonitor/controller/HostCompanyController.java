@@ -29,7 +29,7 @@ public class HostCompanyController {
      */
     @PostMapping("save")
     public void save(@RequestBody HostCompanyEntity hostCompany) {
-            hostCompanyService.save(hostCompany);
+        hostCompanyService.save(hostCompany);
     }
 
     /**

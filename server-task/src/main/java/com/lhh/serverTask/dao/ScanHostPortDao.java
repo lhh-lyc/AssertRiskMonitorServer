@@ -1,4 +1,4 @@
-package com.lhh.servermonitor.dao;
+package com.lhh.serverTask.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -29,8 +29,10 @@ public interface ScanHostPortDao extends BaseMapper<ScanHostPortEntity> {
 
     List<ScanHostPortEntity> queryList(Map<String, Object> params);
 
-    List<Integer> queryPortList(@Param("domain") String domain);
+    List<ScanHostPortEntity> queryPortList(@Param("domain") String domain);
 
     void saveBatch(@Param("list") List<ScanHostPortEntity> list);
+
+    void deleteBatch(@Param("idList") List<Long> idList);
 
 }

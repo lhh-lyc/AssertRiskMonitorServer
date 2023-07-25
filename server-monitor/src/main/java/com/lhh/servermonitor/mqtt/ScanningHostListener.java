@@ -22,6 +22,7 @@ import org.springframework.amqp.rabbit.annotation.*;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -161,8 +162,7 @@ public class ScanningHostListener {
                 scanPortInfoService.scanSingleIpPortList(d);
             });
 
-            List<Integer> portList = scanPortService.queryDomainPortList(dto.getSubDomain());
-            scanHostPortService.scanSingleHostPortList(dto.getSubDomain(), portList);
+            scanHostPortService.scanSingleHostPortList(dto.getSubDomain());
 
             scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
             // 不扫描端口批量更新域名ip状态

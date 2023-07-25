@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.feign.sys;
 
+import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.entity.CmsJsonEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,14 @@ import java.util.Map;
 public interface CmsJsonFeign {
 
     /**
+     * 查询 分页数据
+     *
+     * @param
+     */
+    @GetMapping("cmsjson/page")
+    IPage<CmsJsonEntity> page(@RequestParam Map<String, Object> params);
+
+    /**
      * 查询 列表数据
      *
      * @param
@@ -30,7 +39,14 @@ public interface CmsJsonFeign {
     List<CmsJsonEntity> list(@RequestParam Map<String, Object> params);
 
     /**
+     * 保存
+     */
+    @PostMapping("cmsjson/save")
+    void save(@RequestBody CmsJsonEntity cmsJson);
+
+    /**
      * 批量保存
+     *
      * @return
      */
     @PostMapping("cms/json/saveBatch")
@@ -38,13 +54,24 @@ public interface CmsJsonFeign {
 
     /**
      * 更新
+     *
      * @return
      */
     @PostMapping("cms/json/update")
     void update(@RequestBody CmsJsonEntity cmsJson);
 
     /**
+     * 单个逻辑删除
+     *
+     * @param id
+     * @return
+     */
+    @PostMapping("cmsjson/delete")
+    void delete(Long id);
+
+    /**
      * 批量逻辑删除
+     *
      * @return
      */
     @PostMapping("cms/json/deleteBatch")
@@ -52,6 +79,9 @@ public interface CmsJsonFeign {
 
     @PostMapping("cms/json/updateAll")
     void updateAll(@RequestBody List<CmsJsonEntity> CmsJsonList);
+
+    @GetMapping("cmsjson/info")
+    CmsJsonEntity info(@RequestParam(name = "id") Long id);
 
 }
 
