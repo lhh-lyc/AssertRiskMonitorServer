@@ -150,4 +150,9 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         log.info("补充更新结束host表" + ipLong + "数据状态");
     }
 
+    @Override
+    public List<String> getParentList() {
+        return scanHostDao.getParentList();
+    }
+
 }

@@ -52,4 +52,6 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("scanPorts") String scanPorts);
 
+    List<String> getParentList();
+
 }

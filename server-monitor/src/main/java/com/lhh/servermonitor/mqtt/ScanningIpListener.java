@@ -1,13 +1,10 @@
 package com.lhh.servermonitor.mqtt;
 
 import com.alibaba.fastjson.JSON;
-import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.SysDictEntity;
 import com.lhh.servermonitor.service.ScanHostPortService;
 import com.lhh.servermonitor.service.ScanPortInfoService;
 import com.lhh.servermonitor.service.SysDictService;
-import com.lhh.servermonitor.sync.SyncService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -17,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -27,8 +22,6 @@ import java.util.List;
         exchange = @Exchange(name = "amp.topic"))})
 public class ScanningIpListener {
 
-    @Autowired
-    SyncService syncService;
     @Autowired
     SysDictService sysDictService;
     @Autowired

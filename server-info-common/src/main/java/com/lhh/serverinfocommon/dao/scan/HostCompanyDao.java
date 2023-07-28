@@ -34,4 +34,6 @@ public interface HostCompanyDao extends BaseMapper<HostCompanyEntity> {
      */
     List<HostCompanyEntity> queryList(Map<String, Object> params);
 
+    HostCompanyEntity queryBasicInfo(@Param("host") String host);
+
 }

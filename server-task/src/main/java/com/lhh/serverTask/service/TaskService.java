@@ -57,69 +57,50 @@ public class TaskService {
     @Autowired
     MqCompanySender mqCompanySender;
     @Autowired
-    private HostCompanyDao hostCompanyDao;
-    @Autowired
     ScanHostService scanHostService;
 
     public void weekTask() {
-        // 如果缓存里没有正在处理的域名或ip，
-        Boolean beginFlg = redisUtils.keyExist(String.format(CacheConst.REDIS_TASK_PARENT_DOMAIN, Const.STR_ASTERISK)) &&
-                redisUtils.keyExist(String.format(CacheConst.REDIS_TASKING_IP, Const.STR_ASTERISK));
-        if (beginFlg) {
-            log.info("正在扫描中。。。");
-            redisUtils.delKey(CacheConst.REDIS_NEXT_TASK);
-            return;
-        } else {
-            if (!redisUtils.hasKey(CacheConst.REDIS_NEXT_TASK)) {
-                LocalDate currentDate = LocalDate.now();
-                // 计算两周后的日期
-                LocalDate dateAfterTwoWeeks = currentDate.plus(Period.ofWeeks(2));
-                String nextTime = dateAfterTwoWeeks.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                redisUtils.setString(CacheConst.REDIS_NEXT_TASK, nextTime);
-                log.info("生成任务缓存，下次执行时间为" + nextTime);
-                return;
-            } else {
-                String nextTime = redisUtils.getString(CacheConst.REDIS_NEXT_TASK);
-                if (!LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).equals(nextTime)) {
+        RLock lock = redisson.getLock(CacheConst.REDIS_BEGIN_TASK);
+        boolean success = true;
+        try {
+            success = lock.tryLock();
+            if (success) {
+                // 如果缓存里没有正在处理的域名或ip，
+                Boolean beginFlg = redisUtils.keyExist(String.format(CacheConst.REDIS_TASK_PARENT_DOMAIN, Const.STR_ASTERISK)) &&
+                        redisUtils.keyExist(String.format(CacheConst.REDIS_TASKING_IP, Const.STR_ASTERISK));
+                if (beginFlg) {
+                    log.info("正在扫描中。。。");
+                    redisUtils.delKey(CacheConst.REDIS_NEXT_TASK);
                     return;
-                }
-            }
-        }
-        log.info("weekTask开始执行！");
-        List<String> hostList = scanHostService.getParentList();
-        parentDomainSender.sendParentToMqtt(hostList);
-        redisUtils.delKey(CacheConst.REDIS_NEXT_TASK);
-        log.info("weekTask投送域名完毕！");
-    }
-
-    public void companyTask() {
-        log.info("companyTask开始执行！");
-        List<String> hostList = scanHostService.getParentList();
-//        mqCompanySender.sendCompanyToMqtt(hostList);
-        if (!CollectionUtils.isEmpty(hostList)) {
-            for (String host : hostList) {
-                try {
-                    String company = HttpUtils.getDomainUnit(host, false);
-                    company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
-                    HostCompanyEntity entity = hostCompanyDao.queryBasicInfo(host);
-                    if (entity == null) {
-                        HostCompanyEntity c = HostCompanyEntity.builder()
-                                .host(host).company(company)
-                                .build();
-                        hostCompanyDao.insert(c);
+                } else {
+                    if (!redisUtils.hasKey(CacheConst.REDIS_NEXT_TASK)) {
+                        LocalDate currentDate = LocalDate.now();
+                        // 计算两周后的日期
+                        LocalDate dateAfterTwoWeeks = currentDate.plus(Period.ofWeeks(2));
+                        String nextTime = dateAfterTwoWeeks.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        redisUtils.setString(CacheConst.REDIS_NEXT_TASK, nextTime);
+                        log.info("生成任务缓存，下次执行时间为" + nextTime);
+                        return;
                     } else {
-                        if (!company.equals(entity.getCompany())) {
-                            entity.setCompany(company);
-                            hostCompanyDao.updateById(entity);
+                        String nextTime = redisUtils.getString(CacheConst.REDIS_NEXT_TASK);
+                        if (!LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).equals(nextTime)) {
+                            return;
                         }
                     }
-                    redisUtils.setString(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60 * 60 * 24 * 7L);
-                } catch (Exception e) {
-                    log.error(host + "查询企业失败", e);
                 }
+                log.info("weekTask开始执行！");
+                List<String> hostList = scanHostService.getParentList();
+                parentDomainSender.sendParentToMqtt(hostList);
+                redisUtils.delKey(CacheConst.REDIS_NEXT_TASK);
+                log.info("weekTask投送域名完毕！");
+            }
+        } catch (Exception e) {
+            log.error("weekTask投送域名报错", e);
+        } finally {
+            if (success && lock.isHeldByCurrentThread()) {
+                lock.unlock();
             }
         }
-        log.info("companyTask执行完毕！");
     }
 
 }

@@ -25,51 +25,56 @@ public class HostCompanyController {
 
     /**
      * 保存
+     *
      * @return
      */
     @PostMapping("save")
     public void save(@RequestBody HostCompanyEntity hostCompany) {
-            hostCompanyService.save(hostCompany);
+        hostCompanyService.save(hostCompany);
     }
 
     /**
      * 批量保存
+     *
      * @return
      */
     @PostMapping("saveBatch")
     public void save(@RequestBody List<HostCompanyEntity> hostCompanyList) {
-            hostCompanyService.saveBatch(hostCompanyList);
+        hostCompanyService.saveBatch(hostCompanyList);
     }
 
     /**
-    * 更新
-    * @return
-    */
+     * 更新
+     *
+     * @return
+     */
     @PostMapping("update")
     public void update(@RequestBody HostCompanyEntity hostCompany) {
-            hostCompanyService.updateById(hostCompany);
+        hostCompanyService.updateById(hostCompany);
     }
 
     /**
      * 单个删除
+     *
      * @param id
      * @return
      */
     @PostMapping("delete")
     public void delete(Long id) {
         if (id != null) {
-                hostCompanyService.removeById(id);
+            hostCompanyService.removeById(id);
         }
     }
 
     /**
      * 批量删除
+     *
      * @return
      */
     @PostMapping("deleteBatch")
     public void deleteBatch(@RequestBody Long[] ids) {
         List<Long> idList = Arrays.asList(ids);
-            hostCompanyService.removeByIds(idList);
+        hostCompanyService.removeByIds(idList);
     }
 
     /**
@@ -101,8 +106,14 @@ public class HostCompanyController {
 
     @GetMapping("info")
     public HostCompanyEntity getInfo(Long id) {
-            HostCompanyEntity hostCompany = hostCompanyService.getById(id);
+        HostCompanyEntity hostCompany = hostCompanyService.getById(id);
         return hostCompany;
+    }
+
+    @GetMapping("queryBasicInfo")
+    public HostCompanyEntity queryBasicInfo(String host) {
+        HostCompanyEntity company = hostCompanyService.queryBasicInfo(host);
+        return company;
     }
 
 }

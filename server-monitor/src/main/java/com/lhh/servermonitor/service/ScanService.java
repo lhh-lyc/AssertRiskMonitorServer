@@ -8,7 +8,6 @@ import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.mqtt.MqHostSender;
-import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.ExecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +38,6 @@ public class ScanService {
     ScanProjectContentService scanProjectContentService;
     @Autowired
     ScanPortInfoService scanPortInfoService;
-    @Autowired
-    SyncService syncService;
     @Autowired
     MqHostSender mqHostSender;
 

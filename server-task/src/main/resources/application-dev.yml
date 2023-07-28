@@ -66,11 +66,6 @@ dir-setting:
   tool-dir: /mnt/webSafe/utils
 
 mqtt-setting:
-  # mqtt服务器broker
-  host: localhost
-  port: 5672
-  userName: guest
-  password: guest
   exchange: amp.topic
   taskParent-route-key: key.taskParentDomain
   taskParent-pub-topic: taskParentDomain
@@ -82,13 +77,3 @@ mqtt-setting:
   maxConcurrent_consumers: 1
   prefetch_count: 1
   task-sub-num: 10
-
-sync-setting:
-  # 扫描端口最大线程数控制
-  MAX_THREADS: 3
-  # 扫描端口跑批分页大小
-  EXPIRED_PAGE_SIZE: 10
-
-monitor-setting:
-  # 一个服务部署为1，其他服务都为0
-  is-init: 1

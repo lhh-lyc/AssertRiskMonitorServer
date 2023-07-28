@@ -169,5 +169,10 @@ public class ScanHostController {
         scanHostService.endScanIp(ip, scanPorts);
     }
 
+    @GetMapping("getParentList")
+    public List<String> getParentList() {
+        return scanHostService.getParentList();
+    }
+
 }
 

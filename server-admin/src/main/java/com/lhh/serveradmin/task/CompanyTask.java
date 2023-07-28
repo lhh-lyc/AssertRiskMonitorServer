@@ -1,26 +1,24 @@
-package com.lhh.serverTask.controller;
+package com.lhh.serveradmin.task;
 
-import com.lhh.serverTask.service.TaskService;
+import com.lhh.serveradmin.service.TaskService;
+import com.lhh.serverbase.common.response.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class TaskController {
+public class CompanyTask {
 
     @Autowired
     TaskService taskService;
-    @Autowired
-    StringRedisTemplate stringRedisTemplate;
 
     @Scheduled(cron = "0 0 * * * ? ")
-    @GetMapping("weekTask")
-    public void weekTask(){
-        taskService.weekTask();
+    @GetMapping("companyTask")
+    public void companyTask(){
+        taskService.companyTask();
     }
 
 }

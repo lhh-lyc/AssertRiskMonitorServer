@@ -1,12 +1,9 @@
 package com.lhh.servermonitor.mqtt;
 
-import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
-import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.service.ScanProjectService;
-import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -15,11 +12,8 @@ import org.springframework.amqp.rabbit.annotation.*;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -32,8 +26,6 @@ public class ProjectListener {
     ScanProjectService scanProjectService;
     @Autowired
     RedisLock redisLock;
-    @Autowired
-    SyncService syncService;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {

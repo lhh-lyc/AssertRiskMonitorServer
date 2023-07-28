@@ -30,5 +30,7 @@ public interface HostCompanyService extends IService<HostCompanyEntity> {
     */
     List<HostCompanyEntity> list(Map<String, Object> params);
 
+    HostCompanyEntity queryBasicInfo(String host);
+
 }
 

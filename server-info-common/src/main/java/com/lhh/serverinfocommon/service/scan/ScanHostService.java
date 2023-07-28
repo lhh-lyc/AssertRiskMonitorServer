@@ -52,5 +52,7 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     void endScanIp(Long ipLong, String scanPorts);
 
+    List<String> getParentList();
+
 }
 

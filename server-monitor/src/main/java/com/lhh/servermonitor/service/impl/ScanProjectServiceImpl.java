@@ -11,16 +11,13 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.utils.RexpUtil;
-import com.lhh.servermonitor.config.RabbitMqConfig;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.mqtt.MqIpSender;
 import com.lhh.servermonitor.service.*;
-import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,9 +26,7 @@ import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,8 +53,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     ScanPortInfoService scanPortInfoService;
     @Autowired
     ScanService scanService;
-    @Autowired
-    SyncService syncService;
     @Autowired
     RedisLock redisLock;
     @Autowired
@@ -182,27 +175,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             }
             JedisUtils.setPipeJson(redisMap);
             if (!CollectionUtils.isEmpty(scanPortParamList)) {
-//                scanPortInfoService.scanPortList(scanPortParamList);
-//                syncService.dataHandler(scanPortParamList);
                 mqIpSender.sendScanningIpToMqtt(scanPortParamList);
-                /*List<ScanProjectContentEntity> contentList = new ArrayList<>();
-                for (ScanParamDto dto : scanPortParamList) {
-                    if (!StringUtils.isEmpty(dto.getSubIp())) {
-                        contentList = scanProjectContentService.list(new HashMap<String, Object>() {{
-                            put("inputHost", dto.getSubIp());
-                        }});
-                    }
-                    if (!CollectionUtils.isEmpty(contentList)) {
-                        for (ScanProjectContentEntity content : contentList) {
-                            // todo
-                            content.setIsCompleted(Const.INTEGER_1);
-                            scanProjectContentService.updateById(content);
-                        }
-                    }
-                }*/
-//                if (!CollectionUtils.isEmpty(contentList)) {
-//                    scanProjectContentService.updateStatus(contentList);
-//                }
             }
 
             // 扫描新的域名

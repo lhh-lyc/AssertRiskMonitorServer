@@ -158,4 +158,9 @@
         where ip_long = #{ipLong}
     </update>
 
+    <select id="getParentList" resultType="java.lang.String">
+        select distinct parent_domain
+        from scan_host
+    </select>
+
 </mapper>

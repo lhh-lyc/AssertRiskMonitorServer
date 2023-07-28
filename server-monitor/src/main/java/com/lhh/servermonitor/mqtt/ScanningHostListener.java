@@ -6,12 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.utils.*;
+import com.lhh.serverbase.utils.IpLongUtils;
+import com.lhh.serverbase.utils.PortUtils;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.service.*;
-import com.lhh.servermonitor.sync.SyncService;
 import com.lhh.servermonitor.utils.JedisUtils;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +18,8 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.*;
-import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -30,7 +27,10 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
         exchange = @Exchange(name = "amp.topic"))})
 public class ScanningHostListener {
 
-    @Autowired
-    SyncService syncService;
     @Autowired
     ScanProjectHostService scanProjectHostService;
     @Autowired

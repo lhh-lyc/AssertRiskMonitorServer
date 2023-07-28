@@ -47,4 +47,9 @@ public class HostCompanyServiceImpl extends ServiceImpl<HostCompanyDao, HostComp
         return list;
     }
 
+    @Override
+    public HostCompanyEntity queryBasicInfo(String host) {
+        return hostCompanyDao.queryBasicInfo(host);
+    }
+
 }

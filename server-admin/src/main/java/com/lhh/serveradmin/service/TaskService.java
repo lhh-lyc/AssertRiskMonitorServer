@@ -5,6 +5,8 @@ import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
+import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
 import com.lhh.serveradmin.feign.scan.ScanningChangeFeign;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
@@ -14,9 +16,11 @@ import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.CmsJsonDto;
 import com.lhh.serverbase.dto.FingerprintListDTO;
 import com.lhh.serverbase.entity.CmsJsonEntity;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.utils.CopyUtils;
+import com.lhh.serverbase.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -25,6 +29,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -43,6 +48,10 @@ public class TaskService {
     ScanProjectContentFeign scanProjectContentFeign;
     @Autowired
     ScanningChangeFeign scanningChangeFeign;
+    @Autowired
+    ScanHostFeign scanHostFeign;
+    @Autowired
+    HostCompanyFeign hostCompanyFeign;
     @Autowired
     CmsJsonFeign cmsJsonFeign;
 
@@ -166,6 +175,35 @@ public class TaskService {
             }
         }
         return new ArrayList<>(mergedMap.values());
+    }
+
+    public void companyTask() {
+        log.info("companyTask开始执行！");
+        List<String> hostList = scanHostFeign.getParentList();
+        if (!CollectionUtils.isEmpty(hostList)) {
+            for (String host : hostList) {
+                try {
+                    String company = HttpUtils.getDomainUnit(host, false);
+                    company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+                    HostCompanyEntity entity = hostCompanyFeign.queryBasicInfo(host);
+                    if (entity == null) {
+                        HostCompanyEntity c = HostCompanyEntity.builder()
+                                .host(host).company(company)
+                                .build();
+                        hostCompanyFeign.save(c);
+                    } else {
+                        if (!company.equals(entity.getCompany())) {
+                            entity.setCompany(company);
+                            hostCompanyFeign.update(entity);
+                        }
+                    }
+                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60 * 60 * 24 * 7L, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    log.error(host + "查询企业失败", e);
+                }
+            }
+        }
+        log.info("companyTask执行完毕！");
     }
 
 }

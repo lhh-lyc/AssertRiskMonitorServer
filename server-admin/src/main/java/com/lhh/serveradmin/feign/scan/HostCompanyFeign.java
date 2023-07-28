@@ -75,9 +75,11 @@ public interface HostCompanyFeign {
     @PostMapping("host/company/deleteBatch")
     void deleteBatch(@RequestBody Long[] ids);
 
-
     @GetMapping("host/company/info")
     HostCompanyEntity info(@RequestParam(name = "id") Long id);
+
+    @GetMapping("host/company/queryBasicInfo")
+    HostCompanyEntity queryBasicInfo(@RequestParam(name = "host") String host);
 
 }
 

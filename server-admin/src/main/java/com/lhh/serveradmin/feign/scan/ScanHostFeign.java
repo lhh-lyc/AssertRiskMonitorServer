@@ -48,4 +48,7 @@ public interface ScanHostFeign {
     @PostMapping("/scan/host/getParentDomainList")
     List<String> getParentDomainList(@RequestBody Map<String, Object> params);
 
+    @GetMapping("/scan/host/getParentList")
+    List<String> getParentList();
+
 }
