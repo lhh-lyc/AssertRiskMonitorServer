@@ -1,0 +1,59 @@
+spring:
+  # jackson时间格式化
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  sleuth:
+    sampler:
+      percentage: 1
+  # Redis 配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: 123456
+    pool:
+      max-idle: 8
+      min-idle: 0
+      max-active: 8
+      max-wait: -1
+    timeout: 5000
+  rabbitmq:
+    port: 5672
+    host: localhost
+    username: guest
+    password: guest
+    #这个配置是保证提供者确保消息推送到交换机中，不管成不成功，都会回调
+    publisher-confirm-type: correlated
+    #保证交换机能把消息推送到队列中
+    publisher-returns: true
+    virtual-host: /
+    #这个配置是保证消费者会消费消息，手动确认
+    listener:
+      simple:
+        acknowledge-mode: manual
+    template:
+      mandatory: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:7001/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+
+ribbon:
+  ReadTimeout: 600000
+  ConnectTimeout: 600000
+
+# mqtt配置
+mqtt-setting:
+  exchange: amp.topic
+  project-route-key: key.project
+  project-pub-topic: projectData
+  reDomain-route-key: key.reScanDomain
+  reDomain-pub-topic: reScanDomain
+  reIp-route-key: key.reScanIp
+  reIp-pub-topic: reScanIp
+  sub-num: 2
+  re-sub-num: 10

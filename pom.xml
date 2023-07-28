@@ -22,6 +22,7 @@
         <module>server-monitor</module>
         <module>server-reScan</module>
         <module>server-task</module>
+        <module>server-refresh-data</module>
     </modules>
 
     <properties>

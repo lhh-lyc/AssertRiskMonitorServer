@@ -51,7 +51,7 @@ public class ProjectSender {
             List<HostCompanyEntity> companyList = new ArrayList<>();
             for (String host : p.getHostList()) {
                 if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
-                    String company = HttpUtils.getDomainUnit(host, true);
+                    String company = HttpUtils.getDomainUnit(host);
                     company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
                     HostCompanyEntity companyEntity = HostCompanyEntity.builder()
                             .host(host).company(company)
