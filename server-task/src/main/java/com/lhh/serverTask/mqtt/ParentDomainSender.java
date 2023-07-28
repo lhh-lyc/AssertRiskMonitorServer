@@ -41,7 +41,6 @@ public class ParentDomainSender {
     StringRedisTemplate stringRedisTemplate;
     @Autowired
     RedisUtils redisUtils;
-
     @Autowired
     private RabbitTemplate rabbitTemplate;
 

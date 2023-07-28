@@ -1,13 +1,21 @@
 package com.lhh.serverTask.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.lhh.serverTask.dao.HostCompanyDao;
+import com.lhh.serverTask.mqtt.MqCompanySender;
 import com.lhh.serverTask.mqtt.ParentDomainSender;
 import com.lhh.serverTask.utils.RedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
+import com.lhh.serverbase.utils.HttpUtils;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,15 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.jedis.JedisUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service("TaskService")
@@ -35,17 +47,21 @@ public class TaskService {
     private String taskSubDomainPubTopic;
 
     @Autowired
-    ScanHostService scanHostService;
-    @Autowired
-    RedisTemplate redisTemplate;
-    @Autowired
     RedisUtils redisUtils;
+    @Autowired
+    StringRedisTemplate redisTemplate;
+    @Autowired
+    RedissonClient redisson;
     @Autowired
     ParentDomainSender parentDomainSender;
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    MqCompanySender mqCompanySender;
+    @Autowired
+    private HostCompanyDao hostCompanyDao;
+    @Autowired
+    ScanHostService scanHostService;
 
-    public void weekTask(){
+    public void weekTask() {
         // 如果缓存里没有正在处理的域名或ip，
         Boolean beginFlg = redisUtils.keyExist(String.format(CacheConst.REDIS_TASK_PARENT_DOMAIN, Const.STR_ASTERISK)) &&
                 redisUtils.keyExist(String.format(CacheConst.REDIS_TASKING_IP, Const.STR_ASTERISK));
@@ -74,6 +90,36 @@ public class TaskService {
         parentDomainSender.sendParentToMqtt(hostList);
         redisUtils.delKey(CacheConst.REDIS_NEXT_TASK);
         log.info("weekTask投送域名完毕！");
+    }
+
+    public void companyTask() {
+        log.info("companyTask开始执行！");
+        List<String> hostList = scanHostService.getParentList();
+//        mqCompanySender.sendCompanyToMqtt(hostList);
+        if (!CollectionUtils.isEmpty(hostList)) {
+            for (String host : hostList) {
+                try {
+                    String company = HttpUtils.getDomainUnit(host, false);
+                    company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+                    HostCompanyEntity entity = hostCompanyDao.queryBasicInfo(host);
+                    if (entity == null) {
+                        HostCompanyEntity c = HostCompanyEntity.builder()
+                                .host(host).company(company)
+                                .build();
+                        hostCompanyDao.insert(c);
+                    } else {
+                        if (!company.equals(entity.getCompany())) {
+                            entity.setCompany(company);
+                            hostCompanyDao.updateById(entity);
+                        }
+                    }
+                    redisUtils.setString(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60 * 60 * 24 * 7L);
+                } catch (Exception e) {
+                    log.error(host + "查询企业失败", e);
+                }
+            }
+        }
+        log.info("companyTask执行完毕！");
     }
 
 }

@@ -2,9 +2,11 @@ package com.lhh.serveradmin.mqtt;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.config.RabbitMqConfig;
+import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.HttpUtils;
@@ -36,24 +38,34 @@ public class ProjectSender {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private HostCompanyFeign hostCompanyFeign;
 
     @Async
     public void putProject(ScanProjectEntity project) {
-        for (String host : project.getHostList()) {
-            if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
-                String company = HttpUtils.getDomainUnit(host);
-                if (!StringUtils.isEmpty(company)) {
-                    JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company);
+        if (CollectionUtils.isEmpty(project.getHostList())) {
+            return;
+        }
+        List<ScanProjectEntity> list = splitList(project, subNum);
+        for (ScanProjectEntity p : list) {
+            List<HostCompanyEntity> companyList = new ArrayList<>();
+            for (String host : p.getHostList()) {
+                if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host))) {
+                    String company = HttpUtils.getDomainUnit(host, true);
+                    company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+                    HostCompanyEntity companyEntity = HostCompanyEntity.builder()
+                            .host(host).company(company)
+                            .build();
+                    companyList.add(companyEntity);
+                    JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60*60*24*7);
                 }
             }
+            hostCompanyFeign.saveBatch(companyList);
         }
         sendToMqtt(project);
     }
 
     public void sendToMqtt(ScanProjectEntity project) {
-        if (CollectionUtils.isEmpty(project.getHostList())) {
-            return;
-        }
         List<ScanProjectEntity> list = splitList(project, subNum);
         for (ScanProjectEntity p : list) {
             CorrelationData correlationId = new CorrelationData(p.toString());

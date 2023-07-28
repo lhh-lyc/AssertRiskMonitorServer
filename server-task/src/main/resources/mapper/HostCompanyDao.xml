@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverTask.dao.HostCompanyDao">
+
+    <sql id="baseColumn">
+        id
+        ,
+                    host,
+                    company
+    </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.serverbase.entity.HostCompanyEntity" id="hostCompanyMap">
+        <result property="id" column="id"/>
+        <result property="host" column="host"/>
+        <result property="company" column="company"/>
+    </resultMap>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select
+        <include refid="baseColumn"/>
+        from host_company
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select
+        <include refid="baseColumn"/>
+        from host_company
+    </select>
+
+    <select id="queryBasicInfo" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select <include refid="baseColumn"/> from host_company
+        where host = #{host}
+    </select>
+
+
+</mapper>

@@ -36,10 +36,10 @@ public class RabbitMqConfig {
     private String taskSubDomainRouteKey;
     @Value("${mqtt-setting.taskSubDomain-pub-topic}")
     private String taskSubDomainPubTopic;
-    @Value("${mqtt-setting.taskIp-route-key}")
-    private String taskIpRouteKey;
-    @Value("${mqtt-setting.taskIp-pub-topic}")
-    private String taskIpPubTopic;
+    @Value("${mqtt-setting.taskCompany-route-key}")
+    private String taskCompanyRouteKey;
+    @Value("${mqtt-setting.taskCompany-pub-topic}")
+    private String taskCompanyPubTopic;
 
     //创建连接工厂
     @Bean
@@ -123,27 +123,27 @@ public class RabbitMqConfig {
     //声明队列
     @Bean
     public Queue queueB() {
-        return new Queue(taskIpPubTopic, true); //队列持久：不会随着服务器重启造成丢失
+        return new Queue(taskParentPubTopic, true); //队列持久：不会随着服务器重启造成丢失
     }
 
     //队列绑定交换机，指定routingkey
     @Bean
     public Binding bindingB() {
         //绑定队列到交换机上通过路由
-        return BindingBuilder.bind(queueB()).to(defaultExchange()).with(taskIpRouteKey);
+        return BindingBuilder.bind(queueB()).to(defaultExchange()).with(taskParentRouteKey);
     }
 
     //声明队列
     @Bean
     public Queue queueC() {
-        return new Queue(taskParentPubTopic, true); //队列持久：不会随着服务器重启造成丢失
+        return new Queue(taskCompanyPubTopic, true); //队列持久：不会随着服务器重启造成丢失
     }
 
     //队列绑定交换机，指定routingkey
     @Bean
     public Binding bindingC() {
         //绑定队列到交换机上通过路由
-        return BindingBuilder.bind(queueC()).to(defaultExchange()).with(taskParentRouteKey);
+        return BindingBuilder.bind(queueC()).to(defaultExchange()).with(taskCompanyRouteKey);
     }
 
 }

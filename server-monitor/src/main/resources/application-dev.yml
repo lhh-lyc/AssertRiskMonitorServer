@@ -63,7 +63,7 @@ server-setting:
   exec_timeout: 6000
 
 dir-setting:
-  subfinder-dir: /mnt/webSafe/utils/subfinder
+  tool-dir: /mnt/webSafe/utils
 
 mqtt-setting:
   exchange: amp.topic

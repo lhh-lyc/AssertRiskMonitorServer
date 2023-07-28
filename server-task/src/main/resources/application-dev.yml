@@ -63,7 +63,7 @@ server-setting:
   exec_timeout: 6000
 
 dir-setting:
-  subfinder-dir: /mnt/webSafe/utils/subfinder
+  tool-dir: /mnt/webSafe/utils
 
 mqtt-setting:
   # mqtt服务器broker
@@ -76,10 +76,10 @@ mqtt-setting:
   taskParent-pub-topic: taskParentDomain
   taskSubDomain-route-key: key.taskScanSubDomain
   taskSubDomain-pub-topic: taskScanSubDomain
-  taskIp-route-key: key.taskScanIp
-  taskIp-pub-topic: taskScanIp
-  concurrent_consumers: 3
-  maxConcurrent_consumers: 10
+  taskCompany-route-key: key.taskCompany
+  taskCompany-pub-topic: taskCompany
+  concurrent_consumers: 1
+  maxConcurrent_consumers: 1
   prefetch_count: 1
   task-sub-num: 10
 

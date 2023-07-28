@@ -94,7 +94,7 @@ public class CacheConst {
     public final static String REDIS_TASKING_IP = "TASKING_IP:%s";
 
     /**
-     * redis key: REDIS_NEXT_TASK
+     * 主域名定时扫描: REDIS_NEXT_TASK
      */
     public final static String REDIS_NEXT_TASK = "NEXT_TASK";
 
