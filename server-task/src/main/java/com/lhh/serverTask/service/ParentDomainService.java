@@ -1,8 +1,7 @@
 package com.lhh.serverTask.service;
 
-import com.lhh.serverTask.dao.ScanHostDao;
 import com.lhh.serverTask.dao.ScanProjectHostDao;
-import com.lhh.serverTask.mqtt.MqHostSender;
+import com.lhh.serverTask.mqtt.SubDomainSender;
 import com.lhh.serverTask.utils.ExecUtil;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ReScanDto;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,7 +35,7 @@ public class ParentDomainService {
     @Autowired
     private ScanAddRecordService scanAddRecordService;
     @Autowired
-    private MqHostSender mqHostSender;
+    private SubDomainSender mqHostSender;
 
     public void scanDomain(ReScanDto scanDto) {
         if (!CollectionUtils.isEmpty(scanDto.getHostList())) {

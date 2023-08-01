@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class MqHostSender {
+public class SubDomainSender {
 
     @Value("${mqtt-setting.task-sub-num}")
     private Integer reSubNum;
