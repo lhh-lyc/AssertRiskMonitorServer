@@ -15,7 +15,7 @@ public class CompanyTask {
     @Autowired
     TaskService taskService;
 
-    @Scheduled(cron = "0 0 * * * ? ")
+    @Scheduled(cron = "0 0 0 * * ? ")
     @GetMapping("companyTask")
     public void companyTask(){
         taskService.companyTask();

@@ -79,8 +79,8 @@ public class HttpUtils {
                 return Const.STR_EMPTY;
             }
             while (code.equals(101)) {
-                Thread.sleep(1000);
                 log.info(domain + "-公司名查询等待中。。。。。。。");
+                Thread.sleep(1500);
                 obj = httpGet("https://www.mxnzp.com/api/beian/search",
                         new HashMap<String, String>() {{
                             put("app_id", "ytiuiclnnaoshorw");
