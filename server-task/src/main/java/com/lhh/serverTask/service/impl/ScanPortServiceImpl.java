@@ -22,6 +22,11 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     }
 
     @Override
+    public void deleteByIp(Long ip) {
+        scanPortDao.deleteByIp(ip);
+    }
+
+    @Override
     public void deleteBatch(List<Long> idList) {
         scanPortDao.deleteBatch(idList);
     }

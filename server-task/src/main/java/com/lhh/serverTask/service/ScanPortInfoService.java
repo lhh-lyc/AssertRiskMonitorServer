@@ -1,6 +1,7 @@
 package com.lhh.serverTask.service;
 
 import com.lhh.serverTask.dao.ScanHostDao;
+import com.lhh.serverTask.dao.ScanHostPortDao;
 import com.lhh.serverTask.dao.ScanPortDao;
 import com.lhh.serverTask.dao.ScanProjectHostDao;
 import com.lhh.serverTask.utils.ExecUtil;
@@ -8,6 +9,7 @@ import com.lhh.serverTask.utils.RedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanAddRecordEntity;
+import com.lhh.serverbase.entity.ScanHostPortEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.IpLongUtils;
@@ -34,6 +36,8 @@ public class ScanPortInfoService {
     @Autowired
     ScanPortDao scanPortDao;
     @Autowired
+    ScanHostPortDao scanHostPortDao;
+    @Autowired
     ScanProjectHostDao scanProjectHostDao;
     @Autowired
     ScanPortService scanPortService;
@@ -50,13 +54,14 @@ public class ScanPortInfoService {
      * java代码获取开放端口
      */
     public Boolean scanSingleIpPortList(String parentDomain, String domain, String ip) {
+        Boolean flag = false;
         String lockKey = String.format(CacheConst.REDIS_LOCK_SCANNING_IP, ip);
         RLock lock = redisson.getLock(lockKey);
         try {
             lock.lock();
             if (redisUtils.hasKey(String.format(CacheConst.REDIS_TASKING_IP, ip))) {
-                String flag = redisUtils.getString(String.format(CacheConst.REDIS_TASKING_IP, ip));
-                return Boolean.valueOf(flag);
+                flag = Boolean.valueOf(redisUtils.getString(String.format(CacheConst.REDIS_TASKING_IP, ip)));
+                return flag;
             }
             Map<String, Object> params = new HashMap<>();
             Long ipLong = IpLongUtils.ipToLong(ip);
@@ -80,6 +85,9 @@ public class ScanPortInfoService {
                 }
             }
             if (scanPortList.size() >= 1000) {
+                // 超过1000个端口，清空原本的数据
+                scanPortService.deleteByIp(ipLong);
+                scanHostPortDao.deleteByDomain(ip);
                 log.info(ip + "扫描端口超过1000，已忽略！");
                 return false;
             } else {
@@ -152,6 +160,7 @@ public class ScanPortInfoService {
             }
             // 避免子域名相同的ip反复扫描（过期后仍可能反复扫描但是次数减少）
             redisUtils.setString(String.format(CacheConst.REDIS_TASKING_IP, ip), "true", 12*60*60L);
+            flag = true;
         } catch (Exception e) {
         } finally {
             // 判断当前线程是否持有锁
@@ -159,7 +168,7 @@ public class ScanPortInfoService {
                 //释放当前锁
                 lock.unlock();
             }
-            return true;
+            return flag;
         }
     }
 

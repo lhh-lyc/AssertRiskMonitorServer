@@ -22,6 +22,8 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     void saveBatch(@Param("list") List<ScanPortEntity> list);
 
+    void deleteByIp(Long ip);
+
     void deleteBatch(@Param("idList") List<Long> idList);
 
     List<Integer> queryDomainPortList(@Param("domain") String domain);

@@ -60,6 +60,22 @@ public class SubDomainListener {
         String parentDomain = dto.getParentDomain();
         try {
             if (!CollectionUtils.isEmpty(dto.getHostList())) {
+                Boolean doneFlg = true;
+                for (String domain : dto.getHostList()) {
+                    Boolean flg = stringRedisTemplate.hasKey(String.format(CacheConst.REDIS_END_HOST_PORT, domain));
+                    if (!flg) {
+                        doneFlg = false;
+                        break;
+                    }
+                }
+                if (doneFlg) {
+                    for (String domain : dto.getHostList()) {
+                        stringRedisTemplate.delete(String.format(CacheConst.REDIS_END_HOST_PORT, domain));
+                    }
+                    channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+                    log.info("host:" + parentDomain + "已被消费，移出队列");
+                    return;
+                }
                 String company = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
                 company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
                 for (String domain : dto.getHostList()) {
@@ -96,9 +112,12 @@ public class SubDomainListener {
                     // 重新解析cms、url、title
                     scanHostPortService.scanSingleHostPortList(domain);
                 }
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+                for (String domain : dto.getHostList()) {
+                    stringRedisTemplate.delete(String.format(CacheConst.REDIS_END_HOST_PORT, domain));
+                }
+                log.info("host:" + parentDomain + "处理完毕");
             }
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
-            log.info("host:" + parentDomain + "处理完毕");
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);

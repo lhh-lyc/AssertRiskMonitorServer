@@ -113,4 +113,10 @@ public class CacheConst {
      */
     public final static String REDIS_CMS_JSON_MAP = "CMS_JSON_MAP";
 
+    /**
+     * redis key: 表示已经处理过的rabbitmq消息（由于可能消费时间太长，导致30分钟后连接断开然后一直重复消费）
+     * 消费时先判断有没有该缓存，有就说明已经消费过了，直接确认
+     */
+    public final static String REDIS_END_HOST_PORT = "END_HOST_PORT:%s";
+
 }

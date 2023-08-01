@@ -2,6 +2,7 @@ package com.lhh.serverTask.service;
 
 import com.lhh.serverTask.dao.ScanHostPortDao;
 import com.lhh.serverTask.utils.HttpxCustomizeUtils;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanHostPortEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +96,7 @@ public class ScanHostPortService {
                 }
             }
         }
+        stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_END_HOST_PORT, domain), Const.STR_1);
     }
 
 }

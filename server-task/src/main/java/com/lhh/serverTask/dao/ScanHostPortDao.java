@@ -33,6 +33,8 @@ public interface ScanHostPortDao extends BaseMapper<ScanHostPortEntity> {
 
     void saveBatch(@Param("list") List<ScanHostPortEntity> list);
 
+    void deleteByDomain(String domain);
+
     void deleteBatch(@Param("idList") List<Long> idList);
 
 }

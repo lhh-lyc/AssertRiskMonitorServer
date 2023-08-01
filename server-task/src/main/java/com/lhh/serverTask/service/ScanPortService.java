@@ -16,6 +16,8 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     List<ScanPortEntity> basicByIpList(List<Long> ipList);
 
+    void deleteByIp(Long ip);
+
     void deleteBatch(List<Long> idList);
 
     List<Integer> queryDomainPortList(String domain);
