@@ -106,7 +106,7 @@ public class ScanPortInfoService {
                     Map<String, String> serverMap = new HashMap<>();
                     if (!CollectionUtils.isEmpty(serverLineList)) {
                         for (String server : serverLineList) {
-                            serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)));
+                            serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)).trim());
                         }
                     }
 

@@ -42,7 +42,7 @@ public class ScanHostPortService {
      * @param domain
      */
     public void scanSingleHostPortList(String domain) {
-        List<Integer> portList = scanPortService.queryDomainPortList(domain);
+        List<Integer> portList = scanPortService.queryWebPortList(domain);
         if (!CollectionUtils.isEmpty(portList)) {
             List<ScanHostPortEntity> scanList = new ArrayList<>();
             Map<String, ScanHostPortEntity> scanMap = new HashMap<>();

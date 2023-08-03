@@ -20,7 +20,7 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     void deleteBatch(List<Long> idList);
 
-    List<Integer> queryDomainPortList(String domain);
+    List<Integer> queryWebPortList(String domain);
 
 }
 

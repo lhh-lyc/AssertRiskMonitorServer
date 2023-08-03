@@ -9,10 +9,11 @@
         where ip_long = #{ipLong}
     </select>
 
-    <select id="queryDomainPortList" resultType="java.lang.Integer">
+    <select id="queryWebPortList" resultType="java.lang.Integer">
         select DISTINCT t1.port from scan_port t1
         join scan_host t2 on t2.ip_long = t1.ip_long
         where t2.domain = #{domain}
+        and (t1.server_name = 'http' or t1.server_name = 'https')
     </select>
 
     <select id="basicByIpList" resultType="com.lhh.serverbase.entity.ScanPortEntity">

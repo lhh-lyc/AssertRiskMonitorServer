@@ -53,8 +53,8 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
     }
 
     @Override
-    public List<Integer> queryDomainPortList(String domain) {
-        return scanPortDao.queryDomainPortList(domain);
+    public List<Integer> queryWebPortList(String domain) {
+        return scanPortDao.queryWebPortList(domain);
     }
 
     @Override

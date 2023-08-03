@@ -41,7 +41,7 @@ public class ScanHostPortService {
      * @param domain
      */
     public void scanSingleHostPortList(String domain) {
-        List<Integer> portList = scanPortService.queryDomainPortList(domain);
+        List<Integer> portList = scanPortService.queryWebPortList(domain);
         List<Integer> ports = scanHostPortDao.queryPortList(domain);
         portList.removeAll(ports);
         if (!CollectionUtils.isEmpty(portList)) {
