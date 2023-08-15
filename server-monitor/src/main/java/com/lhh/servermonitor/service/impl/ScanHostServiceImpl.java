@@ -133,7 +133,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     @Override
     public void updateEndScanIp(String domain, String ip, Long ipLong, String scanPorts){
-        log.info("开始更新host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
+//        log.info("开始更新host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
         // 修改所有域名解析为当前ip的数据状态 is_scanning=0
         String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_CHANGE, ipLong);
         RLock lock = redisson.getLock(lockKey);
@@ -156,7 +156,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
                 lock.unlock();
             }
         }
-        log.info("更新结束host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
+//        log.info("更新结束host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
     }
 
     @Override

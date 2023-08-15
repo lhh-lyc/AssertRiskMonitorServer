@@ -92,7 +92,11 @@ public class Const {
 
     public static Integer INTEGER_4 = 4;
 
+    public static Integer INTEGER_5 = 5;
+
     public static Integer INTEGER_10 = 10;
+
+    public static Integer INTEGER_50 = 50;
 
     public static Integer INTEGER_100 = 100;
 
@@ -117,6 +121,8 @@ public class Const {
     public static String STR_FAVICON_HASH = "cd %s/Finger&&python3 faviconHash.py %s";
 
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
+
+    public static String STR_LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
     /**
      * 菜单类型

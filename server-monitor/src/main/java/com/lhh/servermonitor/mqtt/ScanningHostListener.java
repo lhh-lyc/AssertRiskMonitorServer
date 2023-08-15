@@ -11,6 +11,7 @@ import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.service.*;
+import com.lhh.servermonitor.utils.DomainIpUtils;
 import com.lhh.servermonitor.utils.JedisUtils;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,7 @@ public class ScanningHostListener {
     public void deal(ScanParamDto dto, Message message, Channel channel){
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
-            List<String> ipList = getDomainIpList(dto.getSubDomain());
+            List<String> ipList = dto.getSubIpList();
             List<Long> ipLongList = ipList.stream().map(s -> IpLongUtils.ipToLong(s)).collect(Collectors.toList());
             Map<String, String> redisMap = new HashMap<>();
             Map<String, String> ipPortsMap = new HashMap<>();
@@ -166,48 +167,23 @@ public class ScanningHostListener {
             // 不扫描端口批量更新域名ip状态
             if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
                 // 更新isScanning
-                log.info("开始批量更新" + dto.getSubDomain() + "数据状态");
+//                log.info("开始批量更新" + dto.getSubDomain() + "数据状态");
                 try {
                     scanHostService.updateEndScanDomain(dto.getSubDomain());
                 } catch (Exception e) {
                     log.error(dto.getSubDomain() + "批量更新状态出现错误：", e);
                 }
-                log.info("批量更新结束" + dto.getSubDomain() + "数据状态");
+//                log.info("批量更新结束" + dto.getSubDomain() + "数据状态");
             }
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.error("host" + dto.getSubDomain() + "处理异常", e);
+                log.error("子域名:" + dto.getSubDomain() + "处理异常", e);
             } catch (IOException ioException) {
                 log.error("产生异常的参数", ioException);
             }
         }
-    }
-
-    /**
-     * java代码解析子域名ip
-     */
-    private List<String> getDomainIpList(String domain) {
-        List<String> list = new ArrayList<>();
-        try {
-            InetAddress[] inetadd = InetAddress.getAllByName(domain);
-            //遍历所有的ip并输出
-            for (int i = 0; i < inetadd.length; i++) {
-                if (!StringUtils.isEmpty(inetadd[i] + Const.STR_EMPTY)) {
-                    String ip = (inetadd[i] + Const.STR_EMPTY).split(Const.STR_SLASH)[1];
-                    if (RexpUtil.isIP(ip)) {
-                        list.add(ip);
-                    }
-                }
-            }
-            String ips = CollectionUtils.isEmpty(list) ? Const.STR_EMPTY : String.join(Const.STR_COMMA, list);
-            log.info(domain + (CollectionUtils.isEmpty(list) ? "未解析出ip" : "解析ip为：" + ips));
-        } catch (UnknownHostException e) {
-            list.add(Const.STR_CROSSBAR);
-            log.error(domain + "解析ip出错");
-        }
-        return list;
     }
 
 }

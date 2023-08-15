@@ -80,7 +80,6 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
 
     @Override
     public void updateEndScanDomain(String domain) {
-        log.info("开始更新project_host=" + domain + "数据状态");
         // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
         RLock lock = redisson.getLock(lockKey);
@@ -103,12 +102,11 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
                 lock.unlock();
             }
         }
-        log.info("更新结束project_host=" + domain + "数据状态");
     }
 
     @Override
     public void endScanDomain(String domain) {
-        log.info("开始补充更新project_host=" + domain + "数据状态");
+//        log.info("开始补充更新project_host=" + domain + "数据状态");
         // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
         RLock lock = redisson.getLock(lockKey);
@@ -127,7 +125,7 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
                 lock.unlock();
             }
         }
-        log.info("补充更新结束project_host=" + domain + "数据状态");
+//        log.info("补充更新结束project_host=" + domain + "数据状态");
     }
 
 }

@@ -201,9 +201,9 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     }
                 }
             } else {
-                // 未关联到子域名也不存在于host表，说明不是主域名增加一条关联关系（主域名不需要，因为上面查询子域名的时候关联了）
+                // 未关联到子域名也不存在于host表，说明不是主域名(非法域名输入)增加一条关联关系（主域名不需要，因为上面查询子域名的时候关联了）
                 // 不需要重新扫描的域名，在此维护scan_project_host表关联
-                if (CollectionUtils.isEmpty(saveProjectHostList)) {
+                if (CollectionUtils.isEmpty(saveProjectHostList) && !CollectionUtils.isEmpty(exitSubDoMainList)) {
                     List<ScanProjectHostEntity> projectDomainList = new ArrayList<>();
                     for (String host : finalSameHostList) {
                         ScanProjectHostEntity item = ScanProjectHostEntity.builder()

@@ -54,4 +54,6 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     List<String> getParentList();
 
+    List<String> getCompanyList(@Param("companyList") List<String> companyList, Integer limit);
+
 }

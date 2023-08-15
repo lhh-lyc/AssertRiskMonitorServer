@@ -22,4 +22,6 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
     List<ScanProjectHostEntity> queryByHostList(@Param("hostList") List<String> hostList);
 
+    List<ScanProjectHostEntity> queryProjectByParent(@Param("parentDomain") String parentDomain);
+
 }

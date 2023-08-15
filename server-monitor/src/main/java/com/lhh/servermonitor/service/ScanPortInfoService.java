@@ -61,7 +61,7 @@ public class ScanPortInfoService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            List<String> portStrList = Arrays.asList(response.getOut().split("\n"));
+            List<String> portStrList = StringUtils.isEmpty(response.getOut()) ? new ArrayList<>() : Arrays.asList(response.getOut().split("\n"));
             Map<Long, List<String>> ipMap = new HashMap<>();
             List<Long> ipLongList = new ArrayList<>();
             List<Long> loseIpList = new ArrayList<>();
@@ -93,101 +93,114 @@ public class ScanPortInfoService {
                 }
             }
             String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, ip));
-            List<ScanHostEntity> saveIpList = new ArrayList<>();
-            List<ScanHostEntity> updateIpList = new ArrayList<>();
-            List<ScanHostEntity> exitIpList = scanHostService.getIpByIpList(ipLongList);
-            exitIpList = exitIpList.stream().distinct().collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(exitIpList)) {
-                for (ScanHostEntity exitIp : exitIpList) {
-                    if (!PortUtils.portEquals(exitIp.getScanPorts(), dto.getScanPorts())) {
-                        exitIp.setScanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()));
-                        updateIpList.add(exitIp);
-                        continue;
-                    }
-                    ipMap.remove(exitIp.getIpLong());
-                    // 已存在的ip维护关联关系
-//                if (dto.getSubIp().contains(Const.STR_SLASH)) {
-                    ScanHostEntity scanIp = ScanHostEntity.builder()
-                            .domain(ip).parentDomain(ip)
-                            .ip(IpLongUtils.longToIp(exitIp.getIpLong())).ipLong(exitIp.getIpLong())
-                            .scanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()))
-                            .company(company)
-                            .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
-                            .isDomain(Const.INTEGER_0)
-                            .isScanning(Const.INTEGER_0)
-                            .build();
-                    saveIpList.add(scanIp);
-//                }
-                }
-                if (!CollectionUtils.isEmpty(saveIpList)) {
-                    scanHostService.saveBatch(saveIpList);
-                }
-                // todo
-                if (!CollectionUtils.isEmpty(updateIpList)) {
-                    for (ScanHostEntity host : updateIpList) {
-                        scanHostService.updateById(host);
-                    }
-                }
-            }
-
-            List<ScanPortEntity> portEntityList = scanPortService.basicByIpList(ipLongList);
-            Map<Long, List<Integer>> portMap = portEntityList.stream()
-                    .collect(Collectors.groupingBy(ScanPortEntity::getIpLong,
-                            Collectors.mapping(ScanPortEntity::getPort, Collectors.toList())));
-
-            List<String> scanPortList = new ArrayList<>();
             List<ScanHostEntity> scanIpList = new ArrayList<>();
             List<String> delKeys = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(ipMap)) {
-                for (Long ipLong : ipMap.keySet()) {
-                    List<String> exitPortList = CollectionUtils.isEmpty(portMap.get(ipLong)) ? new ArrayList<>() :
-                            portMap.get(ipLong).stream().map(Object::toString).collect(Collectors.toList());
-                    scanPortList = ipMap.get(ipLong);
-                    scanPortList.removeAll(exitPortList);
-                    if (CollectionUtils.isEmpty(scanPortList)) {
-                        continue;
+            if (!CollectionUtils.isEmpty(ipLongList)) {
+                List<ScanHostEntity> saveIpList = new ArrayList<>();
+                List<ScanHostEntity> updateIpList = new ArrayList<>();
+                List<ScanHostEntity> exitIpList = scanHostService.getIpByIpList(ipLongList);
+                exitIpList = exitIpList.stream().distinct().collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(exitIpList)) {
+                    for (ScanHostEntity exitIp : exitIpList) {
+                        if (!PortUtils.portEquals(exitIp.getScanPorts(), dto.getScanPorts())) {
+                            exitIp.setScanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()));
+                            updateIpList.add(exitIp);
+                            continue;
+                        }
+                        ipMap.remove(exitIp.getIpLong());
+                        // 已存在的ip维护关联关系
+//                if (dto.getSubIp().contains(Const.STR_SLASH)) {
+                        ScanHostEntity scanIp = ScanHostEntity.builder()
+                                .domain(ip).parentDomain(ip)
+                                .ip(IpLongUtils.longToIp(exitIp.getIpLong())).ipLong(exitIp.getIpLong())
+                                .scanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()))
+                                .company(company)
+                                .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
+                                .isDomain(Const.INTEGER_0)
+                                .isScanning(Const.INTEGER_0)
+                                .build();
+                        saveIpList.add(scanIp);
+//                }
                     }
-                    List<ScanPortEntity> savePortList = new ArrayList<>();
-                    String ports = String.join(Const.STR_COMMA, scanPortList);
-                    String nmapCmd = String.format(Const.STR_NMAP_SERVER, ports, IpLongUtils.longToIp(ipLong));
-                    SshResponse nmapResponse = null;
-                    try {
-                        nmapResponse = ExecUtil.runCommand(nmapCmd);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (!CollectionUtils.isEmpty(saveIpList)) {
+                        scanHostService.saveBatch(saveIpList);
                     }
-                    List<String> responseLineList = Arrays.asList(nmapResponse.getOut().split("\n"));
-                    List<String> finalScanPortList = scanPortList;
-                    List<String> serverLineList = responseLineList.stream().filter(r -> !StringUtils.isEmpty(r) && r.contains(Const.STR_SLASH) && finalScanPortList.contains(r.substring(0, r.indexOf(Const.STR_SLASH)))).collect(Collectors.toList());
-                    Map<String, String> serverMap = new HashMap<>();
-                    if (!CollectionUtils.isEmpty(serverLineList)) {
-                        for (String server : serverLineList) {
-                            serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)));
+                    // todo
+                    if (!CollectionUtils.isEmpty(updateIpList)) {
+                        for (ScanHostEntity host : updateIpList) {
+                            scanHostService.updateById(host);
                         }
                     }
-
-                    ScanHostEntity scanIp = ScanHostEntity.builder()
-                            .domain(ip).parentDomain(ip)
-                            .ip(IpLongUtils.longToIp(ipLong)).ipLong(ipLong)
-                            .scanPorts(dto.getScanPorts())
-                            .company(company)
-                            .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
-                            .isDomain(Const.INTEGER_0)
-                            .isScanning(Const.INTEGER_0)
-                            .build();
-                    scanIpList.add(scanIp);
-
-                    for (String port : scanPortList) {
-                        ScanPortEntity scanPort = ScanPortEntity.builder()
-                                .ip(IpLongUtils.longToIp(ipLong)).ipLong(ipLong).port(Integer.valueOf(port))
-                                .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
-                                .build();
-                        savePortList.add(scanPort);
-                    }
-                    scanPortService.saveBatch(savePortList);
-                    log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
-                    delKeys.add(String.format(CacheConst.REDIS_SCANNING_IP, IpLongUtils.longToIp(ipLong)));
                 }
+
+                List<ScanPortEntity> portEntityList = scanPortService.basicByIpList(ipLongList);
+                Map<Long, List<Integer>> portMap = portEntityList.stream()
+                        .collect(Collectors.groupingBy(ScanPortEntity::getIpLong,
+                                Collectors.mapping(ScanPortEntity::getPort, Collectors.toList())));
+
+                List<String> scanPortList = new ArrayList<>();
+                if (!CollectionUtils.isEmpty(ipMap)) {
+                    for (Long ipLong : ipMap.keySet()) {
+                        List<String> exitPortList = CollectionUtils.isEmpty(portMap.get(ipLong)) ? new ArrayList<>() :
+                                portMap.get(ipLong).stream().map(Object::toString).collect(Collectors.toList());
+                        scanPortList = ipMap.get(ipLong);
+                        scanPortList.removeAll(exitPortList);
+                        if (CollectionUtils.isEmpty(scanPortList)) {
+                            continue;
+                        }
+                        List<ScanPortEntity> savePortList = new ArrayList<>();
+                        String ports = String.join(Const.STR_COMMA, scanPortList);
+                        String nmapCmd = String.format(Const.STR_NMAP_SERVER, ports, IpLongUtils.longToIp(ipLong));
+                        SshResponse nmapResponse = null;
+                        try {
+                            nmapResponse = ExecUtil.runCommand(nmapCmd);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        List<String> responseLineList = Arrays.asList(nmapResponse.getOut().split("\n"));
+                        List<String> finalScanPortList = scanPortList;
+                        List<String> serverLineList = responseLineList.stream().filter(r -> !StringUtils.isEmpty(r) && r.contains(Const.STR_SLASH) && finalScanPortList.contains(r.substring(0, r.indexOf(Const.STR_SLASH)))).collect(Collectors.toList());
+                        Map<String, String> serverMap = new HashMap<>();
+                        if (!CollectionUtils.isEmpty(serverLineList)) {
+                            for (String server : serverLineList) {
+                                serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)));
+                            }
+                        }
+
+                        ScanHostEntity scanIp = ScanHostEntity.builder()
+                                .domain(ip).parentDomain(ip)
+                                .ip(IpLongUtils.longToIp(ipLong)).ipLong(ipLong)
+                                .scanPorts(dto.getScanPorts())
+                                .company(company)
+                                .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
+                                .isDomain(Const.INTEGER_0)
+                                .isScanning(Const.INTEGER_0)
+                                .build();
+                        scanIpList.add(scanIp);
+
+                        for (String port : scanPortList) {
+                            ScanPortEntity scanPort = ScanPortEntity.builder()
+                                    .ip(IpLongUtils.longToIp(ipLong)).ipLong(ipLong).port(Integer.valueOf(port))
+                                    .serverName(StringUtils.isEmpty(serverMap.get(port)) ? Const.STR_CROSSBAR : serverMap.get(port))
+                                    .build();
+                            savePortList.add(scanPort);
+                        }
+                        scanPortService.saveBatch(savePortList);
+                        log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
+                        delKeys.add(String.format(CacheConst.REDIS_SCANNING_IP, IpLongUtils.longToIp(ipLong)));
+                    }
+                }
+            } else {
+                ScanHostEntity scanIp = ScanHostEntity.builder()
+                        .domain(ip).parentDomain(ip)
+                        .ipLong(IpLongUtils.ipToLong(ip))
+                        .scanPorts(dto.getScanPorts())
+                        .company(company)
+                        .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
+                        .isDomain(Const.INTEGER_0)
+                        .isScanning(Const.INTEGER_0)
+                        .build();
+                scanIpList.add(scanIp);
             }
             if (!CollectionUtils.isEmpty(scanIpList)) {
                 scanHostService.saveBatch(scanIpList);

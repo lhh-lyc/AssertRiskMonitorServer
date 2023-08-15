@@ -49,10 +49,10 @@
             '子域名' as tag_name, t1.domain as tag, t1.domain as tag_value
         </if>
         <if test="params.type == 5">
-            'ip' as tag_name, t1.ip as tag, t1.ip as tag_value
+            'ip' as tag_name, INET_NTOA(t1.ip_long) as tag, INET_NTOA(t1.ip_long) as tag_value
         </if>
         <if test="params.type == 6">
-            '端口' as tag_name, concat(t4.ip,':',t4.PORT) as tag, concat(t4.ip,':',t4.PORT) as tag_value
+            '端口' as tag_name, concat(INET_NTOA(t4.ip_long),':',t4.PORT) as tag, concat(INET_NTOA(t4.ip_long),':',t4.PORT) as tag_value
         </if>
         from scan_host t1
         LEFT JOIN scan_project_host t2 ON t2.`host` = t1.domain

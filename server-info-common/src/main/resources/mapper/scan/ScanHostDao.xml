@@ -95,19 +95,36 @@
         </if>
         <if test='type == "4"'>
             COUNT( DISTINCT t4.ip_long, t4.port )
-        </if> as value
+        </if>
+        <if test='type == "5"'>
+            COUNT( DISTINCT t4.server_name )
+        </if>
+        <if test='type == "6"'>
+            COUNT( DISTINCT t5.cms )
+        </if>
+        as value
         FROM scan_host t1
         join scan_project_host t2 on t2.host = t1.domain
         and t2.del_flg = 0
         join scan_project t3 on t3.id = t2.project_id
         and t3.del_flg = 0
-        <if test='type == "4"'>
+        <if test='type == "4" or type == "5"'>
             join scan_port t4 on t4.ip_long = t1.ip_long
             and t4.del_flg = 0
+        </if>
+        <if test='type == "6"'>
+            JOIN scan_host_port t5 ON t5.domain = t1.domain
+            AND t5.del_flg = 0
         </if>
         WHERE t1.del_flg = 0
         and t1.company is not null
         and t1.company != '-'
+        <if test='type == "5"'>
+            and t4.server_name != '-'
+        </if>
+        <if test='type == "6"'>
+            and t5.cms != '-'
+        </if>
         <if test="userId != null and userId != ''">
             and t3.user_id = #{userId}
         </if>
@@ -161,6 +178,19 @@
     <select id="getParentList" resultType="java.lang.String">
         select distinct parent_domain
         from scan_host
+    </select>
+
+    <select id="getCompanyList" resultType="java.lang.String">
+        select distinct company
+        from scan_host
+        where 1=1
+        <if test="companyList != null and companyList.size() > 0">
+            and company not in
+            <foreach collection="companyList" item="company" index="index" separator="," close=")" open="(">
+                #{company}
+            </foreach>
+        </if>
+        limit #{limit}
     </select>
 
 </mapper>

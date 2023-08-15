@@ -59,6 +59,10 @@ public class HttpxCustomizeUtils {
         Document doc = Jsoup.parse(body);
         String title = doc.selectFirst("title") == null ? Const.STR_CROSSBAR : doc.selectFirst("title").text();
 
+        if (title.contains("�") || title.contains("\uDBA6\uDD33")) {
+            title = Const.STR_CROSSBAR;
+            System.out.println("乱码");
+        }
         String cms = getCms(stringRedisTemplate, toolDir, firstHttp, firstHttps);
         Map<String, String> result = new HashMap<>();
         result.put("url", url == null ? Const.STR_CROSSBAR : url);

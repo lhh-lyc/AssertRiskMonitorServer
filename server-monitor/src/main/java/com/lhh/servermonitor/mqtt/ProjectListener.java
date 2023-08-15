@@ -36,6 +36,7 @@ public class ProjectListener {
             redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
+
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
             log.info("项目" + project.getQueueId() + "处理完毕");
         } catch (Exception e) {

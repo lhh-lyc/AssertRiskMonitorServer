@@ -58,6 +58,11 @@ public class HttpUtils {
         return obj;
     }
 
+    /**
+     * 单日1000次
+     * @param domain
+     * @return
+     */
     public static String getDomainUnit(String domain) {
         log.info(domain + "-公司名开始查询");
         String unit = Const.STR_EMPTY;
