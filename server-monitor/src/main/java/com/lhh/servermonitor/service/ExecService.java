@@ -70,60 +70,6 @@ public class ExecService {
     }
 
     /**
-     * 利用工具查询子域名
-     */
-    public List<String> getDomainList(String domain) {
-        // 子域名列表
-        List<String> subdomainList = new ArrayList<>();
-        if (RexpUtil.isSubDomain(domain)) {
-            subdomainList.add(domain);
-        } else {
-            // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
-            String cmd = "cd /mnt/webSafe/utils/subfinder/;./subfinder -d %s -silent";
-            cmd = String.format(cmd, domain);
-            SshResponse response = null;
-            try {
-                response = ExecUtil.runCommand(cmd);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.println("=================");
-            System.out.println(response.getOut());
-            subdomainList = Arrays.asList(response.getOut().split("\n"));
-        }
-
-        // 子域名解析ip
-        List<String> ipList = getDomainIpList(subdomainList);
-        return ipList;
-    }
-
-    /**
-     * java代码解析子域名ip
-     */
-    public List<String> getDomainIpList(List<String> domainNameList) {
-        List<String> list = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(domainNameList)) {
-            for (String domainName : domainNameList) {
-                System.out.println("使用InetAddress类的方法获取网站" + domainName + "的IP地址...");
-                try {
-                    System.out.println("总共ip个数："
-                            + InetAddress.getAllByName(domainName).length);//获取接续出来的ip的个数
-                    InetAddress[] inetadd = InetAddress.getAllByName(domainName);
-                    //遍历所有的ip并输出
-                    for (int i = 0; i < inetadd.length; i++) {
-                        list.add(inetadd[i] + "");
-                        System.out.println("第" + (i + 1) + "个ip：" + inetadd[i]);
-                    }
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return list;
-    }
-
-
-    /**
      * java代码获取开放端口
      */
     public List<Integer> getPortList(String host, String ports) {

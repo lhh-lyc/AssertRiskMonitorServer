@@ -9,6 +9,7 @@ import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.mqtt.MqHostSender;
 import com.lhh.servermonitor.utils.DomainIpUtils;
 import com.lhh.servermonitor.utils.ExecUtil;
@@ -48,16 +49,14 @@ public class ScanService {
     @Autowired
     ScanPortInfoService scanPortInfoService;
     @Autowired
+    RedisLock redisLock;
+    @Autowired
     MqHostSender mqHostSender;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
     public void scanDomainList2(ScanParamDto scanDto) {
-//        Boolean doneFlg = stringRedisTemplate.hasKey(String.format(CacheConst.REDIS_END_DOMAIN, scanDto.getHost()));
-//        if (doneFlg) {
-//            return;
-//        }
-        List<ScanParamDto> subdomainList= getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
+        List<ScanParamDto> subdomainList = getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
         List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
         List<ScanParamDto> dtoList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
@@ -84,7 +83,10 @@ public class ScanService {
             }
             scanProjectHostService.saveBatch(projectHostList);
             mqHostSender.sendScanningHostToMqtt(dtoList);
-//            stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_END_DOMAIN, scanDto.getHost()), Const.STR_1);
+        } else {
+            // 未扫描出子域名或者子域名未解析出ip，主域名结束流程
+            log.info(scanDto.getHost() + "没有有效子域名");
+            redisLock.removeProjectRedis(scanDto.getProjectId(), scanDto.getHost());
         }
     }
 
@@ -117,7 +119,7 @@ public class ScanService {
             }
             subdomainList = response.getOutList();
             subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
-            log.info(CollectionUtils.isEmpty(subdomainList) ? "执行工具命令返回" + JSON.toJSONString(response) + ";" + domain + "未扫描到子域名" : domain + "子域名有:" + String.join(Const.STR_COMMA, subdomainList));
+            log.info(CollectionUtils.isEmpty(subdomainList) ? "执行工具命令返回" + JSON.toJSONString(response) + ";" + domain + "未扫描到子域名" : domain + "子域名有" + subdomainList.size() + "个:" + String.join(Const.STR_COMMA, subdomainList));
         }
         if (!CollectionUtils.isEmpty(subdomainList) && !subdomainList.contains(domain)) {
             subdomainList.add(domain);

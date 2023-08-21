@@ -23,6 +23,8 @@ public interface ScanProjectContentDao extends BaseMapper<ScanProjectContentEnti
 
     List<ScanProjectContentEntity> getContentIpList(List<String> notIdList);
 
+    List<Long> getProjectIdList(@Param("domain") String domain);
+
     void updateStatus(List<ScanProjectContentEntity> list);
 
 }

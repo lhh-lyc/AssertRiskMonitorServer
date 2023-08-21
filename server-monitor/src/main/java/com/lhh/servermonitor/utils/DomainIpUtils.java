@@ -34,7 +34,7 @@ public class DomainIpUtils {
             log.info(domain + (CollectionUtils.isEmpty(list) ? "未解析出ip" : "解析ip为：" + ips));
         } catch (UnknownHostException e) {
             list.add(Const.STR_CROSSBAR);
-            log.error(domain + "解析ip出错");
+            log.info(domain + "未解析出ip");
         }
         return list;
     }

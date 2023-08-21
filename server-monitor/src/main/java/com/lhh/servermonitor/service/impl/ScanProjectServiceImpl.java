@@ -194,11 +194,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     scanDomainParamList.add(dto);
                 }
                 for (ScanParamDto dto : scanDomainParamList) {
-                    try {
-                        scanService.scanDomainList2(dto);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    scanService.scanDomainList2(dto);
                 }
             } else {
                 // 未关联到子域名也不存在于host表，说明不是主域名(非法域名输入)增加一条关联关系（主域名不需要，因为上面查询子域名的时候关联了）

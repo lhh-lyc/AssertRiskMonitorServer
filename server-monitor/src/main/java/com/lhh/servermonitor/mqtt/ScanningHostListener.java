@@ -10,8 +10,8 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.service.*;
-import com.lhh.servermonitor.utils.DomainIpUtils;
 import com.lhh.servermonitor.utils.JedisUtils;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +26,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,9 +51,13 @@ public class ScanningHostListener {
     @Autowired
     ScanHostPortService scanHostPortService;
     @Autowired
+    ScanProjectContentService scanProjectContentService;
+    @Autowired
     MqIpSender mqIpSender;
     @Autowired
     RedissonClient redisson;
+    @Autowired
+    RedisLock redisLock;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
@@ -123,13 +125,13 @@ public class ScanningHostListener {
                         scanPortParamList.add(ipDto);
 
                         // 已有域名ip，端口范围不一样时，重新修改为正在扫描状态
-                        if (!CollectionUtils.isEmpty(exitIpList)) {
+                        /*if (!CollectionUtils.isEmpty(exitIpList)) {
                             for (ScanHostEntity host : exitIpList) {
                                 if (!PortUtils.portEquals(host.getScanPorts(), dto.getScanPorts())) {
                                     updateIpList.add(host.getIpLong());
                                 }
                             }
-                        }
+                        }*/
                     }
                     // 新的域名与ip组合
                     if (CollectionUtils.isEmpty(exitIpList)) {
@@ -151,11 +153,11 @@ public class ScanningHostListener {
             if (!CollectionUtils.isEmpty(saveHostList)) {
                 scanHostService.saveBatch(saveHostList);
             }
-            if (!CollectionUtils.isEmpty(updateIpList)) {
+            /*if (!CollectionUtils.isEmpty(updateIpList)) {
                 for (Long ip : updateIpList) {
                     scanHostService.returnScanStatus(ip);
                 }
-            }
+            }*/
             scanPortParamList.stream().forEach(d -> {
                 //业务处理
                 scanPortInfoService.scanSingleIpPortList(d);
@@ -163,18 +165,17 @@ public class ScanningHostListener {
 
             scanHostPortService.scanSingleHostPortList(dto.getSubDomain());
 
-            scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
+//            scanProjectHostService.updateEndScanDomain(dto.getSubDomain());
             // 不扫描端口批量更新域名ip状态
-            if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
-                // 更新isScanning
-//                log.info("开始批量更新" + dto.getSubDomain() + "数据状态");
+            /*if (!Const.INTEGER_1.equals(dto.getPortFlag())) {
                 try {
                     scanHostService.updateEndScanDomain(dto.getSubDomain());
                 } catch (Exception e) {
                     log.error(dto.getSubDomain() + "批量更新状态出现错误：", e);
                 }
-//                log.info("批量更新结束" + dto.getSubDomain() + "数据状态");
-            }
+            }*/
+            List<Long> projectIdList = scanProjectContentService.getProjectIdList(dto.getHost());
+            redisLock.delDomainRedis(projectIdList, dto.getHost(), dto.getSubDomain());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

@@ -53,6 +53,12 @@
         and t2.id is null)
     </select>
 
+    <select id="getProjectIdList" resultType="java.lang.Long">
+        select project_id from scan_project_content
+        where del_flg = 0
+        and input_host = #{domain}
+    </select>
+
     <update id="updateStatus">
         <foreach collection="list" item="item" separator=";">
             update

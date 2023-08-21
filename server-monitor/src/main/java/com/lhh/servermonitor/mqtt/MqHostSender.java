@@ -6,6 +6,7 @@ import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.servermonitor.config.RabbitMqConfig;
+import com.lhh.servermonitor.controller.RedisLock;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
@@ -36,6 +37,8 @@ public class MqHostSender {
 
     @Autowired
     AmqpTemplate amqpTemplate;
+    @Autowired
+    RedisLock redisLock;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -48,13 +51,14 @@ public class MqHostSender {
         List<ScanParamDto> resetList = new ArrayList<>();
         Integer num = Const.INTEGER_0;
         try {
-            //6. 将消息发送到队列
+            String domain = dtoList.get(0).getHost();
             for (ScanParamDto dto : dtoList) {
                 num++;
                 log.info(dto.getSubDomain() + "域名开始投递");
                 CorrelationData correlationId = new CorrelationData(dto.toString());
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, hostRouteKey, SerializationUtils.serialize(dto), correlationId);
+                redisLock.addDomainRedis(domain, dto.getSubDomain());
             }
         } catch (Exception e) {
             reset = true;

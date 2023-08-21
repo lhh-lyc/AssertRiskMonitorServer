@@ -3,9 +3,14 @@ package com.lhh.serverbase.common.constant;
 public class CacheConst {
 
     /**
-     * redis key: LOCK_PROJECT:
+     * redis key: 新建任务增加/完成主域名加锁
      */
     public final static String REDIS_LOCK_PROJECT = "LOCK_PROJECT:%s";
+
+    /**
+     * redis key: 主域名扫描
+     */
+    public final static String REDIS_LOCK_DOMAIN = "LOCK_DOMAIN:%s";
 
     /**
      * redis key: LOCK_SUBDOMAIN:

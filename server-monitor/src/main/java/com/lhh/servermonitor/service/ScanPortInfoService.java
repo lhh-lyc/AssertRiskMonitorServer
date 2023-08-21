@@ -208,11 +208,11 @@ public class ScanPortInfoService {
             if (!CollectionUtils.isEmpty(delKeys)) {
                 JedisUtils.pipeDel(delKeys);
             }
-            try {
+            /*try {
                 scanProjectHostService.updateEndScanDomain(dto.getSubIp());
             } catch (Exception e) {
                 throw new Exception();
-            }
+            }*/
         } catch (Exception e) {
         } finally {
             // 判断当前线程是否持有锁
@@ -238,7 +238,7 @@ public class ScanPortInfoService {
             if (Const.STR_CROSSBAR.equals(ip)) {
                 // 更新isScanning
                 log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
-                scanHostService.updateEndScanIp(domain, ip, ipLong, dto.getScanPorts());
+//                scanHostService.updateEndScanIp(domain, ip, ipLong, dto.getScanPorts());
                 JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
                 return;
             }
@@ -251,7 +251,7 @@ public class ScanPortInfoService {
                 if (PortUtils.portEquals(ipList.get(0).getScanPorts(), dto.getScanPorts())) {
                     // 更新isScanning
                     log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
-                    scanHostService.updateEndScanIp(domain, ip, ipLong, ipList.get(0).getScanPorts());
+//                    scanHostService.updateEndScanIp(domain, ip, ipLong, ipList.get(0).getScanPorts());
                     JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
                     return;
                 } else {
@@ -324,7 +324,7 @@ public class ScanPortInfoService {
                 log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
             }
             // 更新isScanning
-            scanHostService.updateEndScanIp(domain, ip, ipLong, portParam);
+//            scanHostService.updateEndScanIp(domain, ip, ipLong, portParam);
             JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
         } catch (Exception e) {
         } finally {

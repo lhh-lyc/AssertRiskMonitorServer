@@ -30,19 +30,19 @@ public class ProjectListener {
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
-        log.info("开始处理项目" + project.getQueueId());
+//        log.info("开始处理项目" + project.getQueueId());
         try {
             // mq分割project，合并缓存问题
             redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
-            JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
+//            JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
 
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
-            log.info("项目" + project.getQueueId() + "处理完毕");
+//            log.info("项目" + project.getQueueId() + "处理完毕");
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.error("项目" + project.getQueueId() + "处理失败", e);
+                log.error("项目" + project.getQueueId() + ":" + project.getHostList().get(0) + "处理失败", e);
                 e.printStackTrace();
             } catch (IOException ioException) {
                 ioException.printStackTrace();

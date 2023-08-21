@@ -68,6 +68,11 @@ public class ScanProjectContentServiceImpl extends ServiceImpl<ScanProjectConten
     }
 
     @Override
+    public List<Long> getProjectIdList(String domain) {
+        return scanProjectContentDao.getProjectIdList(domain);
+    }
+
+    @Override
     public void updateStatus(List<ScanProjectContentEntity> list) {
         scanProjectContentDao.updateStatus(list);
     }

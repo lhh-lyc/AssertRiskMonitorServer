@@ -33,6 +33,8 @@ public interface ScanProjectContentService extends IService<ScanProjectContentEn
 
     List<ScanProjectContentEntity> getExitHostList(Long projectId, List<String> hostList);
 
+    List<Long> getProjectIdList(String domain);
+
     void updateStatus(List<ScanProjectContentEntity> list);
 
 }

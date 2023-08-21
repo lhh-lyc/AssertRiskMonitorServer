@@ -23,9 +23,11 @@ import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -36,6 +38,8 @@ import java.util.stream.Collectors;
 @Service
 public class ScanProjectService {
 
+    @Autowired
+    StringRedisTemplate redisTemplate;
     @Autowired
     ScanProjectFeign scanProjectFeign;
     @Autowired
@@ -100,9 +104,10 @@ public class ScanProjectService {
             scanProjectContentFeign.saveBatch(saveContentList);
         }
         if (!CollectionUtils.isEmpty(validHostList)) {
-            JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
             project.setHostList(validHostList);
             projectSender.putProject(project);
+            project.setHosts(Const.STR_EMPTY);
+            JedisUtils.setJson(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()), JSON.toJSONString(project));
         } else {
             log.info("项目" + project.getId() + "输入域名包含" + JSON.toJSONString(project.getHostList()) + ",其中扫描域名包含" + JSON.toJSONString(validHostList) + ",不扫描域名包含" + JSON.toJSONString(notValidHostList));
         }
@@ -126,11 +131,17 @@ public class ScanProjectService {
                 List<ScanProjectContentEntity> scannedList = allList.stream().filter(c -> Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
                 project.setAllHostNum(allList.size());
                 project.setScannedHostNum(scannedList.size());
-                Long second = DateUtil.between(project.getCreateTime(), now, DateUnit.SECOND);
+                String projectStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
+                if (!StringUtils.isEmpty(projectStr)) {
+                    project.setIsCompleted(Const.INTEGER_0);
+                } else {
+                    project.setIsCompleted(Const.INTEGER_1);
+                }
+                /*Long second = DateUtil.between(project.getCreateTime(), now, DateUnit.SECOND);
                 // 小于三秒，防止刚建任务就显示扫描完成
                 if (second < Const.LONG_3) {
                     project.setIsCompleted(Const.INTEGER_0);
-                }
+                }*/
             }
         }
         return page;
