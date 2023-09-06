@@ -58,6 +58,8 @@ public class ScanningHostListener {
     RedissonClient redisson;
     @Autowired
     RedisLock redisLock;
+    @Autowired
+    TmpRedisService tmpRedisService;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
@@ -82,9 +84,17 @@ public class ScanningHostListener {
     public void deal(ScanParamDto dto, Message message, Channel channel){
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
+            String ports = tmpRedisService.getDomainScanPorts(dto.getHost());
+            if (PortUtils.portEquals(ports, dto.getScanPorts())) {
+                List<Long> projectIdList = scanProjectContentService.getProjectIdList(dto.getHost());
+                redisLock.delDomainRedis(projectIdList, dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
+                log.info(dto.getSubDomain() + "该子域名的主域名已全部扫描完毕!");
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+                return;
+            }
             List<String> ipList = dto.getSubIpList();
             List<Long> ipLongList = ipList.stream().map(s -> IpLongUtils.ipToLong(s)).collect(Collectors.toList());
-            Map<String, String> redisMap = new HashMap<>();
+            /*Map<String, String> redisMap = new HashMap<>();
             Map<String, String> ipPortsMap = new HashMap<>();
             if (!CollectionUtils.isEmpty(ipList)) {
                 for (String ip : ipList) {
@@ -105,22 +115,25 @@ public class ScanningHostListener {
             }
             if (!CollectionUtils.isEmpty(redisMap)) {
                 JedisUtils.setPipeJson(redisMap);
-            }
+            }*/
 
             String parentDomain = RexpUtil.getMajorDomain(dto.getHost());
             String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
-            List<ScanHostEntity> exitIpList = scanHostService.getByIpList(ipLongList, dto.getSubDomain());
+            List<ScanHostEntity> exitIpEntityList = scanHostService.getByIpList(ipLongList, dto.getSubDomain());
+            List<Long> exitIpList = exitIpEntityList.stream().map(ScanHostEntity::getIpLong).collect(Collectors.toList());
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             List<ScanHostEntity> saveHostList = new ArrayList<>();
-            List<Long> updateIpList = new ArrayList<>();
+//            List<Long> updateIpList = new ArrayList<>();
+            String scanPorts = PortUtils.getNewPorts(ports, dto.getScanPorts());
+            String allPorts = PortUtils.getAllPorts(ports, dto.getScanPorts());
             if (!CollectionUtils.isEmpty(ipList)) {
                 for (String ip : ipList) {
-                    String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + dto.getSubDomain());
+//                    String scanPorts = ipPortsMap.get(ip + Const.STR_UNDERLINE + dto.getSubDomain());
                     // 扫描端口ip
                     if (Const.INTEGER_1.equals(dto.getPortFlag())) {
                         ScanParamDto ipDto = ScanParamDto.builder()
                                 .subDomain(dto.getSubDomain())
-                                .subIp(ip).scanPorts(scanPorts)
+                                .subIp(ip).scanPorts(scanPorts).allPorts(allPorts)
                                 .build();
                         scanPortParamList.add(ipDto);
 
@@ -134,11 +147,12 @@ public class ScanningHostListener {
                         }*/
                     }
                     // 新的域名与ip组合
-                    if (CollectionUtils.isEmpty(exitIpList)) {
+                    Long ipLong = IpLongUtils.ipToLong(ip);
+                    if (CollectionUtils.isEmpty(exitIpList) || !exitIpList.contains(ipLong)) {
                         ScanHostEntity host = ScanHostEntity.builder()
                                 .parentDomain(parentDomain)
                                 .domain(dto.getSubDomain())
-                                .ip(ip).ipLong(IpLongUtils.ipToLong(ip)).scanPorts(scanPorts)
+                                .ip(ip).ipLong(ipLong)
                                 .company(StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company)
                                 .type(Const.INTEGER_3)
                                 .isMajor(RexpUtil.isMajorDomain(dto.getSubDomain()) ? Const.INTEGER_1 : Const.INTEGER_0)
@@ -175,7 +189,7 @@ public class ScanningHostListener {
                 }
             }*/
             List<Long> projectIdList = scanProjectContentService.getProjectIdList(dto.getHost());
-            redisLock.delDomainRedis(projectIdList, dto.getHost(), dto.getSubDomain());
+            redisLock.delDomainRedis(projectIdList, dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

@@ -1,7 +1,6 @@
-package com.lhh.servermonitor.utils;
+package com.lhh.serverbase.utils;
 
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;

@@ -4,10 +4,10 @@
 <mapper namespace="com.lhh.serverinfocommon.dao.scan.HostCompanyDao">
 
     <sql id="baseColumn">
-        id
-        ,
-                    host,
-                    company
+        id,
+        host,
+        company,
+        scan_ports
     </sql>
 
     <!-- 可根据自己的需求，是否要使用 -->
@@ -27,6 +27,13 @@
         select
         <include refid="baseColumn"/>
         from host_company
+        where 1=1
+        <if test="hostList != null and hostList.size() > 0">
+            and host IN
+            <foreach collection="hostList" item="host" index="index" separator="," close=")" open="(">
+                #{host}
+            </foreach>
+        </if>
     </select>
 
     <select id="queryBasicInfo" resultType="com.lhh.serverbase.entity.HostCompanyEntity">

@@ -98,8 +98,8 @@ public class HostCompanyController {
     /**
      * 根据条件查询列表数据
      */
-    @GetMapping("list")
-    public List<HostCompanyEntity> list(@RequestParam Map<String, Object> params) {
+    @PostMapping("list")
+    public List<HostCompanyEntity> list(@RequestBody Map<String, Object> params) {
         List<HostCompanyEntity> hostCompanyList = hostCompanyService.list(params);
         return hostCompanyList;
     }

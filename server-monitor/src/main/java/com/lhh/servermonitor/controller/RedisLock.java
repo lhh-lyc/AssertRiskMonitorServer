@@ -3,7 +3,10 @@ package com.lhh.servermonitor.controller;
 import com.alibaba.fastjson2.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
+import com.lhh.serverbase.utils.PortUtils;
+import com.lhh.servermonitor.service.HostCompanyService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -27,6 +30,8 @@ public class RedisLock {
     StringRedisTemplate redisTemplate;
     @Autowired
     RedissonClient redisson;
+    @Autowired
+    HostCompanyService hostCompanyService;
 
     public void saveProjectRedis(ScanProjectEntity project) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT, project.getId());
@@ -47,7 +52,7 @@ public class RedisLock {
                 log.info("项目" + project.getId() + "初始化主域名数据：" + JSON.toJSONString(project.getHostList()));
             }
         } catch (Exception e) {
-            log.error("项目增加域名报错", e);
+            log.error("项目" + project.getId() + "增加域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -57,7 +62,7 @@ public class RedisLock {
         }
     }
 
-    public void removeProjectRedis(Long projectId, String domain) {
+    public void removeProjectRedis(Long projectId, String domain, String scanPorts) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT, projectId);
         RLock lock = redisson.getLock(lockKey);
         try {
@@ -78,7 +83,7 @@ public class RedisLock {
                 }
             }
         } catch (Exception e) {
-            log.error("项目redis移除域名报错", e);
+            log.error("项目" + projectId + "redis移除域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -86,6 +91,7 @@ public class RedisLock {
                 lock.unlock();
             }
         }
+        updateHostInfo(domain, scanPorts);
     }
 
     public void addDomainRedis(String domain, String subDomain) {
@@ -105,7 +111,7 @@ public class RedisLock {
                 redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain), subDomain);
             }
         } catch (Exception e) {
-            log.error("主域名增加子域名报错", e);
+            log.error(domain + "主域名增加子域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -115,7 +121,7 @@ public class RedisLock {
         }
     }
 
-    public void delDomainRedis(List<Long> projectIdList, String domain, String subDomain) {
+    public void delDomainRedis(List<Long> projectIdList, String domain, String subDomain, String scanPorts) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN, domain);
         RLock lock = redisson.getLock(lockKey);
         try {
@@ -127,7 +133,7 @@ public class RedisLock {
                 if (CollectionUtils.isEmpty(list)) {
                     if (!CollectionUtils.isEmpty(projectIdList)) {
                         for (Long id : projectIdList) {
-                            removeProjectRedis(id, domain);
+                            removeProjectRedis(id, domain, scanPorts);
                         }
                     }
                     redisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain));
@@ -136,7 +142,29 @@ public class RedisLock {
                 }
             }
         } catch (Exception e) {
-            log.error("主域名增加子域名报错", e);
+            log.error(domain + "主域名增加子域名报错", e);
+        } finally {
+            // 判断当前线程是否持有锁
+            if (lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
+        }
+    }
+
+    public void updateHostInfo(String domain, String scanPorts) {
+        String lockKey = String.format(CacheConst.REDIS_LOCK_HOST_INFO, domain);
+        RLock lock = redisson.getLock(lockKey);
+        try {
+            lock.lock();
+            HostCompanyEntity hostInfo = hostCompanyService.queryByHost(domain);
+            if (!PortUtils.portEquals(hostInfo.getScanPorts(), scanPorts)) {
+                hostInfo.setScanPorts(PortUtils.getAllPorts(scanPorts, hostInfo.getScanPorts()));
+                hostCompanyService.updateById(hostInfo);
+                redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_DOMAIN_SCANPORTS, domain), hostInfo.getScanPorts(), 60 * 60 * 12, TimeUnit.SECONDS);
+            }
+        } catch (Exception e) {
+            log.error(domain + "主域名信息更新报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {

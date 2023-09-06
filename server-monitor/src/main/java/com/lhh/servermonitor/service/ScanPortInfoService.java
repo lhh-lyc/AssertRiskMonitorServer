@@ -3,23 +3,27 @@ package com.lhh.servermonitor.service;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
+import com.lhh.servermonitor.dao.HostCompanyDao;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,11 +33,15 @@ public class ScanPortInfoService {
     @Autowired
     RedissonClient redisson;
     @Autowired
+    HostCompanyDao hostCompanyDao;
+    @Autowired
     ScanPortService scanPortService;
     @Autowired
     ScanHostService scanHostService;
     @Autowired
     ScanProjectHostService scanProjectHostService;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     /**
      * java代码获取开放端口
@@ -45,13 +53,12 @@ public class ScanPortInfoService {
         try {
             lock.lock();
             log.info("开始扫描" + ip + "端口");
-            List<ScanHostEntity> hostList = scanHostService.list(new HashMap<String, Object>() {{
-                put("parentDomain", ip);
+            List<HostCompanyEntity> hostInfoList = hostCompanyDao.queryList(new HashMap<String, Object>(Const.INTEGER_1) {{
+                put("host", ip);
             }});
-            if (!CollectionUtils.isEmpty(hostList) && PortUtils.portEquals(hostList.get(0).getScanPorts(), dto.getScanPorts())) {
+            if (!CollectionUtils.isEmpty(hostInfoList) && PortUtils.portEquals(hostInfoList.get(0).getScanPorts(), dto.getScanPorts())) {
                 // 更新isScanning
                 log.info("ip:" + ip + "扫描端口已被扫描(一)！");
-                JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
                 return;
             }
             String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
@@ -94,26 +101,19 @@ public class ScanPortInfoService {
             }
             String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, ip));
             List<ScanHostEntity> scanIpList = new ArrayList<>();
-            List<String> delKeys = new ArrayList<>();
             if (!CollectionUtils.isEmpty(ipLongList)) {
                 List<ScanHostEntity> saveIpList = new ArrayList<>();
-                List<ScanHostEntity> updateIpList = new ArrayList<>();
                 List<ScanHostEntity> exitIpList = scanHostService.getIpByIpList(ipLongList);
                 exitIpList = exitIpList.stream().distinct().collect(Collectors.toList());
                 if (!CollectionUtils.isEmpty(exitIpList)) {
                     for (ScanHostEntity exitIp : exitIpList) {
-                        if (!PortUtils.portEquals(exitIp.getScanPorts(), dto.getScanPorts())) {
-                            exitIp.setScanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()));
-                            updateIpList.add(exitIp);
-                            continue;
-                        }
                         ipMap.remove(exitIp.getIpLong());
                         // 已存在的ip维护关联关系
 //                if (dto.getSubIp().contains(Const.STR_SLASH)) {
                         ScanHostEntity scanIp = ScanHostEntity.builder()
                                 .domain(ip).parentDomain(ip)
                                 .ip(IpLongUtils.longToIp(exitIp.getIpLong())).ipLong(exitIp.getIpLong())
-                                .scanPorts(PortUtils.getNewPorts(exitIp.getScanPorts(), dto.getScanPorts()))
+                                .scanPorts(PortUtils.getAllPorts(exitIp.getScanPorts(), dto.getScanPorts()))
                                 .company(company)
                                 .type(Const.INTEGER_2).isMajor(Const.INTEGER_0)
                                 .isDomain(Const.INTEGER_0)
@@ -124,12 +124,6 @@ public class ScanPortInfoService {
                     }
                     if (!CollectionUtils.isEmpty(saveIpList)) {
                         scanHostService.saveBatch(saveIpList);
-                    }
-                    // todo
-                    if (!CollectionUtils.isEmpty(updateIpList)) {
-                        for (ScanHostEntity host : updateIpList) {
-                            scanHostService.updateById(host);
-                        }
                     }
                 }
 
@@ -187,7 +181,7 @@ public class ScanPortInfoService {
                         }
                         scanPortService.saveBatch(savePortList);
                         log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
-                        delKeys.add(String.format(CacheConst.REDIS_SCANNING_IP, IpLongUtils.longToIp(ipLong)));
+                        stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_IP, IpLongUtils.longToIp(ipLong)), dto.getAllPorts(), 60 * 60 * 24L, TimeUnit.SECONDS);
                     }
                 }
             } else {
@@ -205,14 +199,10 @@ public class ScanPortInfoService {
             if (!CollectionUtils.isEmpty(scanIpList)) {
                 scanHostService.saveBatch(scanIpList);
             }
-            if (!CollectionUtils.isEmpty(delKeys)) {
-                JedisUtils.pipeDel(delKeys);
-            }
-            /*try {
-                scanProjectHostService.updateEndScanDomain(dto.getSubIp());
-            } catch (Exception e) {
-                throw new Exception();
-            }*/
+            HostCompanyEntity hostInfo = hostInfoList.get(0);
+            String ports = PortUtils.getAllPorts(hostInfo.getScanPorts(), dto.getScanPorts());
+            hostInfo.setScanPorts(ports);
+            hostCompanyDao.updateById(hostInfo);
         } catch (Exception e) {
         } finally {
             // 判断当前线程是否持有锁
@@ -232,36 +222,43 @@ public class ScanPortInfoService {
         String lockKey = String.format(CacheConst.REDIS_LOCK_SCANNING_IP, ip);
         RLock lock = redisson.getLock(lockKey);
         try {
+            // 必须用lock阻塞不能用tryLock
+            // tryLock会导致一个子域名跳过此步骤，端口未即时扫出来，下一步域名+端口的url扫描缺失
             lock.lock();
-            Map<String, Object> params = new HashMap<>();
             Long ipLong = IpLongUtils.ipToLong(ip);
             if (Const.STR_CROSSBAR.equals(ip)) {
                 // 更新isScanning
                 log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
-//                scanHostService.updateEndScanIp(domain, ip, ipLong, dto.getScanPorts());
-                JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
                 return;
             }
-            params.put("ipLong", ipLong);
-            List<ScanHostEntity> ipList = scanHostService.basicList(params);
-            List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
-            // 第二个判断是为了防止host表先存了数据导致不扫描port
-            String portParam = PortUtils.getNewPorts(ipList.get(0).getScanPorts(), dto.getScanPorts());
-            if (!CollectionUtils.isEmpty(ipList) && !CollectionUtils.isEmpty(exitPortEntityList)) {
-                if (PortUtils.portEquals(ipList.get(0).getScanPorts(), dto.getScanPorts())) {
-                    // 更新isScanning
-                    log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
-//                    scanHostService.updateEndScanIp(domain, ip, ipLong, ipList.get(0).getScanPorts());
-                    JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
-                    return;
-                } else {
-                    portParam = PortUtils.getNewPorts(ipList.get(0).getScanPorts(), dto.getScanPorts());
-                }
-            } else {
-                portParam = dto.getScanPorts();
+            // 扫描完ip端口，推迟缓存有效期，目的是让后面相同的ip不用重复扫描
+            String allPorts = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_IP, ipLong));
+            if (PortUtils.portEquals(allPorts, dto.getScanPorts())) {
+                stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_IP, ipLong), dto.getAllPorts(), 60 * 60 * 24L, TimeUnit.SECONDS);
+                log.info("ip:" + ip + "已被扫描!");
+                return;
             }
+                /*Map<String, Object> params = new HashMap<>();
+                params.put("host", ip);
+                List<HostCompanyEntity> hostInfoList = hostCompanyDao.queryList(params);
+                params.put("ipLong", ipLong);
+                List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
+                // 第二个判断是为了防止host表先存了数据导致不扫描port
+                String portParam;
+                if (!CollectionUtils.isEmpty(hostInfoList) && !CollectionUtils.isEmpty(exitPortEntityList)) {
+                    if (PortUtils.portEquals(hostInfoList.get(0).getScanPorts(), dto.getScanPorts())) {
+                        // 更新isScanning
+                        log.info("域名" + domain + ":" + ip + "扫描端口已被扫描(一)！");
+                        JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+                        return;
+                    } else {
+                        portParam = PortUtils.getNewPorts(hostInfoList.get(0).getScanPorts(), dto.getScanPorts());
+                    }
+                } else {
+                    portParam = dto.getScanPorts();
+                }*/
             log.info("开始扫描" + domain + ":" + ip + "端口");
-            String cmd = String.format(Const.STR_MASSCAN_PORT, ip, portParam);
+            String cmd = String.format(Const.STR_MASSCAN_PORT, ip, dto.getScanPorts());
             SshResponse response = null;
             try {
                 response = ExecUtil.runCommand(cmd);
@@ -302,8 +299,9 @@ public class ScanPortInfoService {
                             serverMap.put(server.substring(0, server.indexOf(Const.STR_SLASH)), server.substring(server.lastIndexOf(Const.STR_BLANK)).trim());
                         }
                     }
-
-                    exitPortEntityList = scanPortService.basicList(params);
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("ipLong", ipLong);
+                    List<ScanPortEntity> exitPortEntityList = scanPortService.basicList(params);
                     List<Integer> exitPortList = exitPortEntityList.stream().map(ScanPortEntity::getPort).collect(Collectors.toList());
                     for (String p : scanPortList) {
                         Integer port = Integer.valueOf(p);
@@ -323,9 +321,7 @@ public class ScanPortInfoService {
                 }
                 log.info(CollectionUtils.isEmpty(scanPortList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, scanPortList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));
             }
-            // 更新isScanning
-//            scanHostService.updateEndScanIp(domain, ip, ipLong, portParam);
-            JedisUtils.delKey(String.format(CacheConst.REDIS_SCANNING_IP, ip));
+            stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_IP, ipLong), dto.getAllPorts(), 60 * 60 * 24L, TimeUnit.SECONDS);
         } catch (Exception e) {
         } finally {
             // 判断当前线程是否持有锁

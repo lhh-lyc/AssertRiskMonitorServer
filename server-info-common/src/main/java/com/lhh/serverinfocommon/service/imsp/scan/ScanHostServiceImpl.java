@@ -10,6 +10,7 @@ import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverinfocommon.dao.scan.ScanHostDao;
@@ -116,7 +117,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     }
 
     @Override
-    public List<String> getParentDomainList(Map<String, Object> params) {
+    public List<HostCompanyEntity> getParentDomainList(Map<String, Object> params) {
         return scanHostDao.getParentDomainList(params);
     }
 

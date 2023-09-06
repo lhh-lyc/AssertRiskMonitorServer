@@ -34,5 +34,9 @@ public class HostCompanyEntity {
      * 公司
      */
     private String company;
+    /**
+     * 扫描的端口
+     */
+    private String scanPorts;
 
 }

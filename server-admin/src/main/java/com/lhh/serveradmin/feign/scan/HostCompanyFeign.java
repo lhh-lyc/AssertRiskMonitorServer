@@ -33,8 +33,8 @@ public interface HostCompanyFeign {
      *
      * @param
      */
-    @GetMapping("host/company/list")
-    List<HostCompanyEntity> list(@RequestParam Map<String, Object> params);
+    @PostMapping("host/company/list")
+    List<HostCompanyEntity> list(@RequestBody Map<String, Object> params);
 
     /**
      * 保存

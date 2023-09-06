@@ -133,23 +133,24 @@
         limit #{limit}
     </select>
 
-    <select id="getParentDomainList" resultType="java.lang.String">
-        select distinct parent_domain from scan_host
+    <select id="getParentDomainList" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select distinct t1.parent_domain, t2.scan_ports from scan_host t1
+        join host_company t2 on t2.host = t1.parent_domain
         <where>
             <if test="companyList != null and companyList.size() > 0">
-                company IN
+                t2.company IN
                 <foreach collection="companyList" item="company" index="index" separator="," close=")" open="(">
                     #{company}
                 </foreach>
             </if>
             <if test="parentDomainList != null and parentDomainList.size() > 0">
-                parent_domain IN
+                t1.parent_domain IN
                 <foreach collection="parentDomainList" item="parentDomain" index="index" separator="," close=")" open="(">
                     #{parentDomain}
                 </foreach>
             </if>
             <if test="domainList != null and domainList.size() > 0">
-                domain IN
+                t1.domain IN
                 <foreach collection="domainList" item="domain" index="index" separator="," close=")" open="(">
                     #{domain}
                 </foreach>

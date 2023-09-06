@@ -9,6 +9,7 @@ import com.lhh.serverbase.entity.ScanHostPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.service.ScanService;
+import com.lhh.servermonitor.service.TmpRedisService;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.HttpxCustomizeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class test {
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    TmpRedisService tmpRedisService;
     @Autowired
     ScanService scanService;
     @Value("${dir-setting.tool-dir}")
@@ -121,6 +124,11 @@ public class test {
             }
         }
         return R.ok(list);
+    }
+
+    @GetMapping("getDomainScanPorts")
+    public R getDomainScanPorts(String domain){
+        return R.ok(tmpRedisService.getDomainScanPorts(domain));
     }
 
 }

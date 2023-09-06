@@ -33,7 +33,7 @@ public class PortUtils {
     }
 
     private static Map<String, Set<Integer>> parsePorts(String s) {
-        if (StringUtils.isEmpty(s)) {
+        if (StringUtils.isEmpty(s) || Const.STR_CROSSBAR.equals(s)) {
             return new HashMap<>();
         }
         List<String> ranges = new ArrayList<>(Arrays.asList(s.split(",")));
@@ -75,36 +75,31 @@ public class PortUtils {
         return set;
     }
 
-    public static void main(String[] args) {
-        String old = "1-10,123,U:100,U:150-200";
-        String n = "1-20,100,U:50-80,U:120-180,U:190";
-        System.out.println(portEquals(old, n));
-        System.out.println(getNewPorts(old, n));
-    }
-
-    public static String getNewPorts(String s1, String s2) {
-        Map<String, Set<Integer>> map1 = parsePorts(s1);
-        Map<String, Set<Integer>> map2 = parsePorts(s2);
-        Set<Integer> tSet1 = map1.get("tSet");
-        Set<Integer> tSet2 = map2.get("tSet");
-        Set<Integer> uSet1 = map1.get("uSet");
-        Set<Integer> uSet2 = map2.get("uSet");
-        String tcpPorts = getNewTcpPorts(tSet1, tSet2);
-        String udpPorts = getNewUdpPorts(uSet1, uSet2);
-        return StringUtils.isEmpty(tcpPorts) ? udpPorts : StringUtils.isEmpty(udpPorts) ? tcpPorts : tcpPorts + Const.STR_COMMA + udpPorts;
-    }
-
     public static Boolean portEquals(String oldPorts, String newPorts) {
         Map<String, Set<Integer>> map1 = parsePorts(oldPorts);
         Map<String, Set<Integer>> map2 = parsePorts(newPorts);
-        Set<Integer> tSet1 = map1.get("tSet");
-        Set<Integer> tSet2 = map2.get("tSet");
-        Set<Integer> uSet1 = map1.get("uSet");
-        Set<Integer> uSet2 = map2.get("uSet");
-        return tSet1.equals(tSet2) && uSet1.equals(uSet2);
+        Set<Integer> tSet1 = CollectionUtils.isEmpty(map1.get("tSet")) ? new HashSet<>() : map1.get("tSet");
+        Set<Integer> tSet2 = CollectionUtils.isEmpty(map2.get("tSet")) ? new HashSet<>() : map2.get("tSet");
+        Set<Integer> uSet1 = CollectionUtils.isEmpty(map1.get("uSet")) ? new HashSet<>() : map1.get("uSet");
+        Set<Integer> uSet2 = CollectionUtils.isEmpty(map2.get("uSet")) ? new HashSet<>() : map2.get("uSet");
+        tSet2.removeAll(tSet1);
+        uSet2.removeAll(uSet1);
+        return CollectionUtils.isEmpty(tSet2) && CollectionUtils.isEmpty(uSet2);
     }
 
-    public static String getNewTcpPorts(Set<Integer> set1, Set<Integer> set2) {
+    public static String getAllPorts(String oldPorts, String newPorts) {
+        Map<String, Set<Integer>> map1 = parsePorts(oldPorts);
+        Map<String, Set<Integer>> map2 = parsePorts(newPorts);
+        Set<Integer> tSet1 = CollectionUtils.isEmpty(map1.get("tSet")) ? new HashSet<>() : map1.get("tSet");
+        Set<Integer> tSet2 = CollectionUtils.isEmpty(map2.get("tSet")) ? new HashSet<>() : map2.get("tSet");
+        Set<Integer> uSet1 = CollectionUtils.isEmpty(map1.get("uSet")) ? new HashSet<>() : map1.get("uSet");
+        Set<Integer> uSet2 = CollectionUtils.isEmpty(map2.get("uSet")) ? new HashSet<>() : map2.get("uSet");
+        String tcpPorts = getAllTcpPorts(tSet1, tSet2);
+        String udpPorts = getAllUdpPorts(uSet1, uSet2);
+        return StringUtils.isEmpty(tcpPorts) ? udpPorts : StringUtils.isEmpty(udpPorts) ? tcpPorts : tcpPorts + Const.STR_COMMA + udpPorts;
+    }
+
+    public static String getAllTcpPorts(Set<Integer> set1, Set<Integer> set2) {
         Set<Integer> tmpSet = new HashSet<>();
         tmpSet.addAll(set1);
         tmpSet.addAll(set2);
@@ -134,11 +129,79 @@ public class PortUtils {
         return String.join(",", ranges);
     }
 
-    public static String getNewUdpPorts(Set<Integer> set1, Set<Integer> set2) {
+    public static String getAllUdpPorts(Set<Integer> set1, Set<Integer> set2) {
         Set<Integer> tmpSet = new HashSet<>();
         tmpSet.addAll(set1);
         tmpSet.addAll(set2);
         Set<Integer> union = new TreeSet<>(tmpSet);
+        if (union.isEmpty()) {
+            return "";
+        }
+        if (union.size() == 1) {
+            return union.iterator().next().toString();
+        }
+
+        List<String> ranges = new ArrayList<>();
+        int start = union.iterator().next();
+        int end = start;
+        for (int port : union) {
+            if (port <end+1) {
+                continue;
+            }
+            if (port == end + 1) {
+                end = port;
+            } else {
+                ranges.add(start == end ? Const.STR_U + end : Const.STR_U + start + Const.STR_CROSSBAR + end);
+                start = end = port;
+            }
+        }
+        ranges.add(start == end ? Const.STR_U + end : Const.STR_U + start + Const.STR_CROSSBAR + end);
+        return String.join(",", ranges);
+    }
+
+    public static String getNewPorts(String oldPorts, String newPorts) {
+        Map<String, Set<Integer>> map1 = parsePorts(oldPorts);
+        Map<String, Set<Integer>> map2 = parsePorts(newPorts);
+        Set<Integer> tSet1 = CollectionUtils.isEmpty(map1.get("tSet")) ? new HashSet<>() : map1.get("tSet");
+        Set<Integer> tSet2 = CollectionUtils.isEmpty(map2.get("tSet")) ? new HashSet<>() : map2.get("tSet");
+        Set<Integer> uSet1 = CollectionUtils.isEmpty(map1.get("uSet")) ? new HashSet<>() : map1.get("uSet");
+        Set<Integer> uSet2 = CollectionUtils.isEmpty(map2.get("uSet")) ? new HashSet<>() : map2.get("uSet");
+        String tcpPorts = getNewTcpPorts(tSet1, tSet2);
+        String udpPorts = getNewUdpPorts(uSet1, uSet2);
+        return StringUtils.isEmpty(tcpPorts) ? udpPorts : StringUtils.isEmpty(udpPorts) ? tcpPorts : tcpPorts + Const.STR_COMMA + udpPorts;
+    }
+
+    public static String getNewTcpPorts(Set<Integer> set1, Set<Integer> set2) {
+        set2.removeAll(set1);
+        Set<Integer> union = new TreeSet<>(set2);
+        if (union.isEmpty()) {
+            return "";
+        }
+        if (union.size() == 1) {
+            return union.iterator().next().toString();
+        }
+
+        List<String> ranges = new ArrayList<>();
+        int start = union.iterator().next();
+        int end = start;
+        for (int port : union) {
+            if (port <end+1) {
+                continue;
+            }
+            if (port == end + 1) {
+                end = port;
+            } else {
+                ranges.add(start == end ? String.valueOf(end) : start + Const.STR_CROSSBAR + end);
+                start = end = port;
+            }
+        }
+        ranges.add(start == end ? String.valueOf(end) : start + Const.STR_CROSSBAR + end);
+        return String.join(",", ranges);
+    }
+
+    public static String getNewUdpPorts(Set<Integer> set1, Set<Integer> set2) {
+        set2.removeAll(set1);
+        Set<Integer> union = new TreeSet<>(set2);
         if (union.isEmpty()) {
             return "";
         }

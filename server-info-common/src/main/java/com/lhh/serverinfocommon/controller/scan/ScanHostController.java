@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverinfocommon.service.scan.ScanHostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,8 +152,8 @@ public class ScanHostController {
     }
 
     @PostMapping("getParentDomainList")
-    public List<String> getParentDomainList(@RequestBody Map<String, Object> params) {
-        List<String> list = scanHostService.getParentDomainList(params);
+    public List<HostCompanyEntity> getParentDomainList(@RequestBody Map<String, Object> params) {
+        List<HostCompanyEntity> list = scanHostService.getParentDomainList(params);
         return list;
     }
 

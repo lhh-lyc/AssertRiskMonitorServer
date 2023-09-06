@@ -1,9 +1,12 @@
 package com.lhh.serveradmin.service.scan;
 
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.map.MapUtil;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.mqtt.ReScanSender;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,8 +39,9 @@ public class ReScanService {
                 filter.put("domainList", selectList);
                 break;
         }
-        List<String> list = scanHostFeign.getParentDomainList(filter);
-        reScanSender.reScanDomainToMqtt(list);
+        List<HostCompanyEntity> list = scanHostFeign.getParentDomainList(filter);
+        String uuid = UUID.fastUUID().toString().replace(Const.STR_CROSSBAR, Const.STR_EMPTY);
+        reScanSender.reScanDomainToMqtt(list, uuid);
         return R.ok();
     }
 

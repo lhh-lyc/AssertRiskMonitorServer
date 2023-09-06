@@ -8,27 +8,21 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.CopyUtils;
+import com.lhh.serverbase.utils.DomainIpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.mqtt.MqHostSender;
-import com.lhh.servermonitor.utils.DomainIpUtils;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.JedisUtils;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
-import org.redisson.misc.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -55,7 +49,7 @@ public class ScanService {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
-    public void scanDomainList2(ScanParamDto scanDto) {
+    public void scanDomainList(ScanParamDto scanDto) {
         List<ScanParamDto> subdomainList = getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
         List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
         List<ScanParamDto> dtoList = new ArrayList<>();
@@ -86,7 +80,7 @@ public class ScanService {
         } else {
             // 未扫描出子域名或者子域名未解析出ip，主域名结束流程
             log.info(scanDto.getHost() + "没有有效子域名");
-            redisLock.removeProjectRedis(scanDto.getProjectId(), scanDto.getHost());
+            redisLock.removeProjectRedis(scanDto.getProjectId(), scanDto.getHost(), scanDto.getScanPorts());
         }
     }
 
@@ -121,7 +115,7 @@ public class ScanService {
             subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
             log.info(CollectionUtils.isEmpty(subdomainList) ? "执行工具命令返回" + JSON.toJSONString(response) + ";" + domain + "未扫描到子域名" : domain + "子域名有" + subdomainList.size() + "个:" + String.join(Const.STR_COMMA, subdomainList));
         }
-        if (!CollectionUtils.isEmpty(subdomainList) && !subdomainList.contains(domain)) {
+        if (!subdomainList.contains(domain)) {
             subdomainList.add(domain);
         }
 

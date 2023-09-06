@@ -45,9 +45,6 @@ public interface ScanHostFeign {
     @GetMapping("/scan/host/companyRanking")
     List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params);
 
-    @PostMapping("/scan/host/getParentDomainList")
-    List<String> getParentDomainList(@RequestBody Map<String, Object> params);
-
     @GetMapping("/scan/host/getParentList")
     List<String> getParentList();
 

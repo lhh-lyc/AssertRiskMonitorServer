@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -46,7 +47,7 @@ public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
     List<KeyValueDto> companyRanking(Map<String, Object> params);
 
-    List<String> getParentDomainList(Map<String, Object> params);
+    List<HostCompanyEntity> getParentDomainList(Map<String, Object> params);
 
     void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
 

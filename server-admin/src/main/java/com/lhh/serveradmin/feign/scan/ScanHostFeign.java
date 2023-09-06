@@ -2,6 +2,7 @@ package com.lhh.serveradmin.feign.scan;
 
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
+import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +47,7 @@ public interface ScanHostFeign {
     List<KeyValueDto> companyRanking(@RequestParam Map<String, Object> params);
 
     @PostMapping("/scan/host/getParentDomainList")
-    List<String> getParentDomainList(@RequestBody Map<String, Object> params);
+    List<HostCompanyEntity> getParentDomainList(@RequestBody Map<String, Object> params);
 
     @GetMapping("/scan/host/getParentList")
     List<String> getParentList();

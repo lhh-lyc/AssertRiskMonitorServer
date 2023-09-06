@@ -153,8 +153,9 @@
 
     <select id="page" resultType="com.lhh.serverbase.entity.ScanPortEntity">
         select
-        t1.*, INET_NTOA(t1.ip_long) as ip, t2.domain, t2.parent_domain, t2.company,
-        t4.name as project_name, t5.url, t5.title, t5.cms, u.user_id, u.user_name
+        t1.*, INET_NTOA(t1.ip_long) as ip, t2.domain, t2.parent_domain, t2.company, t4.name as project_name,
+        ifnull(t5.url, '-') as url, ifnull(t5.title, '-') as title, ifnull(t5.cms, '-') as cms,
+        u.user_id, u.user_name
         from scan_port t1
         join scan_host t2 on t2.ip_long = t1.ip_long
         and t2.del_flg = 0
@@ -191,6 +192,15 @@
         </if>
         <if test="params.serverName != null and params.serverName != ''">
             and t1.server_name like concat('%', #{params.serverName}, '%')
+        </if>
+        <if test="params.url != null and params.url != ''">
+            and t5.url like concat('%', #{params.url}, '%')
+        </if>
+        <if test="params.title != null and params.title != ''">
+            and t5.title like concat('%', #{params.title}, '%')
+        </if>
+        <if test="params.cms != null and params.cms != ''">
+            and t5.cms like concat('%', #{params.cms}, '%')
         </if>
     </select>
 

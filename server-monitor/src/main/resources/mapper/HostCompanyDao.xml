@@ -4,10 +4,10 @@
 <mapper namespace="com.lhh.servermonitor.dao.HostCompanyDao">
 
     <sql id="baseColumn">
-        id
-        ,
-                    host,
-                    company
+        id,
+        host,
+        company,
+        scan_ports
     </sql>
 
     <!-- 可根据自己的需求，是否要使用 -->
@@ -27,6 +27,30 @@
         select
         <include refid="baseColumn"/>
         from host_company
+        where 1=1
+        <if test="host != null and host != ''">
+            and host = #{host}
+        </if>
+    </select>
+
+    <select id="queryByHostList" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select
+        <include refid="baseColumn"/>
+        from host_company
+        where host in
+        <foreach item="host" collection="hostList" open="(" separator="," close=")">
+            #{host}
+        </foreach>
+    </select>
+
+    <select id="queryByHost" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select
+        <include refid="baseColumn"/>
+        from host_company
+        where 1=1
+        <if test="host != null and host != ''">
+            and host = #{host}
+        </if>
     </select>
 
 

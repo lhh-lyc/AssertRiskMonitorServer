@@ -39,7 +39,7 @@ public class ScanningIpListener {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
             scanPortInfoService.scanIpsPortList(dto);
             scanHostPortService.scanSingleHostPortList(dto.getSubIp());
-            redisLock.removeProjectRedis(dto.getProjectId(), dto.getSubIp());
+            redisLock.removeProjectRedis(dto.getProjectId(), dto.getSubIp(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

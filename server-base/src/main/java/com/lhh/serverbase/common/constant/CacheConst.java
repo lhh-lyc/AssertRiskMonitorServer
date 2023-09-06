@@ -43,9 +43,14 @@ public class CacheConst {
     public final static String REDIS_LOCK_SCANNING_IP = "LOCK_SCANNING_IP:%s";
 
     /**
-     * redis key: LOCK_CMS_JSON
+     * redis key: LOCK_SCANNING_IP:
      */
-    public final static String REDIS_LOCK_CMS_JSON = "LOCK_CMS_JSON";
+    public final static String REDIS_LOCK_RESCAN_PROJECT = "LOCK_RESCAN_PROJECT:%s";
+
+    /**
+     * redis key: hostInfo信息更新
+     */
+    public final static String REDIS_LOCK_HOST_INFO = "LOCK_HOST_INFO:%s";
 
     /**
      * redis key: SCANNING_PROJECT:
@@ -63,6 +68,11 @@ public class CacheConst {
     public final static String REDIS_SCANNING_IP = "SCANNING_IP:%s";
 
     /**
+     * redis key: SCANNING_PROJECT:
+     */
+    public final static String REDIS_RESCAN_PROJECT = "RESCAN_PROJECT:%s";
+
+    /**
      * redis key: TASK_HOST_ID
      */
     public final static String REDIS_TASK_HOST_ID = "TASK_HOST_ID";
@@ -77,6 +87,11 @@ public class CacheConst {
      * redis key: REDIS_DOMAIN_COMPANY
      */
     public final static String REDIS_DOMAIN_COMPANY = "DOMAIN_COMPANY:%s";
+
+    /**
+     * redis key: REDIS_DOMAIN_COMPANY
+     */
+    public final static String REDIS_DOMAIN_SCANPORTS = "DOMAIN_SCANPORTS:%s";
 
     /**
      * redis key: REDIS_RESCAN_DOMAIN

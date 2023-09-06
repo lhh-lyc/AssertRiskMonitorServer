@@ -30,5 +30,9 @@ public interface HostCompanyService extends IService<HostCompanyEntity> {
     */
     List<HostCompanyEntity> list(Map<String, Object> params);
 
+    List<HostCompanyEntity> queryByHostList(List<String> hostList);
+
+    HostCompanyEntity queryByHost(String host);
+
 }
 

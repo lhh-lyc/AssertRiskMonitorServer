@@ -168,7 +168,7 @@ public class ExportService {
                         // scan_host表 包含ip,同时子域名相同，视为一条存在的数据（不管主域名）
                         ScanHostEntity host = hosts.get(data.get(2));
                         if (!PortUtils.portEquals(host.getScanPorts(), data.get(4))) {
-                            host.setScanPorts(PortUtils.getNewPorts(host.getScanPorts(), data.get(4)));
+                            host.setScanPorts(PortUtils.getAllPorts(host.getScanPorts(), data.get(4)));
                             updateHostList.add(host);
                         }
                     } else {

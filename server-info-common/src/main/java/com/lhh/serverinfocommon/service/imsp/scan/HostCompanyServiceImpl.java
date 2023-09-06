@@ -42,8 +42,7 @@ public class HostCompanyServiceImpl extends ServiceImpl<HostCompanyDao, HostComp
      */
     @Override
     public List<HostCompanyEntity> list(Map<String, Object> params) {
-        QueryWrapper wrapper = Wrappers.query();
-        List<HostCompanyEntity> list = list(wrapper);
+        List<HostCompanyEntity> list = hostCompanyDao.queryList(params);
         return list;
     }
 
