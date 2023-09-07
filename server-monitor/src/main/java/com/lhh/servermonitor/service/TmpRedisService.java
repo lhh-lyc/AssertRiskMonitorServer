@@ -1,51 +1,48 @@
 package com.lhh.servermonitor.service;
 
-import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.HostCompanyEntity;
-import com.lhh.serverbase.entity.ScanHostEntity;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.entity.SshResponse;
-import com.lhh.serverbase.utils.CopyUtils;
-import com.lhh.serverbase.utils.DomainIpUtils;
-import com.lhh.serverbase.utils.RexpUtil;
-import com.lhh.servermonitor.controller.RedisLock;
-import com.lhh.servermonitor.dao.HostCompanyDao;
-import com.lhh.servermonitor.mqtt.MqHostSender;
-import com.lhh.servermonitor.utils.ExecUtil;
-import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.RandomStringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class TmpRedisService {
 
     @Autowired
-    HostCompanyDao hostCompanyDao;
+    HostCompanyService hostCompanyService;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    RedissonClient redisson;
 
     public String getDomainScanPorts(String domain) {
-        String scanPorts = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_DOMAIN_SCANPORTS, domain));
+        String scanPorts = hostCompanyService.getScanPorts(domain);
         if (StringUtils.isEmpty(scanPorts)) {
-            HostCompanyEntity hostInfo = hostCompanyDao.queryByHost(domain);
-            String ports = hostInfo == null ? Const.STR_CROSSBAR : StringUtils.isEmpty(hostInfo.getScanPorts()) ? Const.STR_CROSSBAR : hostInfo.getScanPorts();
-            stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_DOMAIN_SCANPORTS, domain), ports, 60 * 60 * 12, TimeUnit.SECONDS);
-            scanPorts = ports;
+            String lockKey = String.format(CacheConst.REDIS_LOCK_HOST_INFO, domain);
+            RLock lock = redisson.getLock(lockKey);
+            try {
+                lock.lock();
+                scanPorts = hostCompanyService.getScanPorts(domain);
+                if (StringUtils.isEmpty(scanPorts)) {
+                    HostCompanyEntity hostInfo = hostCompanyService.setHostInfo(domain);
+                    scanPorts = StringUtils.isEmpty(hostInfo.getScanPorts()) ? Const.STR_EMPTY : hostInfo.getScanPorts();
+                }
+            } catch (Exception e) {
+                log.error(domain + "主域名信息更新报错", e);
+            } finally {
+                // 判断当前线程是否持有锁
+                if (lock.isHeldByCurrentThread()) {
+                    //释放当前锁
+                    lock.unlock();
+                }
+            }
         }
         return scanPorts;
     }

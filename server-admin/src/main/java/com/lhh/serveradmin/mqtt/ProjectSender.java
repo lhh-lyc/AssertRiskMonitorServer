@@ -1,18 +1,13 @@
 package com.lhh.serveradmin.mqtt;
 
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.lhh.serveradmin.config.RabbitMqConfig;
 import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
-import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.dto.ReScanDto;
 import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.CopyUtils;
-import com.lhh.serverbase.utils.HttpUtils;
-import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -54,10 +49,17 @@ public class ProjectSender {
         List<HostCompanyEntity> hostInfoList = new ArrayList<>();
         List<HostCompanyEntity> oldList = hostCompanyFeign.list(new HashMap<String, Object>(){{put("hostList", project.getHostList());}});
         Map<String, HostCompanyEntity> oldMap = oldList.stream().collect(Collectors.toMap(HostCompanyEntity::getHost, host -> host));
+        List<String> existParentDomainList = new ArrayList<>();
         for (String host : project.getHostList()) {
-            if (!oldMap.containsKey(host)) {
-                String parentDomain = RexpUtil.getMajorDomain(host);
-                String company = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
+            String parentDomain = RexpUtil.getMajorDomain(host);
+            if (!oldMap.containsKey(parentDomain) && !existParentDomainList.contains(parentDomain)) {
+                existParentDomainList.add(parentDomain);
+                String company = Const.STR_CROSSBAR;
+                String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, parentDomain));
+                if (!StringUtils.isEmpty(value)) {
+                    HostCompanyEntity hostInfo = JSON.parseObject(value, HostCompanyEntity.class);
+                    company = StringUtils.isEmpty(hostInfo.getCompany()) ? Const.STR_EMPTY : hostInfo.getCompany();
+                }
                 HostCompanyEntity saveCompany = HostCompanyEntity.builder()
                         .host(parentDomain).company(company)
                         .build();
@@ -68,18 +70,6 @@ public class ProjectSender {
             hostCompanyFeign.saveBatch(hostInfoList);
         }
 
-        for (String host : project.getHostList()) {
-            String parentDomain = RexpUtil.getMajorDomain(host);
-            if (!JedisUtils.exists(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain))) {
-                String company = HttpUtils.getDomainUnit(parentDomain);
-                company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
-                HostCompanyEntity companyEntity = hostCompanyFeign.queryBasicInfo(parentDomain);
-                companyEntity.setCompany(company);
-                hostCompanyFeign.update(companyEntity);
-                JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain), company);
-//                JedisUtils.setJson(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60*60*24*7);
-            }
-        }
         sendToMqtt(project);
     }
 

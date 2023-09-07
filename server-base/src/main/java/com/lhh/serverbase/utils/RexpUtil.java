@@ -38,6 +38,7 @@ public class RexpUtil {
     }
 
     public static void main(String[] args) {
+        System.out.println(getMajorDomain("baidu.com"));
         String domainName = "";
         String b = "";
         Boolean flag;
@@ -147,8 +148,8 @@ public class RexpUtil {
                     return newUrl.substring(newUrl.lastIndexOf(Const.STR_DOT) + 1) + matcher.group();
                 }
             }
-        } catch (Exception e) {
-            return Const.STR_EMPTY;
+        } catch (IllegalStateException e) {
+            log.error(url + "包含未知顶级域名，不预解析！");
         }
         return Const.STR_EMPTY;
     }

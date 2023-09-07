@@ -10,6 +10,7 @@ import com.lhh.serverbase.dto.FingerprintListDTO;
 import com.lhh.serverbase.entity.CmsJsonEntity;
 import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.utils.HttpUtils;
+import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverrefreshdata.feign.scan.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +118,18 @@ public class TaskService {
                             hostCompanyFeign.update(entity);
                         }
                     }
-                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_DOMAIN_COMPANY, host), company, 60 * 60 * 24 * 7L, TimeUnit.SECONDS);
+                    String parentDomain = RexpUtil.getMajorDomain(host);
+                    String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, parentDomain));
+                    HostCompanyEntity obj;
+                    if (StringUtils.isEmpty(value)) {
+                        obj = HostCompanyEntity.builder()
+                                .host(parentDomain).company(company)
+                                .build();
+                    } else {
+                        obj = JSON.parseObject(value, HostCompanyEntity.class);
+                        obj.setCompany(company);
+                    }
+                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_HOST_INFO, parentDomain), JSON.toJSONString(obj));
                 } catch (Exception e) {
                     log.error(host + "查询企业失败", e);
                 }

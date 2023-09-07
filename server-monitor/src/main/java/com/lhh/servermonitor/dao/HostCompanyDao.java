@@ -38,4 +38,6 @@ public interface HostCompanyDao extends BaseMapper<HostCompanyEntity> {
 
     HostCompanyEntity queryByHost(String host);
 
+    HostCompanyEntity queryBasicInfo(@Param("host") String host);
+
 }

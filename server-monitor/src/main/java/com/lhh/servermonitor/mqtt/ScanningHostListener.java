@@ -53,6 +53,8 @@ public class ScanningHostListener {
     @Autowired
     ScanProjectContentService scanProjectContentService;
     @Autowired
+    HostCompanyService hostCompanyService;
+    @Autowired
     MqIpSender mqIpSender;
     @Autowired
     RedissonClient redisson;
@@ -118,7 +120,7 @@ public class ScanningHostListener {
             }*/
 
             String parentDomain = RexpUtil.getMajorDomain(dto.getHost());
-            String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, parentDomain));
+            String company = hostCompanyService.getCompany(parentDomain);
             List<ScanHostEntity> exitIpEntityList = scanHostService.getByIpList(ipLongList, dto.getSubDomain());
             List<Long> exitIpList = exitIpEntityList.stream().map(ScanHostEntity::getIpLong).collect(Collectors.toList());
             List<ScanParamDto> scanPortParamList = new ArrayList<>();

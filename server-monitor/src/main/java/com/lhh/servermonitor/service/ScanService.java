@@ -43,6 +43,8 @@ public class ScanService {
     @Autowired
     ScanPortInfoService scanPortInfoService;
     @Autowired
+    HostCompanyService hostCompanyService;
+    @Autowired
     RedisLock redisLock;
     @Autowired
     MqHostSender mqHostSender;
@@ -213,7 +215,7 @@ public class ScanService {
         List<ScanParamDto> result = new ArrayList<>();
         List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
         List<ScanHostEntity> saveHostList = new ArrayList<>();
-        String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, domain));
+        String company = hostCompanyService.getCompany(domain);
         if (!CollectionUtils.isEmpty(dtoList)) {
             for (ScanParamDto dto : dtoList) {
                 if (dto.getSubIpList().size() == 1 && dto.getSubIpList().get(0).equals(Const.STR_CROSSBAR)) {

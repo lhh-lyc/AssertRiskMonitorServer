@@ -53,5 +53,9 @@
         </if>
     </select>
 
+    <select id="queryBasicInfo" resultType="com.lhh.serverbase.entity.HostCompanyEntity">
+        select <include refid="baseColumn"/> from host_company
+        where host = #{host}
+    </select>
 
 </mapper>

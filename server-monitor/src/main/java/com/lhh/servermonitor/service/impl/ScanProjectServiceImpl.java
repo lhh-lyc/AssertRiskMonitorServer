@@ -42,6 +42,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Autowired
     HostCompanyDao hostCompanyDao;
     @Autowired
+    HostCompanyService hostCompanyService;
+    @Autowired
     ScanHostService scanHostService;
     @Autowired
     ScanProjectHostService scanProjectHostService;
@@ -159,6 +161,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newIpList)) {
                 for (String ip : newIpList) {
+                    hostCompanyService.updateCompany(ip);
                     String ports = tmpRedisService.getDomainScanPorts(ip);
                     String allPorts = PortUtils.getAllPorts(ports, project.getScanPorts());
                     // 保存项目-host关联关系
@@ -191,6 +194,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<ScanParamDto> scanDomainParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newDomainList)) {
                 for (String host : newDomainList) {
+                    hostCompanyService.updateCompany(host);
                     ScanParamDto dto = ScanParamDto.builder()
                             .projectId(project.getId())
                             .host(host)

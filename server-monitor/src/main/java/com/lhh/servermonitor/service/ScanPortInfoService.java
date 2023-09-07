@@ -41,6 +41,8 @@ public class ScanPortInfoService {
     @Autowired
     ScanProjectHostService scanProjectHostService;
     @Autowired
+    HostCompanyService hostCompanyService;
+    @Autowired
     StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -99,7 +101,7 @@ public class ScanPortInfoService {
                     }
                 }
             }
-            String company = JedisUtils.getStr(String.format(CacheConst.REDIS_DOMAIN_COMPANY, ip));
+            String company = hostCompanyService.getCompany(ip);
             List<ScanHostEntity> scanIpList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(ipLongList)) {
                 List<ScanHostEntity> saveIpList = new ArrayList<>();

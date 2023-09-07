@@ -34,5 +34,15 @@ public interface HostCompanyService extends IService<HostCompanyEntity> {
 
     HostCompanyEntity queryByHost(String host);
 
+    void updateCompany(String domain);
+
+    void updatePorts(String domain, String scanPorts);
+
+    String getCompany(String domain);
+
+    String getScanPorts(String domain);
+
+    HostCompanyEntity setHostInfo(String domain);
+
 }
 

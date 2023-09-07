@@ -19,7 +19,7 @@ public class ScanningStatusTask {
      * 网络原因导致更新状态失败，重新更新
      * @return
      */
-    @Scheduled(cron = "0 9/10 * * * ? ")
+//    @Scheduled(cron = "0 9/10 * * * ? ")
     @GetMapping("scanningChange")
     public R scanningChange() {
         log.info("scanningChange定时任务开始");
