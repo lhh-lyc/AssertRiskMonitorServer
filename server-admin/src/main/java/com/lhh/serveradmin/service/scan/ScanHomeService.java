@@ -1,9 +1,12 @@
 package com.lhh.serveradmin.service.scan;
 
 import cn.hutool.core.map.MapUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.*;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
+import com.lhh.serveradmin.utils.JedisUtils;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.dto.GroupTagDto;
@@ -88,20 +91,40 @@ public class ScanHomeService {
                 List<ScanProjectContentEntity> completeIpList = completeList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
                 result = new HashMap<String, Object>(){{put("title", "IP已扫描");put("num", completeIpList.size());put("type", type);}};
                 break;
-            case 11:
-                contentList = scanProjectContentFeign.list(params);
-                List<ScanProjectContentEntity> notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
-                List<ScanProjectContentEntity> notCompleteDomainList = notCompleteList.stream().filter(i->!RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-                result = new HashMap<String, Object>(){{put("title", "主域名收集");put("num", notCompleteDomainList.size());put("type", type);}};
-                break;
-            case 12:
-                contentList = scanProjectContentFeign.list(params);
-                notCompleteList = contentList.stream().filter(i->Const.INTEGER_0.equals(i.getIsCompleted())).collect(Collectors.toList());
-                List<ScanProjectContentEntity> notCompleteIpList = notCompleteList.stream().filter(i->RexpUtil.isIP(i.getInputHost())).collect(Collectors.toList());
-                result = new HashMap<String, Object>(){{put("title", "IP扫描");put("num", notCompleteIpList.size());put("type", type);}};
-                break;
         }
         return result;
+    }
+
+    public List<Map<String, Object>> getUnHomeNum(Map<String, Object> params) {
+        Integer dNum = Const.INTEGER_0;
+        Integer iNum = Const.INTEGER_0;
+        Long userId = Long.valueOf(jwtTokenUtil.getUserId());
+        params.put("userId", userId);
+        List<ScanProjectEntity> proList = scanProjectFeign.list(params);
+        if (!CollectionUtils.isEmpty(proList)) {
+            for (ScanProjectEntity project : proList) {
+                String projectStr = JedisUtils.getStr(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
+                if (!StringUtils.isEmpty(projectStr)) {
+                    ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
+                    List<String> hostList = CollectionUtils.isEmpty(redisProject.getHostList()) ? new ArrayList<>() : redisProject.getHostList();
+                    for (String host : hostList) {
+                        if (RexpUtil.isIP(host)) {
+                            iNum++;
+                        } else {
+                            dNum++;
+                        }
+                    }
+                }
+            }
+        }
+        Integer finalDNum = dNum;
+        Map<String, Object> dResult = new HashMap<String, Object>(){{put("title", "主域名收集");put("num", finalDNum);}};
+        Integer finalINum = iNum;
+        Map<String, Object> iResult = new HashMap<String, Object>(){{put("title", "IP扫描");put("num", finalINum);}};
+        List<Map<String, Object>> list = new ArrayList<>();
+        list.add(dResult);
+        list.add(iResult);
+        return list;
     }
 
     public List<ScanAddRecordEntity> getRecordList(Map<String, Object> params) {

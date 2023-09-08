@@ -131,10 +131,15 @@ public class CacheConst {
     /**
      * redis key: REDIS_CMS_JSON_LIST
      */
+    public final static String REDIS_CMS_JSON = "CMS_JSON";
+
+    /**
+     * redis key: REDIS_CMS_JSON_LIST (keyword)
+     */
     public final static String REDIS_CMS_JSON_LIST = "CMS_JSON_LIST";
 
     /**
-     * redis key: REDIS_CMS_JSON_MAP
+     * redis key: REDIS_CMS_JSON_MAP (faviconhash)
      */
     public final static String REDIS_CMS_JSON_MAP = "CMS_JSON_MAP";
 

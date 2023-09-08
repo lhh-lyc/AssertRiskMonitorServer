@@ -3,15 +3,12 @@ package com.lhh.serveradmin.controller.scan;
 import cn.allbs.excel.annotation.ExportExcel;
 import cn.allbs.excel.annotation.Sheet;
 import com.lhh.serveradmin.service.scan.ExportService;
-import com.lhh.serveradmin.service.scan.ScanPortService;
 import com.lhh.serverbase.common.response.R;
-import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.vo.ScanPortVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 

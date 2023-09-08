@@ -22,6 +22,11 @@ public class ScanHomeController {
         return R.ok().put("data", scanHomeService.getHomeNum(params));
     }
 
+    @GetMapping("getUnHomeNum")
+    public R getUnHomeNum(@RequestParam Map<String, Object> params){
+        return R.ok().put("data", scanHomeService.getUnHomeNum(params));
+    }
+
     @GetMapping("getRecordList")
     public R getRecordList(@RequestParam Map<String, Object> params){
         return R.ok(scanHomeService.getRecordList(params));

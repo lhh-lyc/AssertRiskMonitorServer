@@ -27,7 +27,7 @@ public interface CmsJsonFeign {
      *
      * @param
      */
-    @GetMapping("cmsjson/page")
+    @GetMapping("cms/json/page")
     IPage<CmsJsonEntity> page(@RequestParam Map<String, Object> params);
 
     /**
@@ -41,7 +41,7 @@ public interface CmsJsonFeign {
     /**
      * 保存
      */
-    @PostMapping("cmsjson/save")
+    @PostMapping("cms/json/save")
     void save(@RequestBody CmsJsonEntity cmsJson);
 
     /**
@@ -66,7 +66,7 @@ public interface CmsJsonFeign {
      * @param id
      * @return
      */
-    @PostMapping("cmsjson/delete")
+    @PostMapping("cms/json/delete")
     void delete(Long id);
 
     /**
@@ -80,7 +80,7 @@ public interface CmsJsonFeign {
     @PostMapping("cms/json/updateAll")
     void updateAll(@RequestBody List<CmsJsonEntity> CmsJsonList);
 
-    @GetMapping("cmsjson/info")
+    @GetMapping("cms/json/info")
     CmsJsonEntity info(@RequestParam(name = "id") Long id);
 
 }

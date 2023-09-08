@@ -56,7 +56,7 @@ public class TaskService {
             return;
         }
 
-        List<CmsJsonEntity> queryList = new ArrayList<>();
+        List<CmsJsonEntity> allList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(cmsJsonDtoList)) {
             for (CmsJsonDto dto : cmsJsonDtoList) {
                 CmsJsonEntity entity = CmsJsonEntity.builder()
@@ -67,7 +67,7 @@ public class TaskService {
                 if (!CollectionUtils.isEmpty(dto.getKeyword())) {
                     entity.setKeyword(String.join(Const.STR_COMMA, dto.getKeyword()));
                 }
-                queryList.add(entity);
+                allList.add(entity);
             }
         }
         List<CmsJsonEntity> list = cmsJsonFeign.list(new HashMap<>());
@@ -76,10 +76,11 @@ public class TaskService {
                 json.setKeywordList(new ArrayList<>(Arrays.asList(json.getKeyword().split(Const.STR_COMMA))));
             }
         }
-        queryList.addAll(list);
-        List<CmsJsonEntity> domList = queryList.stream().filter(f->"keyword".equals(f.getMethod())).collect(Collectors.toList());
+        allList.addAll(list);
+        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON, JSON.toJSONString(allList));
+        List<CmsJsonEntity> domList = allList.stream().filter(f->"keyword".equals(f.getMethod())).collect(Collectors.toList());
         stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
-        Map<String, String> faviconMap = queryList.stream().filter(f->"faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
+        Map<String, String> faviconMap = allList.stream().filter(f->"faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
                 CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1 , key2) -> key1));
         stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
         log.info("fingerJson更新结束");

@@ -86,14 +86,23 @@ public class CmsJsonController {
     }
 
     /**
-    * 详情
-    * @param id
-    * @return
-    */
-    @GetMapping("info")
+     * 详情
+     * @param id
+     * @return
+     */
+    @GetMapping("info/{id}")
     @ApiOperation(value = "详情")
-    public R getInfo(Long id) {
+    public R getInfo(@PathVariable("id") Long id) {
         return cmsJsonService.info(id);
+    }
+
+    /**
+     * getCmsJson
+     * @return
+     */
+    @GetMapping("getCmsJson")
+    public R getCmsJson() {
+        return cmsJsonService.getCmsJson();
     }
 
 }

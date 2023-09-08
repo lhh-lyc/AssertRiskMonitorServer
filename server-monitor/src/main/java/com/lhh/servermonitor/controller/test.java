@@ -59,7 +59,7 @@ public class test {
 
     @GetMapping("getSubDomainTest")
     public R getSubDomainTest(String domain){
-        List<ScanParamDto> list = scanService.getSubDomainList(1L, domain, Const.INTEGER_1, "1-65535");
+        List<String> list = scanService.getSubDomainTest(domain);
         return R.ok(list);
     }
 
@@ -129,6 +129,12 @@ public class test {
     @GetMapping("getDomainScanPorts")
     public R getDomainScanPorts(String domain){
         return R.ok(tmpRedisService.getDomainScanPorts(domain));
+    }
+
+    @GetMapping("nucleiTest")
+    public R nucleiTest(String url){
+        List<Map> list = scanService.nucleiTest(url);
+        return R.ok(list);
     }
 
 }

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -50,6 +51,58 @@ public class ScanService {
     MqHostSender mqHostSender;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    public List<String> getSubDomainTest(String domain) {
+        List<String> subdomainList = new ArrayList<>();
+        log.info(domain + "子域名收集");
+        // 子域名列表
+        String cmd = String.format(Const.STR_SUBFINDER_SUBDOMAIN, toolDir, domain);
+        SshResponse response = null;
+        try {
+            response = ExecUtil.runCommand(cmd);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        subdomainList = response.getOutList();
+        subdomainList = subdomainList.stream().distinct().collect(Collectors.toList());
+        log.info(CollectionUtils.isEmpty(subdomainList) ? "执行工具命令返回" + JSON.toJSONString(response) + ";" + domain + "未扫描到子域名" : domain + "子域名有" + subdomainList.size() + "个:" + String.join(Const.STR_COMMA, subdomainList));
+        return subdomainList;
+    }
+
+    public List<Map> nucleiTest(String requestUrl) {
+        log.info(requestUrl + "---nuclei漏洞扫描");
+        String cmd = String.format(Const.STR_NUCLEI, toolDir, Const.STR_EMPTY, requestUrl);
+        SshResponse response = null;
+        try {
+            response = ExecUtil.runCommand(cmd);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(requestUrl);
+        String outStr = RexpUtil.removeColor(response.getOut());
+        System.out.println(outStr);
+        List<String> responseLineList = Arrays.asList(outStr.split("\n"));
+        List<String> serverLineList = responseLineList.stream().filter(r -> r.startsWith("[") && !r.startsWith("[INF]")).collect(Collectors.toList());
+        List<Map> result = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(serverLineList)) {
+            for (String str : serverLineList) {
+                String [] list = str.split(Const.STR_BLANK);
+                String server = list[0].substring(1, list[0].length()-1);
+                String h = list[1].substring(1, list[1].length()-1);
+                String level = list[2].substring(1, list[2].length()-1);
+                String url = list[3];
+                String f = list.length > 4 ? list[4].substring(1, list[4].length()-1) : Const.STR_CROSSBAR;
+                Map m = new HashMap();
+                m.put("s", server);
+                m.put("h", h);
+                m.put("l", level);
+                m.put("u", url);
+                m.put("f", f);
+                result.add(m);
+            }
+        }
+        return result;
+    }
 
     public void scanDomainList(ScanParamDto scanDto) {
         List<ScanParamDto> subdomainList = getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
@@ -86,13 +139,13 @@ public class ScanService {
         }
     }
 
-    public List<ScanParamDto> getSubDomainList(Long projectId, String domain, Integer subDomainFlag, String scanPorts){
+    public List<ScanParamDto> getSubDomainList(Long projectId, String domain, Integer subDomainFlag, String scanPorts) {
         List<ScanParamDto> result;
         Integer n = Const.INTEGER_10;
         Boolean manyFlg = true;
         List<String> blackIpList = new ArrayList<>();
         log.info("开始判断" + domain + "是否为泛解析主域名");
-        for (int i=0;i<n;i++) {
+        for (int i = 0; i < n; i++) {
             String pre = RandomStringUtils.random(Const.INTEGER_10, Const.STR_LETTERS);
             List<String> list = DomainIpUtils.getDomainIpList(pre + Const.STR_DOT + domain);
             blackIpList.addAll(list);
@@ -122,6 +175,9 @@ public class ScanService {
         }
 
         if (manyFlg && subdomainList.size() > Const.INTEGER_50) {
+            if (subdomainList.size() > 5000) {
+                log.info(domain + "子域名数量过多！");
+            }
             // 泛解析
             log.info(domain + "为泛解析主域名，ip黑名单为：" + JSON.toJSONString(blackIpList));
             result = dealList(projectId, scanPorts, domain, subdomainList, blackIpList);
@@ -135,12 +191,13 @@ public class ScanService {
 
     /**
      * 多线程处理子域名ip
+     *
      * @param domain
      * @param list
      * @param blackIpList
      * @return
      */
-    public List<ScanParamDto> dealList(Long projectId, String scanPorts, String domain, List<String> list, List<String> blackIpList){
+    public List<ScanParamDto> dealList(Long projectId, String scanPorts, String domain, List<String> list, List<String> blackIpList) {
         // 将List划分成10个子任务
         int numThreads = Const.INTEGER_10;
         int batchSize = list.size() / numThreads;
@@ -188,8 +245,8 @@ public class ScanService {
         List<ScanParamDto> dtoList = new CopyOnWriteArrayList<>();
         for (Future<Map<String, Object>> future : futures) {
             try {
-                Map<String, Integer> tmpIpNumMap = (Map<String, Integer>)future.get().get("ipNumMap");
-                List<ScanParamDto> tmpDtoList = (List<ScanParamDto>)future.get().get("dtoList");
+                Map<String, Integer> tmpIpNumMap = (Map<String, Integer>) future.get().get("ipNumMap");
+                List<ScanParamDto> tmpDtoList = (List<ScanParamDto>) future.get().get("dtoList");
                 tmpIpNumMap.forEach((key, value) -> ipNumMap.merge(key, value, Integer::sum));
                 dtoList.addAll(tmpDtoList);
             } catch (InterruptedException e) {

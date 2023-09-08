@@ -1,10 +1,13 @@
 package com.lhh.serveradmin.service.sys;
 
+import com.alibaba.fastjson.JSONArray;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.CmsJsonEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +27,8 @@ public class CmsJsonService {
 
     @Autowired
     private CmsJsonFeign cmsJsonFeign;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     /**
      * 查询 分页数据
@@ -102,6 +107,11 @@ public class CmsJsonService {
     public R info(@RequestParam(name = "id") Long id) {
         CmsJsonEntity cmsJson = cmsJsonFeign.info(id);
         return R.ok(cmsJson);
+    }
+
+    public R getCmsJson() {
+        String json = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_CMS_JSON);
+        return R.ok().put("data", json);
     }
 
 }
