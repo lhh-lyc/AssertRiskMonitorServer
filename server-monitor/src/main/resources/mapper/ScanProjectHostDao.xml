@@ -3,13 +3,6 @@
 
 <mapper namespace="com.lhh.servermonitor.dao.ScanProjectHostDao">
 
-    <update id="updateEndScanDomain">
-        update scan_project_host
-        set is_scanning = 0
-        where del_flg = 0
-        and host = #{domain}
-    </update>
-
     <select id="queryByHost" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">
         select id, host, is_scanning from scan_project_host
         where del_flg = 0

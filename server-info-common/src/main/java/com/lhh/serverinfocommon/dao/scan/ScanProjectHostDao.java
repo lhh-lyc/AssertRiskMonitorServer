@@ -36,6 +36,4 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
     void deleteByTag(@Param("tagList") List<String> tagList, @Param("tagValueList") List<String> tagValueList);
 
-    void updateEndScanDomain(@Param("domain") String domain);
-
 }

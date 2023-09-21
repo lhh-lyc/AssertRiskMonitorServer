@@ -118,12 +118,5 @@ public class ScanHostController {
         return scanHost;
     }
 
-    @PostMapping("endScanIp")
-    public void endScanIp(@RequestBody Map<String, Object> params) {
-        Long ip = MapUtil.getLong(params, "ipLong");
-        String scanPorts = MapUtil.getStr(params, "scanPorts");
-        scanHostService.endScanIp(ip, scanPorts);
-    }
-
 }
 

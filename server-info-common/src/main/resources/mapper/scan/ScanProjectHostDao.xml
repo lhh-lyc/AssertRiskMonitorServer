@@ -41,11 +41,4 @@
         </foreach>
     </delete>
 
-    <update id="updateEndScanDomain">
-        update scan_project_host
-        set is_scanning = 0
-        where del_flg = 0
-        and host = #{domain}
-    </update>
-
 </mapper>

@@ -21,12 +21,6 @@ import java.util.Map;
 @Mapper
 public interface ScanHostDao extends BaseMapper<ScanHostEntity> {
 
-    void updateEndScanDomain(@Param("domain") String domain);
-
-    void updateEndScanIp(@Param("ipLong") Long ipLong, @Param("scanPorts") String scanPorts);
-
-    void returnScanStatus(@Param("ipLong") Long ipLong);
-
     List<ScanHostEntity> getByParentDomainList(@Param("hostList") List<String> hostList);
 
     /**

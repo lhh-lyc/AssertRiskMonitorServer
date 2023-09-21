@@ -3,25 +3,6 @@
 
 <mapper namespace="com.lhh.servermonitor.dao.ScanHostDao">
 
-
-    <update id="updateEndScanDomain">
-        update scan_host
-        set is_scanning = 0
-        where domain = #{domain}
-    </update>
-
-    <update id="updateEndScanIp">
-        update scan_host
-        set is_scanning = 0,scan_ports = #{scanPorts}
-        where ip_long = #{ipLong}
-    </update>
-
-    <update id="returnScanStatus">
-        update scan_host
-        set is_scanning = 1
-        where ip_long = #{ipLong}
-    </update>
-
     <select id="getByParentDomainList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
         select domain, ip_long, parent_domain
         from scan_host

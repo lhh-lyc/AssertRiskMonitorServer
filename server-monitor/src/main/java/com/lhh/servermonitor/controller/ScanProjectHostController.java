@@ -112,11 +112,5 @@ public class ScanProjectHostController {
         return scanProjectHost;
     }
 
-    @PostMapping("endScanDomain")
-    public void endScanDomain(@RequestBody Map<String, Object> params) {
-        String domain = MapUtil.getStr(params, "domain");
-        scanProjectHostService.endScanDomain(domain);
-    }
-
 }
 

@@ -42,17 +42,9 @@ public interface ScanHostService extends IService<ScanHostEntity> {
 
     List<ScanHostEntity> getIpByIpList(List<Long> ipList);
 
-    void updateEndScanDomain(String domain);
-
-    void updateEndScanIp(String domain, String ip, Long ipLong, String scanPorts);
-
-    void returnScanStatus(Long ipLong);
-
     void saveBatch(List<ScanHostEntity> list);
 
     List<ScanHostEntity> basicList(Map<String, Object> params);
-
-    void endScanIp(Long ipLong, String scanPorts);
 
 }
 

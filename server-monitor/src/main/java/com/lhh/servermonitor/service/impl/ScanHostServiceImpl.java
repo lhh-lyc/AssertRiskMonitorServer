@@ -110,81 +110,6 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     }
 
     @Override
-    public void updateEndScanDomain(String domain) {
-        // 修改所有域名解析为当前ip的数据状态 is_scanning=0
-        String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN_SCAN_CHANGE, domain);
-        RLock lock = redisson.getLock(lockKey);
-        boolean success = true;
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if (success) {
-                scanHostDao.updateEndScanDomain(domain);
-            }
-        } catch (Exception e) {
-            log.error("批量更新host表domain状态扫描状态出错", e);
-        } finally {
-            // 判断当前线程是否持有锁
-            if (success && lock.isHeldByCurrentThread()) {
-                //释放当前锁
-                lock.unlock();
-            }
-        }
-    }
-
-    @Override
-    public void updateEndScanIp(String domain, String ip, Long ipLong, String scanPorts){
-//        log.info("开始更新host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
-        // 修改所有域名解析为当前ip的数据状态 is_scanning=0
-        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_CHANGE, ipLong);
-        RLock lock = redisson.getLock(lockKey);
-        boolean success = true;
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if (success) {
-                scanHostDao.updateEndScanIp(ipLong, scanPorts);
-            }
-        } catch (Exception e) {
-            NetErrorDataEntity err = NetErrorDataEntity.builder()
-                    .obj(ipLong.toString()).scanPorts(scanPorts).type(Const.INTEGER_2)
-                    .build();
-            netErrorDataService.save(err);
-            log.error("更新host表" + domain + ":" + ip + "(" + ipLong + ")扫描状态出错", e);
-        } finally {
-            // 判断当前线程是否持有锁
-            if (success && lock.isHeldByCurrentThread()) {
-                //释放当前锁
-                lock.unlock();
-            }
-        }
-//        log.info("更新结束host表" + domain + ":" + ip + "(" + ipLong + ")数据状态");
-    }
-
-    @Override
-    public void returnScanStatus(Long ipLong) {
-        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_RETURN, ipLong);
-        RLock lock = redisson.getLock(lockKey);
-        boolean success = true;
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if (success) {
-                scanHostDao.returnScanStatus(ipLong);
-            }
-        } catch (Exception e) {
-//            NetErrorDataEntity err = NetErrorDataEntity.builder()
-//                    .obj(ipLong.toString()).type(Const.INTEGER_3)
-//                    .build();
-//            netErrorDataService.save(err);
-            log.error("更新host表ip重扫状态出错", e);
-        } finally {
-            // 判断当前线程是否持有锁
-            if (success && lock.isHeldByCurrentThread()) {
-                //释放当前锁
-                lock.unlock();
-            }
-        }
-    }
-
-    @Override
     public void saveBatch(List<ScanHostEntity> list) {
         scanHostDao.saveBatch(list);
     }
@@ -192,29 +117,6 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
     @Override
     public List<ScanHostEntity> basicList(Map<String, Object> params) {
         return scanHostDao.basicList(params);
-    }
-
-    @Override
-    public void endScanIp(Long ipLong, String scanPorts) {
-        log.info("开始补充更新host表" + ipLong + "数据状态");
-        String lockKey = String.format(CacheConst.REDIS_LOCK_IP_SCAN_CHANGE, ipLong);
-        RLock lock = redisson.getLock(lockKey);
-        boolean success = true;
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if (success) {
-                scanHostDao.updateEndScanIp(ipLong, scanPorts);
-            }
-        } catch (Exception e) {
-            log.error("补充更新host表" + ipLong + "扫描状态出错", e);
-        } finally {
-            // 判断当前线程是否持有锁
-            if (success && lock.isHeldByCurrentThread()) {
-                //释放当前锁
-                lock.unlock();
-            }
-        }
-        log.info("补充更新结束host表" + ipLong + "数据状态");
     }
 
 }

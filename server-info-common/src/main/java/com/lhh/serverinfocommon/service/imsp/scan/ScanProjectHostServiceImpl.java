@@ -71,28 +71,4 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
         return list;
     }
 
-    @Override
-    public void endScanDomain(String domain) {
-        log.info("开始补充更新project_host=" + domain + "数据状态");
-        // 域名下所有ip全部扫描完成，修改对应域名的数据状态 is_scanning=0
-        String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT_DOMAIN_SCAN_CHANGE, domain);
-        RLock lock = redisson.getLock(lockKey);
-        boolean success = true;
-        try {
-            success = lock.tryLock(5, 10, TimeUnit.SECONDS);
-            if (success) {
-                scanProjectHostDao.updateEndScanDomain(domain);
-            }
-        } catch (Exception e) {
-            log.error("补充更新project_host=" + domain + "数据状态出现问题,异常详情：", e);
-        } finally {
-            // 判断当前线程是否持有锁
-            if (success && lock.isHeldByCurrentThread()) {
-                //释放当前锁
-                lock.unlock();
-            }
-        }
-        log.info("补充更新结束project_host=" + domain + "数据状态");
-    }
-
 }

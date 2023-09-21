@@ -69,7 +69,6 @@ public class ProjectSender {
         if (!CollectionUtils.isEmpty(hostInfoList)) {
             hostCompanyFeign.saveBatch(hostInfoList);
         }
-
         sendToMqtt(project);
     }
 
