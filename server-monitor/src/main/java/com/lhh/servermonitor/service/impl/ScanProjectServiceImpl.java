@@ -1,6 +1,6 @@
 package com.lhh.servermonitor.service.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,6 +14,7 @@ import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.HostCompanyDao;
 import com.lhh.servermonitor.dao.ScanProjectDao;
+import com.lhh.servermonitor.mqtt.MqHoleSender;
 import com.lhh.servermonitor.mqtt.MqIpSender;
 import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.utils.JedisUtils;
@@ -23,6 +24,7 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -60,7 +62,11 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Autowired
     MqIpSender mqIpSender;
     @Autowired
+    MqHoleSender mqHoleSender;
+    @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
     @Autowired
     TmpRedisService tmpRedisService;
     @Value("${mqtt-setting.exchange}")
@@ -108,33 +114,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts())).collect(Collectors.toList());
             List<String> sameHostList = exitHostInfoList.stream().map(HostCompanyEntity::getHost).collect(Collectors.toList());
             List<String> finalSameHostList = sameHostList.stream().distinct().collect(Collectors.toList());
-            Map<String, String> sameHostMap = exitHostInfoList.stream().collect(Collectors.toMap(HostCompanyEntity::getHost, HostCompanyEntity::getScanPorts));
-
-            if (!CollectionUtils.isEmpty(finalSameHostList)) {
-                for (String host : finalSameHostList) {
-                    redisLock.removeProjectRedis(project.getId(), host, sameHostMap.get(host));
-                }
-            }
-            // 保存scan_content数据
-            /*List<ScanProjectContentEntity> exitContentList = scanProjectContentService.getExitHostList(project.getId(), project.getHostList());
-            Map<String, ScanProjectContentEntity> contentMap = exitContentList.stream().collect(Collectors.toMap(ScanProjectContentEntity::getInputHost, Function.identity(), (key1, key2) -> key2));
-            List<ScanProjectContentEntity> updateContentList = new ArrayList<>();
-            for (String host : project.getHostList()) {
-                if (contentMap.containsKey(host)) {
-                    ScanProjectContentEntity content = contentMap.get(host);
-                    if (finalSameHostList.contains(host)) {
-                        content.setIsCompleted(Const.INTEGER_1);
-                        updateContentList.add(content);
-                    }
-                }
-            }
-            // todo
-            if (!CollectionUtils.isEmpty(updateContentList)) {
-//                scanProjectContentService.updateStatus(updateContentList);
-                for (ScanProjectContentEntity content : updateContentList) {
-                    scanProjectContentService.updateById(content);
-                }
-            }*/
 
             // 子域名关联
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
@@ -146,11 +125,19 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).distinct().collect(Collectors.toList());
             exitSubDoMainList.removeAll(exitProjectHostList);
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
-                for (String host : exitSubDoMainList) {
+                for (String subDomain : exitSubDoMainList) {
+                    String domain = RexpUtil.getMajorDomain(subDomain);
                     ScanProjectHostEntity projectHost = ScanProjectHostEntity.builder()
-                            .projectId(project.getId()).host(host).parentDomain(RexpUtil.getMajorDomain(host)).isScanning(Const.INTEGER_0)
+                            .projectId(project.getId()).host(subDomain)
+                            .parentDomain(domain).isScanning(Const.INTEGER_0)
                             .build();
                     saveProjectHostList.add(projectHost);
+
+                    String ports = RexpUtil.isIP(subDomain) ? tmpRedisService.getDomainScanPorts(subDomain) : tmpRedisService.getDomainScanPorts(domain);
+                    ScanParamDto dto = ScanParamDto.builder()
+                            .projectId(project.getId()).domain(domain).subDomain(subDomain).scanPorts(ports)
+                            .build();
+                    mqHoleSender.sendScanningHoleToMqtt(dto);
                 }
             }
             scanProjectHostService.saveBatch(saveProjectHostList);
@@ -159,6 +146,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             Map<String, String> redisMap = new HashMap<>();
             List<String> newIpList = ipList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
+            String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
+            ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
             if (!CollectionUtils.isEmpty(newIpList)) {
                 for (String ip : newIpList) {
                     hostCompanyService.updateCompany(ip);
@@ -176,6 +165,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                                 .subIp(ip)
                                 .scanPorts(project.getScanPorts())
                                 .allPorts(allPorts)
+                                .portTool(redisProject == null ? Const.INTEGER_1 : redisProject.getPortTool())
                                 .build();
                         scanPortParamList.add(dto);
                     }

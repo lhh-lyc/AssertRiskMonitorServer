@@ -7,6 +7,7 @@ import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.servermonitor.config.RabbitMqConfig;
+import com.lhh.servermonitor.controller.RedisLock;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -36,6 +37,8 @@ public class MqIpSender {
 
     @Autowired
     AmqpTemplate amqpTemplate;
+    @Autowired
+    RedisLock redisLock;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -55,6 +58,7 @@ public class MqIpSender {
                 CorrelationData correlationId = new CorrelationData(dto.toString());
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, ipRouteKey, SerializationUtils.serialize(dto), correlationId);
+                redisLock.addDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp());
             }
         } catch (Exception e) {
             reset = true;

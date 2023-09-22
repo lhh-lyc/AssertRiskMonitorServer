@@ -58,9 +58,9 @@ public class CacheConst {
     public final static String REDIS_SCANNING_PROJECT = "SCANNING_PROJECT:%s";
 
     /**
-     * redis key: SCANNING_DOMAIN:
+     * redis key: SCANNING_DOMAIN:projectId:domain
      */
-    public final static String REDIS_SCANNING_DOMAIN = "SCANNING_DOMAIN:%s";
+    public final static String REDIS_SCANNING_DOMAIN = "SCANNING_DOMAIN:%s:%s";
 
     /**
      * redis key: SCANNING_IP:

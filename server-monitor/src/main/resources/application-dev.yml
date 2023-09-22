@@ -71,6 +71,8 @@ mqtt-setting:
   scanning-host-pub-topic: scanningHostData
   ip-route-key: key.ip
   scanning-ip-pub-topic: scanningIpData
-  concurrent_consumers: 3
-  maxConcurrent_consumers: 3
+  hole-route-key: key.hole
+  scanning-hole-pub-topic: scanningHoleData
+  concurrent_consumers: 5
+  maxConcurrent_consumers: 5
   prefetch_count: 1

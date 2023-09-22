@@ -42,8 +42,6 @@ public class ProjectListener {
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
         try {
-            // mq分割project，合并缓存问题
-//            redisLock.saveProjectRedis(project);
             scanProjectService.saveProject(project);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {

@@ -68,6 +68,40 @@ public class ScanHostEntity extends BaseEntity {
      * 是否正在扫描中（0.否 1.是）防止重复扫描
      */
     private Integer isScanning;
+    /**
+     * 项目名称
+     */
+    @TableField(exist = false)
+    private String projectName;
+    /**
+     * 端口
+     */
+    @TableField(exist = false)
+    private String port;
+    /**
+     * 服务
+     */
+    @TableField(exist = false)
+    private String serverName;
+    @TableField(exist = false)
+    private Long userId;
+    @TableField(exist = false)
+    private String userName;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String url;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String title;
+    /**
+     * ip
+     */
+    @TableField(exist = false)
+    private String cms;
 
     @TableField(exist = false)
     private List<String> subIpList;

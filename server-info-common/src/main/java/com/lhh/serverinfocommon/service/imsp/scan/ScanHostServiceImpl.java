@@ -1,18 +1,20 @@
 package com.lhh.serverinfocommon.service.imsp.scan;
 
 import cn.hutool.core.map.MapUtil;
-import com.baomidou.mybatisplus.core.conditions.interfaces.Compare;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.common.request.PageUtil;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
-import com.lhh.serverbase.utils.Query;
+import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverinfocommon.dao.scan.ScanHostDao;
 import com.lhh.serverinfocommon.service.scan.ScanHostService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -42,11 +46,12 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
      */
     @Override
     public IPage<ScanHostEntity> page(Map<String, Object> params) {
-        IPage<ScanHostEntity> page = this.page(
-                new Query<ScanHostEntity>().getPage(params),
-                new QueryWrapper<ScanHostEntity>()
-        );
-        return page;
+        Page<ScanHostEntity> page = PageUtil.getPageParam(params);
+        if (params.get("ip") != null && !StringUtils.isEmpty(MapUtil.getStr(params, "ip"))) {
+            Long ipLong = IpLongUtils.ipToLong(MapUtil.getStr(params, "ip"));
+            params.put("ipLong", ipLong);
+        }
+        return scanHostDao.queryPage(page, params);
     }
 
     /**

@@ -1,7 +1,13 @@
 package com.lhh.serverbase.common.constant;
 
-import java.util.Arrays;
-import java.util.List;
+import com.alibaba.fastjson.JSON;
+import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
+import com.lhh.serverbase.enums.LevelEnum;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Const {
 
@@ -36,10 +42,6 @@ public class Const {
      */
     public final static String STR_SPOT = ".";
     /**
-     * 字符串: OK
-     */
-    public final static String STR_OK = "OK";
-    /**
      * 字符串: _
      */
     public final static String STR_UNDERLINE = "_";
@@ -70,6 +72,14 @@ public class Const {
      */
     public final static String STR_ASTERISK = "*";
     /**
+     * 字符串：%号
+     */
+    public final static String STR_PERCENT = "%";
+    /**
+     * 字符串: OK
+     */
+    public final static String STR_OK = "OK";
+    /**
      * 字符串：udp端口输入前缀
      */
     public final static String STR_U = "U:";
@@ -81,6 +91,8 @@ public class Const {
     public static Long LONG_0 = 0L;
 
     public static Long LONG_3 = 3L;
+
+    public static Integer INTEGER_MINUS_1 = -1;
 
     public static Integer INTEGER_0 = 0;
 
@@ -106,6 +118,8 @@ public class Const {
 
     public static Integer INTEGER_400 = 400;
 
+    public static Integer INTEGER_1000 = 1000;
+
     // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
     public static String STR_SUBFINDER_SUBDOMAIN = "cd %s/subfinder&&./subfinder -d %s -silent";
 
@@ -114,6 +128,41 @@ public class Const {
     public static String STR_NMAP_SERVER = "nmap -p %s %s -sS -Pn";
 
     public static String STR_FINGER = "cd %s/Finger&&python3 Finger.py -u %s -o nothing";
+
+    /**
+     * 新建批量扫描url  工具总目录  选中工具目录  多条（域名+端口\n）字符串  （文件名）projectId+domain字符串
+     */
+    public static String STR_CREATE_URLS = "cd %s&&./urls.sh %s %s %s.txt";
+
+    /**
+     * 删除批量扫描url  选中工具目录/urls  文件名projectId+domain字符串
+     */
+    public static String STR_DEL_URLS = "cd %s&&rm -rf %s.txt";
+
+    /**
+     * 单个扫描 目录 参数 域名+端口
+     */
+    public static String STR_NUCLEI = "cd %s/nuclei&&./nuclei -u %s %s";
+
+    /**
+     * NUCLEI批量扫描 目录 参数 域名+端口
+     */
+    public static String STR_NUCLEI_LIST = "cd %s/nuclei&&./nuclei -list urls/%s.txt %s";
+
+    /**
+     * 目录 参数 url
+     */
+    public static String STR_AFROG = "cd %s/afrog&&./afrog -t %s %s";
+
+    /**
+     * AFROG批量扫描 目录 参数 域名+端口
+     */
+    public static String STR_AFROG_LIST = "cd %s/afrog&&./afrog -T urls/%s.txt %s";
+
+    /**
+     * 目录 参数 域名+端口
+     */
+    public static String STR_XRAY = "cd %s/xray&&./xray_linux_amd64 ws --url %s %s";
 
     /**
      * 需要加入faviconHash.py脚本，自己写的，主要内容是拼接的url:port解析出favicon的hash

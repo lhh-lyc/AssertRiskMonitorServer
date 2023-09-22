@@ -251,7 +251,7 @@
 
     <update id="deleteByIpPort">
         update scan_port set del_flg = 1
-        where ip = #{ip}
+        where ip_long = #{ipLong}
         and port = #{port}
     </update>
 

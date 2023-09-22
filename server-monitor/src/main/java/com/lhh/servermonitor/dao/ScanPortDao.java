@@ -30,6 +30,8 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     List<Integer> queryWebPortList(@Param("domain") String domain);
 
+    List<Integer> queryPortList(@Param("domain") String domain);
+
     List<ScanPortEntity> basicByIpList(@Param("ipList") List<Long> ipList);
 
     void saveBatch(@Param("list") List<ScanPortEntity> list);

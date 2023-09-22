@@ -32,6 +32,8 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     List<Integer> queryWebPortList(String domain);
 
+    List<Integer> queryPortList(String domain);
+
     List<ScanPortEntity> basicList(Map<String, Object> params);
 
     List<ScanPortEntity> basicByIpList(List<Long> ipList);

@@ -38,11 +38,9 @@ public class RexpUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(getMajorDomain("baidu.com"));
         String domainName = "";
         String b = "";
         Boolean flag;
-        System.out.println("u:123".matches(RexpConst.tPortRex));
 //        flag = isMajorDomain("freetyst.vip.migu.cn");
 //        System.out.println(flag);
 //        domainName = "baidu.com";
@@ -201,9 +199,23 @@ public class RexpUtil {
         Matcher matcher = pattern.matcher(domain);
         String result = Const.STR_EMPTY;
         if (matcher.find()) {
-             result = matcher.group(1);
+            result = matcher.group(1);
         }
         result = StringUtils.isEmpty(result) ? Const.STR_CROSSBAR : result;
+        return result;
+    }
+
+    /**
+     * 请求脚本返回，去除颜色代码
+     *
+     * @param str
+     * @return
+     */
+    public static String removeColor(String str) {
+        Pattern pattern = Pattern.compile(RexpConst.colorRex);
+        Matcher matcher = pattern.matcher(str);
+        // 使用空字符串替换颜色代码
+        String result = matcher.replaceAll("");
         return result;
     }
 

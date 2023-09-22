@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.servermonitor.dao.ScanSecurityHoleDao">
+
+    <sql id="baseColumn">
+        id
+        ,
+                    project_id,
+                    domain,
+                    sub_domain,
+                    name,
+                    level,
+                    protocol,
+                    url,
+                    pre_url,
+                    info,
+                    status,
+                    tool_type,
+                    create_id,
+                    create_time,
+                    update_id,
+                    update_time,
+                    del_flg
+    </sql>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_security_hole
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_security_hole
+    </select>
+
+    <select id="basicList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select id,
+        project_id,
+        domain,
+        sub_domain,
+        name,
+        level,
+        protocol,
+        url,
+        pre_url,
+        info,
+        status,
+        tool_type
+        from scan_security_hole
+        where del_flg = 0
+        <if test="projectId != null and projectId != ''">
+            and project_id = #{projectId}
+        </if>
+        <if test="subDomain != null and subDomain != ''">
+            and sub_domain = #{subDomain}
+        </if>
+        <if test="level != null and level != ''">
+            and level = #{level}
+        </if>
+        <if test="levelList != null and levelList.size() > 0">
+            and level IN
+            <foreach collection="levelList" item="level" index="index" separator="," close=")" open="(">
+                #{level}
+            </foreach>
+        </if>
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="statusList != null and statusList.size() > 0">
+            and status IN
+            <foreach collection="statusList" item="status" index="index" separator="," close=")" open="(">
+                #{status}
+            </foreach>
+        </if>
+        <if test="toolType != null and toolType != ''">
+            and tool_type = #{toolType}
+        </if>
+    </select>
+
+
+</mapper>

@@ -67,6 +67,34 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
      */
     private String scanInterval;
     /**
+     * 扫描端口工具（1.masscan 2.nmap）
+     */
+    private Integer portTool;
+    /**
+     * 是否启用nuclei
+     */
+    private Integer nucleiFlag;
+    /**
+     * nuclei自定义参数
+     */
+    private String nucleiParams;
+    /**
+     * 是否启用afrog
+     */
+    private Integer afrogFlag;
+    /**
+     * afrog自定义参数
+     */
+    private String afrogParams;
+    /**
+     * 是否启用xray
+     */
+    private Integer xrayFlag;
+    /**
+     * xray自定义参数
+     */
+    private String xrayParams;
+    /**
      * 备注
      */
     private String remark;

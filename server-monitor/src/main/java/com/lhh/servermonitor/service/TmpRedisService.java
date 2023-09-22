@@ -35,7 +35,7 @@ public class TmpRedisService {
                     scanPorts = StringUtils.isEmpty(hostInfo.getScanPorts()) ? Const.STR_EMPTY : hostInfo.getScanPorts();
                 }
             } catch (Exception e) {
-                log.error(domain + "主域名信息更新报错", e);
+                log.error(domain + "主域名信息查询报错", e);
             } finally {
                 // 判断当前线程是否持有锁
                 if (lock.isHeldByCurrentThread()) {

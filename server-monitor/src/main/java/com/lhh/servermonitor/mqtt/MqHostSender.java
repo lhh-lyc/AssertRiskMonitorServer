@@ -52,13 +52,14 @@ public class MqHostSender {
         Integer num = Const.INTEGER_0;
         try {
             String domain = dtoList.get(0).getHost();
+            Long projectId = dtoList.get(0).getProjectId();
             for (ScanParamDto dto : dtoList) {
                 num++;
                 log.info(dto.getSubDomain() + "域名开始投递");
                 CorrelationData correlationId = new CorrelationData(dto.toString());
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, hostRouteKey, SerializationUtils.serialize(dto), correlationId);
-                redisLock.addDomainRedis(domain, dto.getSubDomain());
+                redisLock.addDomainRedis(projectId, domain, dto.getSubDomain());
             }
         } catch (Exception e) {
             reset = true;

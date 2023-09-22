@@ -135,7 +135,7 @@ public class ScanService {
         } else {
             // 未扫描出子域名或者子域名未解析出ip，主域名结束流程
             log.info(scanDto.getHost() + "没有有效子域名");
-            redisLock.removeProjectRedis(scanDto.getProjectId(), scanDto.getHost(), scanDto.getScanPorts());
+            redisLock.removeProjectRedis(scanDto.getProjectId(), scanDto.getHost());
         }
     }
 

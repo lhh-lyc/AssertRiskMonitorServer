@@ -52,4 +52,9 @@ public class RexpConst {
      */
     public static String titleRex = "<title>(.*?)</title>";
 
+    /**
+     * 去除颜色代码
+     */
+    public static String colorRex = "\\u001B\\[[;\\d]*[ -/]*[@-~]";
+
 }

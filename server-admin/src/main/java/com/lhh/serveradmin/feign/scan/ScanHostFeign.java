@@ -1,5 +1,6 @@
 package com.lhh.serveradmin.feign.scan;
 
+import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.dto.KeyValueDto;
 import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.HostCompanyEntity;
@@ -15,6 +16,9 @@ import java.util.Map;
 
 @FeignClient(value = "infocommon")
 public interface ScanHostFeign {
+
+    @GetMapping("/scan/host/page")
+    IPage<ScanHostEntity> page(@RequestParam Map<String, Object> params);
 
     @PostMapping("/scan/host/getByDomainList")
     List<ScanHostEntity> getByDomainList(@RequestBody List<String> hostList);

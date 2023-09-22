@@ -8,6 +8,7 @@ import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.IpLongUtils;
+import com.lhh.servermonitor.service.ScanHoleService;
 import com.lhh.servermonitor.service.ScanService;
 import com.lhh.servermonitor.service.TmpRedisService;
 import com.lhh.servermonitor.utils.ExecUtil;
@@ -34,6 +35,8 @@ public class test {
     TmpRedisService tmpRedisService;
     @Autowired
     ScanService scanService;
+    @Autowired
+    ScanHoleService scanHoleService;
     @Value("${dir-setting.tool-dir}")
     private String toolDir;
 
@@ -135,6 +138,51 @@ public class test {
     public R nucleiTest(String url){
         List<Map> list = scanService.nucleiTest(url);
         return R.ok(list);
+    }
+
+    @GetMapping("nucleiSingleScan")
+    public R nucleiSingleScan(Long projectId, String domain, String requestUrl, Integer tool, String nucleiParams){
+        scanHoleService.nucleiSingleScan(projectId, domain, requestUrl, tool, nucleiParams);
+        return R.ok();
+    }
+
+    @PostMapping("nucleiAllScan")
+    public R nucleiAllScan(@RequestBody Map<String, Object> params){
+        Long projectId = MapUtil.getLong(params, "projectId");
+        String domain = MapUtil.getStr(params, "domain");
+        List<Integer> portList = (List<Integer>)params.get("portList");
+        Integer tool = MapUtil.getInt(params, "tool");
+        String nucleiParams = MapUtil.getStr(params, "nucleiParams");
+        scanHoleService.nucleiAllScan(projectId, domain, portList, tool, nucleiParams);
+        return R.ok();
+    }
+
+    @GetMapping("afrogSingleScan")
+    public R afrogSingleScan(Long projectId, String domain, String requestUrl, Integer tool, String nucleiParams){
+        scanHoleService.afrogSingleScan(projectId, domain, requestUrl, tool, nucleiParams);
+        return R.ok();
+    }
+
+    @PostMapping("afrogAllScan")
+    public R afrogAllScan(@RequestBody Map<String, Object> params){
+        Long projectId = MapUtil.getLong(params, "projectId");
+        String domain = MapUtil.getStr(params, "domain");
+        List<Integer> portList = (List<Integer>)params.get("portList");
+        Integer tool = MapUtil.getInt(params, "tool");
+        String nucleiParams = MapUtil.getStr(params, "nucleiParams");
+        scanHoleService.afrogAllScan(projectId, domain, portList, tool, nucleiParams);
+        return R.ok();
+    }
+
+    @PostMapping("xrayAllScan")
+    public R xrayAllScan(@RequestBody Map<String, Object> params){
+        Long projectId = MapUtil.getLong(params, "projectId");
+        String domain = MapUtil.getStr(params, "domain");
+        List<Integer> portList = (List<Integer>)params.get("portList");
+        Integer tool = MapUtil.getInt(params, "tool");
+        String nucleiParams = MapUtil.getStr(params, "nucleiParams");
+        scanHoleService.xrayAllScan(projectId, domain, portList, tool, nucleiParams);
+        return R.ok();
     }
 
 }

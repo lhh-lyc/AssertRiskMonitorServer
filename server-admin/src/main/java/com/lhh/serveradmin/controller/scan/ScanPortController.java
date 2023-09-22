@@ -26,6 +26,11 @@ public class ScanPortController {
         return R.ok(scanPortService.page(params));
     }
 
+    @GetMapping("queryPage")
+    public R queryPage(@RequestParam Map<String, Object> params){
+        return R.ok(scanPortService.queryPage(params));
+    }
+
     @PostMapping("delete")
     public R delete(@RequestBody Map<String, Object> params){
         scanPortService.delete(params);

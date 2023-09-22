@@ -62,7 +62,7 @@ public class RedisLock {
         }
     }
 
-    public void removeProjectRedis(Long projectId, String domain, String scanPorts) {
+    public void removeProjectRedis(Long projectId, String domain) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_PROJECT, projectId);
         RLock lock = redisson.getLock(lockKey);
         try {
@@ -83,7 +83,7 @@ public class RedisLock {
                 }
             }
         } catch (Exception e) {
-            log.error("项目" + projectId + "redis移除域名报错", e);
+            log.error("项目" + projectId + "redis删除域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -91,27 +91,26 @@ public class RedisLock {
                 lock.unlock();
             }
         }
-        hostCompanyService.updatePorts(domain, scanPorts);
     }
 
-    public void addDomainRedis(String domain, String subDomain) {
+    public void addDomainRedis(Long projectId, String domain, String subDomain) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN, domain);
         RLock lock = redisson.getLock(lockKey);
         try {
             lock.lock();
-            String subDomains = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain));
+            String subDomains = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain));
             if (!StringUtils.isEmpty(subDomains)) {
                 List<String> list = new ArrayList<>(Arrays.asList(subDomains.split(Const.STR_COMMA)));
                 if (list.contains(subDomain)) {
                     return;
                 }
                 list.add(subDomain);
-                redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain), String.join(Const.STR_COMMA, list));
+                redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain), String.join(Const.STR_COMMA, list));
             } else {
-                redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain), subDomain);
+                redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain), subDomain);
             }
         } catch (Exception e) {
-            log.error(domain + "主域名增加子域名报错", e);
+            log.error(domain + "redis主域名增加子域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -121,28 +120,25 @@ public class RedisLock {
         }
     }
 
-    public void delDomainRedis(List<Long> projectIdList, String domain, String subDomain, String scanPorts) {
+    public void delDomainRedis(Long projectId, String domain, String subDomain, String scanPorts) {
         String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN, domain);
         RLock lock = redisson.getLock(lockKey);
         try {
             lock.lock();
-            String subDomains = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain));
+            String subDomains = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain));
             if (!StringUtils.isEmpty(subDomains)) {
                 List<String> list = new ArrayList<>(Arrays.asList(subDomains.split(Const.STR_COMMA)));
                 list.remove(subDomain);
                 if (CollectionUtils.isEmpty(list)) {
-                    if (!CollectionUtils.isEmpty(projectIdList)) {
-                        for (Long id : projectIdList) {
-                            removeProjectRedis(id, domain, scanPorts);
-                        }
-                    }
-                    redisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain));
+                    removeProjectRedis(projectId, domain);
+                    hostCompanyService.updatePorts(domain, scanPorts);
+                    redisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain));
                 } else {
-                    redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, domain), String.join(Const.STR_COMMA, list));
+                    redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain), String.join(Const.STR_COMMA, list));
                 }
             }
         } catch (Exception e) {
-            log.error(domain + "主域名增加子域名报错", e);
+            log.error(domain + "redis主域名删除子域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {

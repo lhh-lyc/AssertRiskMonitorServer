@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.scan.ScanSecurityHoleDao">
+
+    <sql id="baseColumn">
+        id
+        ,
+                    project_id,
+                    domain,
+                    sub_domain,
+                    name,
+                    level,
+                    protocol,
+                    url,
+                    info,
+                    status,
+                    tool_type,
+                    create_id,
+                    create_time,
+                    update_id,
+                    update_time,
+                    del_flg
+    </sql>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select
+        t1.id, t3.user_name, t1.project_id, t2.`name` as project_name, t1.domain, t1.sub_domain,
+        t1.status, d1.code as status_name, t1.tool_type, d2.code as tool_type_name,
+        t1.name, t1.level, t1.protocol, t1.url, t1.info,
+        case when t1.level = 1 then 'medium' when t1.level = 2 then 'high' else 'critical' end as level_name
+        from scan_security_hole t1
+        join scan_project t2 on t2.id = t1.project_id
+        join sys_user t3 on t3.user_id = t2.user_id and t3.del_flg = 0
+        join sys_dict d1 on d1.`value` = t1.`status` and d1.type = 'hole_status' and d1.del_flg = 0
+        join sys_dict d2 on d2.`value` = t1.`tool_type` and d2.type = 'scan_tool_type' and d2.del_flg = 0
+        where t1.del_flg = 0
+        <if test="params.projectId != null and params.projectId != ''">
+            and t1.project_id = #{params.projectId}
+        </if>
+        <if test="params.domain != null and params.domain != ''">
+            and t1.domain like concat('%', #{params.domain}, '%')
+        </if>
+        <if test="params.subDomain != null and params.subDomain != ''">
+            and t1.sub_domain like concat('%', #{params.subDomain}, '%')
+        </if>
+        <if test="params.name != null and params.name != ''">
+            and t1.name = #{params.name}
+        </if>
+        <if test="params.url != null and params.url != ''">
+            and t1.url = #{params.url}
+        </if>
+        <if test="params.level != null and params.level != ''">
+            and t1.level = #{params.level}
+        </if>
+        <if test="params.levelList != null and params.levelList.size() > 0">
+            and t1.level IN
+            <foreach collection="levelList" item="level" index="index" separator="," close=")" open="(">
+                #{level}
+            </foreach>
+        </if>
+        <if test="params.status != null and params.status != ''">
+            and t1.status = #{params.status}
+        </if>
+        <if test="params.toolType != null and params.toolType != ''">
+            and t1.tool_type = #{params.toolType}
+        </if>
+        order by t1.id
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_security_hole
+    </select>
+
+    <select id="basicList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
+        select id,
+        project_id,
+        domain,
+        sub_domain,
+        name,
+        level,
+        protocol,
+        url,
+        info,
+        status,
+        tool_type
+        from scan_security_hole
+        where del_flg = 0
+        <if test="projectId != null and projectId != ''">
+            and project_id = #{projectId}
+        </if>
+        <if test="subDomain != null and subDomain != ''">
+            and sub_domain = #{subDomain}
+        </if>
+        <if test="level != null and level != ''">
+            and level = #{level}
+        </if>
+        <if test="levelList != null and levelList.size() > 0">
+            and level IN
+            <foreach collection="levelList" item="level" index="index" separator="," close=")" open="(">
+                #{level}
+            </foreach>
+        </if>
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="toolType != null and toolType != ''">
+            and tool_type = #{toolType}
+        </if>
+    </select>
+
+</mapper>

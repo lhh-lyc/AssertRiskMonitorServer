@@ -16,6 +16,71 @@
                     update_id
             </sql>
 
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        SELECT
+            t1.domain,
+            t1.parent_domain,
+            t1.company,
+            case when t1.ip_long = 0 then '-' else INET_NTOA( t1.ip_long ) end AS ip,
+            t1.ip_long,
+            ifnull( t2.PORT, '-' ) as PORT,
+            ifnull( t2.server_name, '-' ) as server_name,
+            t4.NAME AS project_name,
+            ifnull( t5.url, '-' ) AS url,
+            ifnull( t5.title, '-' ) AS title,
+            ifnull( t5.cms, '-' ) AS cms,
+            u.user_id,
+            u.user_name
+        FROM
+            scan_host t1
+                LEFT JOIN scan_port t2 ON t1.ip_long = t2.ip_long
+                AND t2.del_flg = 0
+                LEFT JOIN scan_project_host t3 ON t3.`host` = t1.domain
+                AND t3.del_flg = 0
+                LEFT JOIN scan_project t4 ON t4.id = t3.project_id
+                AND t4.del_flg = 0
+                LEFT JOIN scan_host_port t5 ON t5.domain = t1.domain
+                AND t5.`port` = t2.`port`
+                AND t5.del_flg = 0
+                LEFT JOIN sys_user u ON u.user_id = t4.user_id
+                AND u.del_flg = 0
+        WHERE
+            t1.del_flg = 0
+        <if test="params.projectId != null and params.projectId != ''">
+            and t4.id = #{params.projectId}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            and t4.user_id = #{params.userId}
+        </if>
+        <if test="params.company != null and params.company != ''">
+            and t1.company like concat('%', #{params.company}, '%')
+        </if>
+        <if test="params.parentDomain != null and params.parentDomain != ''">
+            and t1.parent_domain like concat('%', #{params.parentDomain}, '%')
+        </if>
+        <if test="params.domain != null and params.domain != ''">
+            and t1.domain like concat('%', #{params.domain}, '%')
+        </if>
+        <if test="params.ipLong != null and params.ipLong != ''">
+            and t2.ip_long = #{params.ipLong}
+        </if>
+        <if test="params.port != null and params.port != ''">
+            and t2.port like concat('%', #{params.port}, '%')
+        </if>
+        <if test="params.serverName != null and params.serverName != ''">
+            and t2.server_name like concat('%', #{params.serverName}, '%')
+        </if>
+        <if test="params.url != null and params.url != ''">
+            and t5.url like concat('%', #{params.url}, '%')
+        </if>
+        <if test="params.title != null and params.title != ''">
+            and t5.title like concat('%', #{params.title}, '%')
+        </if>
+        <if test="params.cms != null and params.cms != ''">
+            and t5.cms like concat('%', #{params.cms}, '%')
+        </if>
+    </select>
+
     <select id="queryDomainGroupList" resultType="com.lhh.serverbase.dto.ScanResultDto">
         select
         t3.id as project_id,t1.parent_domain, t1.domain, t1.company,INET_NTOA(t1.ip_long) as ip, t1.is_domain, t1.is_major
