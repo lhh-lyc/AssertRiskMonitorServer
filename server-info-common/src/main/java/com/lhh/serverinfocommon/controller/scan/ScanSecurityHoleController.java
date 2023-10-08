@@ -1,7 +1,10 @@
 package com.lhh.serverinfocommon.controller.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
+import com.lhh.serverbase.vo.ScanHoleVo;
+import com.lhh.serverbase.vo.ScanPortVo;
 import com.lhh.serverinfocommon.service.scan.ScanSecurityHoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -96,6 +99,21 @@ public class ScanSecurityHoleController {
     /**
      * 根据条件查询列表数据
      */
+    @GetMapping("exportList")
+    public List<ScanHoleVo> exportList(@RequestParam Map<String, Object> params) {
+        List<ScanHoleVo> scanPortList = scanSecurityHoleService.exportList(params);
+        return scanPortList;
+    }
+
+    @GetMapping("exportNum")
+    public Integer exportNum(@RequestParam Map<String, Object> params) {
+        Integer num = scanSecurityHoleService.exportNum(params);
+        return num;
+    }
+
+    /**
+     * 根据条件查询列表数据
+     */
     @GetMapping("list")
     public List<ScanSecurityHoleEntity> list(@RequestParam Map<String, Object> params) {
         List<ScanSecurityHoleEntity> scanSecurityHoleList = scanSecurityHoleService.list(params);
@@ -106,6 +124,12 @@ public class ScanSecurityHoleController {
     public ScanSecurityHoleEntity getInfo(Long id) {
         ScanSecurityHoleEntity scanSecurityHole = scanSecurityHoleService.getById(id);
         return scanSecurityHole;
+    }
+
+    @GetMapping("getHomeNum")
+    public HomeNumDto queryHomeNum(@RequestParam Map<String, Object> params) {
+        HomeNumDto dto = scanSecurityHoleService.queryHomeNum(params);
+        return dto;
     }
 
 }

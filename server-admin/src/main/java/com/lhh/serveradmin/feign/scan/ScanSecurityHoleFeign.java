@@ -1,16 +1,17 @@
 package com.lhh.serveradmin.feign.scan;
 
-import java.util.Map;
+import com.lhh.serverbase.common.request.IPage;
+import com.lhh.serverbase.dto.HomeNumDto;
+import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
+import com.lhh.serverbase.vo.ScanHoleVo;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
-
-import com.lhh.serverbase.common.request.IPage;
-import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
@@ -88,6 +89,15 @@ public interface ScanSecurityHoleFeign {
 
     @GetMapping("scan/security/hole/info")
     ScanSecurityHoleEntity info(@RequestParam(name = "id") Long id);
+
+    @GetMapping("/scan/security/hole/exportList")
+    List<ScanHoleVo> exportList(@RequestParam Map<String, Object> params);
+
+    @GetMapping("scan/security/hole/exportNum")
+    Integer exportNum(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/security/hole/getHomeNum")
+    HomeNumDto getHomeNum(@RequestParam Map<String, Object> params);
 
 }
 

@@ -1,39 +1,20 @@
 package com.lhh.serveradmin.service;
 
-import cn.hutool.http.HttpUtil;
-import com.alibaba.fastjson2.JSON;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
 import com.lhh.serveradmin.feign.scan.ScanningChangeFeign;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
-import com.lhh.serveradmin.utils.JedisUtils;
-import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.dto.CmsJsonDto;
-import com.lhh.serverbase.dto.FingerprintListDTO;
-import com.lhh.serverbase.entity.CmsJsonEntity;
-import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.entity.NetErrorDataEntity;
-import com.lhh.serverbase.entity.ScanProjectContentEntity;
-import com.lhh.serverbase.utils.CopyUtils;
-import com.lhh.serverbase.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j

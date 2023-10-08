@@ -129,7 +129,7 @@ public class CacheConst {
     public final static String REDIS_NEXT_TASK = "NEXT_TASK";
 
     /**
-     * redis key: REDIS_CMS_JSON_LIST
+     * redis key: REDIS_CMS_JSON
      */
     public final static String REDIS_CMS_JSON = "CMS_JSON";
 

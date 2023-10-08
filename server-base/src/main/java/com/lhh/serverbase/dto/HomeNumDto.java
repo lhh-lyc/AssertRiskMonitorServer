@@ -21,4 +21,8 @@ public class HomeNumDto {
 
     private Integer portNum;
 
+    private Integer urlNum;
+
+    private Integer holeNum;
+
 }

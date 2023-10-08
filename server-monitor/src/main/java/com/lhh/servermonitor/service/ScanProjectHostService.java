@@ -33,5 +33,7 @@ public interface ScanProjectHostService extends IService<ScanProjectHostEntity> 
 
     List<ScanProjectHostEntity> selByProIdAndHost(Long projectId, String host);
 
+    void saveBatch(List<ScanProjectHostEntity> list);
+
 }
 

@@ -41,7 +41,7 @@ public class ScanningHoleListener {
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
             scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
-            redisLock.delDomainRedis(dto.getProjectId(), dto.getSubDomain(), dto.getSubDomain(), dto.getScanPorts());
+            redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

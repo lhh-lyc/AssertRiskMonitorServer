@@ -164,6 +164,12 @@ public class ScanPortController {
         return scanPortList;
     }
 
+    @GetMapping("exportNum")
+    public Integer exportNum(@RequestParam Map<String, Object> params) {
+        Integer num = scanPortService.exportNum(params);
+        return num;
+    }
+
     /**
      * 根据表格字段查询列表
      */

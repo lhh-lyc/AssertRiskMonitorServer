@@ -12,7 +12,6 @@ import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.SysLetterEntity;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;

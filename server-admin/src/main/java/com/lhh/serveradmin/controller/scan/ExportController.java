@@ -4,12 +4,11 @@ import cn.allbs.excel.annotation.ExportExcel;
 import cn.allbs.excel.annotation.Sheet;
 import com.lhh.serveradmin.service.scan.ExportService;
 import com.lhh.serverbase.common.response.R;
-import com.lhh.serverbase.vo.ScanPortVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 @RestController
@@ -30,9 +29,20 @@ public class ExportController {
 
     @ExportExcel(name = "用户资产", sheets = @Sheet(sheetName = "用户资产"))
     @GetMapping("exportPorts")
-    public List<ScanPortVo> exportPorts(@RequestParam Map<String, Object> params){
-        List<ScanPortVo> list = exportService.exportPorts(params);
-        return list;
+    public void exportPorts(@RequestParam Map<String, Object> params, HttpServletResponse response){
+        exportService.exportPorts(params, response);
+    }
+
+    @ExportExcel(name = "漏洞资产", sheets = @Sheet(sheetName = "漏洞资产"))
+    @GetMapping("exportHoles")
+    public void exportHoles(@RequestParam Map<String, Object> params, HttpServletResponse response){
+        exportService.exportHoles(params, response);
+    }
+
+    @ExportExcel(name = "漏洞资产", sheets = @Sheet(sheetName = "漏洞资产"))
+    @GetMapping("uploadHoles")
+    public void uploadHoles(@RequestParam Map<String, Object> params){
+        exportService.uploadHoles(params);
     }
 
 }

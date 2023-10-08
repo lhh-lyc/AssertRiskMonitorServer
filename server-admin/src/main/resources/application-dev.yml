@@ -57,3 +57,12 @@ mqtt-setting:
   reIp-pub-topic: reScanIp
   sub-num: 1
   re-sub-num: 1
+
+my-config:
+  minio:
+    endpoint: http://49.235.104.19:9000
+    accesskey: minioadmin
+    secretkey: minioadmin
+  upload:
+    defFolder: def
+    defBucket: assertfiles

@@ -1,17 +1,14 @@
 package com.lhh.serveradmin.service.sys;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lhh.serveradmin.feign.sys.SysMenuFeign;
 import com.lhh.serverbase.dto.MenuDto;
 import com.lhh.serverbase.entity.SysMenuEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class SysMenuService {

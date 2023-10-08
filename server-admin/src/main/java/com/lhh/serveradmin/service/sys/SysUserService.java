@@ -1,7 +1,6 @@
 package com.lhh.serveradmin.service.sys;
 
 import cn.hutool.core.map.MapUtil;
-import com.lhh.serveradmin.feign.sys.SysRoleFeign;
 import com.lhh.serveradmin.feign.sys.SysUserFeign;
 import com.lhh.serveradmin.feign.sys.SysUserRoleFeign;
 import com.lhh.serveradmin.jwt.common.ResponseCodeEnum;
@@ -10,7 +9,6 @@ import com.lhh.serveradmin.jwt.config.PassJavaJwtProperties;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
-import com.lhh.serverbase.entity.SysRoleEntity;
 import com.lhh.serverbase.entity.SysUserEntity;
 import com.lhh.serverbase.entity.SysUserRoleEntity;
 import com.lhh.serverbase.utils.MD5;

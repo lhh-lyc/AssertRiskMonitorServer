@@ -66,7 +66,7 @@ public class ScanPortVo {
      * port
      */
     @ExcelProperty("端口")
-    private Integer port;
+    private String port;
     /**
      * 端口对应的server
      */

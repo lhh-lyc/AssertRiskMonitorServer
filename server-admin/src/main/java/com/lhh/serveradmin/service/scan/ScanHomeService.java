@@ -12,11 +12,9 @@ import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.dto.GroupTagDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.dto.KeyValueDto;
-import com.lhh.serverbase.dto.ScanResultDto;
 import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.serverbase.utils.HttpContextUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +36,8 @@ public class ScanHomeService {
     ScanHostFeign scanHostFeign;
     @Autowired
     ScanPortFeign scanPortFeign;
+    @Autowired
+    ScanSecurityHoleFeign scanSecurityHoleFeign;
     @Autowired
     ScanAddRecordFeign scanAddRecordFeign;
     @Resource
@@ -73,11 +73,11 @@ public class ScanHomeService {
                 break;
             case 7:
                 numDto = scanPortFeign.getHomeNum(params);
-                result = new HashMap<String, Object>(){{put("title", "网站");put("num", numDto.getPortNum());put("type", type);}};
+                result = new HashMap<String, Object>(){{put("title", "网站");put("num", numDto.getUrlNum());put("type", type);}};
                 break;
             case 8:
-                numDto = scanPortFeign.getHomeNum(params);
-                result = new HashMap<String, Object>(){{put("title", "漏洞");put("num", numDto.getPortNum());put("type", type);}};
+                numDto = scanSecurityHoleFeign.getHomeNum(params);
+                result = new HashMap<String, Object>(){{put("title", "漏洞");put("num", numDto.getHoleNum());put("type", type);}};
                 break;
             case 9:
                 List<ScanProjectContentEntity> contentList = scanProjectContentFeign.list(params);

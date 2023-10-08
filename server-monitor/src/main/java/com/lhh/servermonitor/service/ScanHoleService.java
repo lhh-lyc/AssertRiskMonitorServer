@@ -137,6 +137,7 @@ public class ScanHoleService {
             e.printStackTrace();
         }
         String outStr = RexpUtil.removeColor(response.getOut());
+        log.info("项目" + projectId + Const.STR_COLON + domain + "---nuclei漏洞扫描响应：" + response.getOut());
         nucleiScan(projectId, domain, tool, outStr, levelList);
         log.info("项目" + projectId + Const.STR_COLON + domain + "---nuclei漏洞扫描结束");
     }
@@ -248,6 +249,7 @@ public class ScanHoleService {
             e.printStackTrace();
         }
         String outStr = RexpUtil.removeColor(response.getOut());
+        log.info("项目" + projectId + Const.STR_COLON + domain + "---afrog漏洞扫描响应：" + response.getOut());
         afrogScan(projectId, domain, tool, outStr, levelList);
         log.info("项目" + projectId + Const.STR_COLON + domain + "---afrog漏洞扫描结束");
     }

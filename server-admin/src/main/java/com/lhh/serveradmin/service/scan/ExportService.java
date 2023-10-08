@@ -5,8 +5,10 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanPortFeign;
+import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
+import com.lhh.serveradmin.service.FileService;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.common.request.IPage;
+import com.lhh.serverbase.common.constant.ExcelConstant;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
@@ -14,15 +16,20 @@ import com.lhh.serverbase.utils.ImportExcelUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
+import com.lhh.serverbase.vo.ScanHoleVo;
 import com.lhh.serverbase.vo.ScanPortVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,10 +39,21 @@ import java.util.stream.Collectors;
 @Service
 public class ExportService {
 
+    @Value("${my-config.upload.defFolder}")
+    private String defFolder;
+
+    @Value("${my-config.upload.defBucket}")
+    private String defBucket;
+
+    @Autowired
+    private FileService fileService;
+
     @Autowired
     ScanHostFeign scanHostFeign;
     @Autowired
     ScanPortFeign scanPortFeign;
+    @Autowired
+    ScanSecurityHoleFeign scanSecurityHoleFeign;
 
     public R upload(MultipartFile file) {
         Map<String, List<List<String>>> excelDataMap = ImportExcelUtils.readExcel(file, 1, 0, 0);
@@ -209,9 +227,150 @@ public class ExportService {
         return R.ok();
     }
 
-    public List<ScanPortVo> exportPorts(Map<String, Object> params) {
-        List<ScanPortVo> list = scanPortFeign.exportList(params);
-        return list;
+    public void exportPorts(Map<String, Object> params, HttpServletResponse response) {
+        ExcelWriter excelWriter = null;
+        ServletOutputStream out = null;
+        try {
+            out = response.getOutputStream();
+            String fileName =  "repeatedWrite" + System.currentTimeMillis() + ".xlsx";
+            excelWriter = EasyExcel.write(out, ScanPortVo.class).build();
+
+            //  查询总数并封装相关变量(这块直接拷贝就行了不要改)
+            Integer totalRowCount = scanPortFeign.exportNum(params);
+            Integer perSheetRowCount = ExcelConstant.PER_SHEET_ROW_COUNT;
+            Integer pageSize = ExcelConstant.PER_WRITE_ROW_COUNT;
+            Integer sheetCount = totalRowCount % perSheetRowCount == 0 ? (totalRowCount / perSheetRowCount) : (totalRowCount / perSheetRowCount + 1);
+            Integer previousSheetWriteCount = perSheetRowCount / pageSize;
+            Integer lastSheetWriteCount = totalRowCount % perSheetRowCount == 0 ?
+                    previousSheetWriteCount :
+                    (totalRowCount % perSheetRowCount % pageSize == 0 ? totalRowCount % perSheetRowCount / pageSize : (totalRowCount % perSheetRowCount / pageSize + 1));
+
+            for (int i = 0; i < sheetCount; i++) {
+                //  创建SHEET
+                WriteSheet writeSheet = EasyExcel.writerSheet("sheet"+i).build();
+
+                //  写数据  这个j的最大值判断直接拷贝就行了，不要改动
+                for (int j = 0; j < (i != sheetCount - 1 ? previousSheetWriteCount : lastSheetWriteCount); j++) {
+                    params.put("page", j + 1 + previousSheetWriteCount * i);
+                    params.put("limit", pageSize);
+                    List<ScanPortVo> portList = scanPortFeign.exportList(params);
+                    excelWriter.write(portList, writeSheet);
+                }
+            }
+            //  下载EXCEL
+            response.setHeader("Content-Disposition", "attachment;filename=" + new String((fileName).getBytes("gb2312"), "ISO-8859-1"));
+            response.setContentType("multipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            excelWriter.finish();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void exportHoles(Map<String, Object> params, HttpServletResponse response) {
+        ExcelWriter excelWriter = null;
+        ServletOutputStream out = null;
+        try {
+            out = response.getOutputStream();
+            String fileName =  "repeatedWrite" + System.currentTimeMillis() + ".xlsx";
+            excelWriter = EasyExcel.write(out, ScanHoleVo.class).build();
+
+            //  查询总数并封装相关变量(这块直接拷贝就行了不要改)
+            Integer totalRowCount = scanSecurityHoleFeign.exportNum(params);
+            Integer perSheetRowCount = ExcelConstant.PER_SHEET_ROW_COUNT;
+            Integer pageSize = ExcelConstant.PER_WRITE_ROW_COUNT;
+            Integer sheetCount = totalRowCount % perSheetRowCount == 0 ? (totalRowCount / perSheetRowCount) : (totalRowCount / perSheetRowCount + 1);
+            Integer previousSheetWriteCount = perSheetRowCount / pageSize;
+            Integer lastSheetWriteCount = totalRowCount % perSheetRowCount == 0 ?
+                    previousSheetWriteCount :
+                    (totalRowCount % perSheetRowCount % pageSize == 0 ? totalRowCount % perSheetRowCount / pageSize : (totalRowCount % perSheetRowCount / pageSize + 1));
+
+            for (int i = 0; i < sheetCount; i++) {
+                //  创建SHEET
+                WriteSheet writeSheet = EasyExcel.writerSheet("sheet"+i).build();
+
+                //  写数据  这个j的最大值判断直接拷贝就行了，不要改动
+                for (int j = 0; j < (i != sheetCount - 1 ? previousSheetWriteCount : lastSheetWriteCount); j++) {
+                    params.put("page", j + 1 + previousSheetWriteCount * i);
+                    params.put("limit", pageSize);
+                    List<ScanHoleVo> portList = scanSecurityHoleFeign.exportList(params);
+                    excelWriter.write(portList, writeSheet);
+                }
+            }
+            //  下载EXCEL
+            response.setHeader("Content-Disposition", "attachment;filename=" + new String((fileName).getBytes("gb2312"), "ISO-8859-1"));
+            response.setContentType("multipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            excelWriter.finish();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void uploadHoles(Map<String, Object> params) {
+        ExcelWriter excelWriter = null;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            String fileName =  "repeatedWrite" + System.currentTimeMillis() + ".xlsx";
+            excelWriter = EasyExcel.write(out, ScanHoleVo.class).build();
+
+            //  查询总数并封装相关变量(这块直接拷贝就行了不要改)
+            Integer totalRowCount = scanSecurityHoleFeign.exportNum(params);
+            Integer perSheetRowCount = ExcelConstant.PER_SHEET_ROW_COUNT;
+            Integer pageSize = ExcelConstant.PER_WRITE_ROW_COUNT;
+            Integer sheetCount = totalRowCount % perSheetRowCount == 0 ? (totalRowCount / perSheetRowCount) : (totalRowCount / perSheetRowCount + 1);
+            Integer previousSheetWriteCount = perSheetRowCount / pageSize;
+            Integer lastSheetWriteCount = totalRowCount % perSheetRowCount == 0 ?
+                    previousSheetWriteCount :
+                    (totalRowCount % perSheetRowCount % pageSize == 0 ? totalRowCount % perSheetRowCount / pageSize : (totalRowCount % perSheetRowCount / pageSize + 1));
+
+            for (int i = 0; i < sheetCount; i++) {
+                //  创建SHEET
+                WriteSheet writeSheet = EasyExcel.writerSheet("sheet"+i).build();
+
+                //  写数据  这个j的最大值判断直接拷贝就行了，不要改动
+                for (int j = 0; j < (i != sheetCount - 1 ? previousSheetWriteCount : lastSheetWriteCount); j++) {
+                    params.put("page", j + 1 + previousSheetWriteCount * i);
+                    params.put("limit", pageSize);
+                    List<ScanHoleVo> portList = scanSecurityHoleFeign.exportList(params);
+                    excelWriter.write(portList, writeSheet);
+                }
+            }
+            excelWriter.finish();
+//            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(out.toByteArray());
+//            // 文件真实物理存放路径
+//            fileService.uploadFile(defBucket, byteArrayInputStream, "test1.xlsx", defFolder);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

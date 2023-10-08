@@ -92,11 +92,18 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
 
     @Override
     public List<ScanPortVo> exportList(Map<String, Object> params) {
+        Page<ScanPortVo> page = PageUtil.getPageParam(params);
         if (params.get("ip") != null && !StringUtils.isEmpty(MapUtil.getStr(params, "ip"))) {
             Long ipLong = IpLongUtils.ipToLong(MapUtil.getStr(params, "ip"));
             params.put("ipLong", ipLong);
         }
-        return scanPortDao.exportList(params);
+        IPage<ScanPortVo> p = scanPortDao.exportList(page, params);
+        return p.getRecords();
+    }
+
+    @Override
+    public Integer exportNum(Map<String, Object> params) {
+        return scanPortDao.exportNum(params);
     }
 
     @Override

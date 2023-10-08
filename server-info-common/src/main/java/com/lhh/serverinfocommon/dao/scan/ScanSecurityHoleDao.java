@@ -3,7 +3,9 @@ package com.lhh.serverinfocommon.dao.scan;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
+import com.lhh.serverbase.vo.ScanHoleVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,6 +30,10 @@ public interface ScanSecurityHoleDao extends BaseMapper<ScanSecurityHoleEntity> 
      */
     IPage<ScanSecurityHoleEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
 
+    IPage<ScanHoleVo> exportList(Page page, @Param("params") Map<String, Object> params);
+
+    Integer exportNum(@Param("params") Map<String, Object> params);
+
     /**
      * 查询用户列表
      *
@@ -37,5 +43,7 @@ public interface ScanSecurityHoleDao extends BaseMapper<ScanSecurityHoleEntity> 
     List<ScanSecurityHoleEntity> queryList(Map<String, Object> params);
 
     List<ScanSecurityHoleEntity> basicList(Map<String, Object> params);
+
+    HomeNumDto queryHomeNum(Map<String, Object> params);
 
 }

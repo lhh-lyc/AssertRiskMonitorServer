@@ -45,7 +45,9 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     IPage<ScanPortEntity> page(Page page, @Param("params") Map<String, Object> params);
 
-    List<ScanPortVo> exportList(@Param("params") Map<String, Object> params);
+    IPage<ScanPortVo> exportList(Page page, @Param("params") Map<String, Object> params);
+
+    Integer exportNum(@Param("params") Map<String, Object> params);
 
     void deleteByIpPort(Map<String, Object> params);
 

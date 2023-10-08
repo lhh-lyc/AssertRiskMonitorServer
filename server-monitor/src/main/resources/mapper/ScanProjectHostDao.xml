@@ -10,4 +10,13 @@
         and host = #{domain}
     </select>
 
+    <insert id="saveBatch">
+        insert scan_project_host
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.projectId},#{host.host},#{host.parentDomain},#{host.isScanning}
+            1,#{host.createTime},1,#{host.updateTime},0)
+        </foreach>
+    </insert>
+
 </mapper>

@@ -78,4 +78,9 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
         return list;
     }
 
+    @Override
+    public void saveBatch(List<ScanProjectHostEntity> list) {
+        scanProjectHostDao.saveBatch(list);
+    }
+
 }

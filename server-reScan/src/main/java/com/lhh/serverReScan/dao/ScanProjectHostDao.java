@@ -16,8 +16,6 @@ import java.util.List;
 @Mapper
 public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
-    void updateEndScanDomain(@Param("domain") String domain);
-
     ScanProjectHostEntity queryByHost(@Param("domain") String domain);
 
     List<ScanProjectHostEntity> queryByHostList(@Param("hostList") List<String> hostList);

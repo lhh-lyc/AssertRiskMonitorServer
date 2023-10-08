@@ -121,8 +121,10 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 put("projectId", project.getId());
             }});
             List<String> exitProjectHostList = exitProjectHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
+            // 按已存在的主域名，查询已存在的子域名列表
             List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalSameHostList);
             List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).distinct().collect(Collectors.toList());
+            // 去掉主域名
             exitSubDoMainList.removeAll(exitProjectHostList);
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String subDomain : exitSubDoMainList) {

@@ -38,7 +38,7 @@ public class MqHoleSender {
             log.info(dto.getSubDomain() + "已扫描漏洞子域名开始投递");
             CorrelationData correlationId = new CorrelationData(dto.getProjectId() + Const.STR_COLON + dto.getSubDomain());
             rabbitTemplate.convertAndSend(exchange, holeRouteKey, SerializationUtils.serialize(dto), correlationId);
-            redisLock.addDomainRedis(dto.getProjectId(), dto.getSubDomain(), dto.getSubDomain());
+            redisLock.addDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain());
         } catch (Exception e) {
             log.error(String.format("推送已扫描端口域名失败：项目%s_子域名%s", dto.getProjectId(), dto.getSubDomain()) + e);
         }

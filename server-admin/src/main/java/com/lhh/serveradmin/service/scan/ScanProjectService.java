@@ -1,7 +1,5 @@
 package com.lhh.serveradmin.service.scan;
 
-import cn.hutool.core.date.DateUnit;
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
@@ -9,29 +7,23 @@ import com.lhh.serveradmin.feign.scan.ScanProjectFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectHostFeign;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.mqtt.ProjectSender;
-import com.lhh.serveradmin.service.sys.SysUserService;
 import com.lhh.serveradmin.utils.JedisUtils;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
-import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -63,10 +55,10 @@ public class ScanProjectService {
         project.setUserId(userId);
         List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().replace(" ", "").split(Const.STR_LINEFEED)));
         project.setHostList(hostList);
-        project = scanProjectFeign.save(project);
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
         List<String> validHostList = new ArrayList<>();
         List<String> notValidHostList = new ArrayList<>();
+        Boolean isSubFlag = false;
         Boolean isValid;
         if (!CollectionUtils.isEmpty(hostList)) {
             for (String host : hostList) {
@@ -90,16 +82,27 @@ public class ScanProjectService {
                     }
                 }
                 if (isValid) {
+                    if (!host.equals(RexpUtil.getMajorDomain(host))) {
+                        isSubFlag = true;
+                        break;
+                    }
                     validHostList.add(host);
                 } else {
                     notValidHostList.add(host);
                 }
                 ScanProjectContentEntity content = ScanProjectContentEntity.builder()
-                        .projectId(project.getId()).inputHost(host).parentDomain(RexpUtil.getMajorDomain(host))
+                        .inputHost(host).parentDomain(RexpUtil.getMajorDomain(host))
                         .scanPorts(project.getScanPorts()).isCompleted(isCompleted)
                         .isTop(isTop).unknownTop(unknownTop)
                         .build();
                 saveContentList.add(content);
+            }
+            if (isSubFlag) {
+                return R.error("扫描仅支持输入主域名！");
+            }
+            project = scanProjectFeign.save(project);
+            for (ScanProjectContentEntity content : saveContentList) {
+                content.setProjectId(project.getId());
             }
             scanProjectContentFeign.saveBatch(saveContentList);
         }

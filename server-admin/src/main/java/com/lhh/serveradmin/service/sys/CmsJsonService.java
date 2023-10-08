@@ -1,6 +1,5 @@
 package com.lhh.serveradmin.service.sys;
 
-import com.alibaba.fastjson.JSONArray;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.request.IPage;

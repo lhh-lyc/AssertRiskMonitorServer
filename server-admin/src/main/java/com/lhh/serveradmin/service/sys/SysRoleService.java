@@ -6,7 +6,6 @@ import com.lhh.serveradmin.feign.sys.SysRoleMenuFeign;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.entity.SysRoleEntity;
 import com.lhh.serverbase.entity.SysRoleMenuEntity;
-import com.lhh.serverbase.entity.SysUserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

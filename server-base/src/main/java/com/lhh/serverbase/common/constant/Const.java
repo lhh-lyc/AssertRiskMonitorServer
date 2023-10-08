@@ -84,6 +84,27 @@ public class Const {
      */
     public final static String STR_U = "U:";
     /**
+     * 字符串：B
+     */
+    public final static String STR_B = "B";
+    /**
+     * 字符串：K
+     */
+    public final static String STR_K = "K";
+    /**
+     * 字符串：M
+     */
+    public final static String STR_M = "M";
+    /**
+     * 字符串：G
+     */
+    public final static String STR_G = "G";
+
+    /**
+     * 字符串：utf-8
+     */
+    public final static String STR_UTF8 = "utf-8";
+    /**
      * 字符串：\n 换行
      */
     public final static String STR_LINEFEED = "\n";

@@ -69,7 +69,6 @@ public class RedisLock {
             lock.lock();
             String projectStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, projectId));
             if (!StringUtils.isEmpty(projectStr)) {
-                log.info("项目" + projectId + "移除" + domain + "前数据：" + projectStr);
                 ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
                 List<String> list = redisProject.getHostList();
                 list.remove(domain);
@@ -110,7 +109,7 @@ public class RedisLock {
                 redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN, projectId, domain), subDomain);
             }
         } catch (Exception e) {
-            log.error(domain + "redis主域名增加子域名报错", e);
+            log.error(domain + ":redis主域名增加子域名报错", e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {

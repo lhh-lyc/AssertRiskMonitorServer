@@ -35,6 +35,9 @@ public interface ScanPortFeign {
     @GetMapping("/scan/port/exportList")
     List<ScanPortVo> exportList(@RequestParam Map<String, Object> params);
 
+    @GetMapping("/scan/port/exportNum")
+    Integer exportNum(@RequestParam Map<String, Object> params);
+
     @PostMapping("/scan/port/saveBatch")
     void saveBatch(@RequestBody List<ScanPortEntity> scanPortList);
 
