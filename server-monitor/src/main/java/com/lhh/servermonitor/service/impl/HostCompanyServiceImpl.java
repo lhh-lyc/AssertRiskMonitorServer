@@ -144,7 +144,7 @@ public class HostCompanyServiceImpl extends ServiceImpl<HostCompanyDao, HostComp
             HostCompanyEntity hostInfo = JSON.parseObject(value, HostCompanyEntity.class);
             return StringUtils.isEmpty(hostInfo.getCompany()) ? Const.STR_EMPTY : hostInfo.getCompany();
         }
-        return Const.STR_EMPTY;
+        return Const.STR_CROSSBAR;
     }
 
     @Override

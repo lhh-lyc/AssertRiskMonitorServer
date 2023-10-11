@@ -134,7 +134,7 @@ public class ScanningHostListener {
                                 .parentDomain(parentDomain)
                                 .domain(dto.getSubDomain())
                                 .ip(ip).ipLong(ipLong)
-                                .company(StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company)
+                                .company(company)
                                 .type(Const.INTEGER_3)
                                 .isMajor(RexpUtil.isMajorDomain(dto.getSubDomain()) ? Const.INTEGER_1 : Const.INTEGER_0)
                                 .isDomain(Const.INTEGER_1)

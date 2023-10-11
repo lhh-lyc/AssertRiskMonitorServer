@@ -1,10 +1,12 @@
 package com.lhh.serveradmin.service.scan;
 
+import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectFeign;
 import com.lhh.serveradmin.feign.scan.ScanProjectHostFeign;
+import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.mqtt.ProjectSender;
 import com.lhh.serveradmin.utils.JedisUtils;
@@ -12,6 +14,7 @@ import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.entity.ScanProjectContentEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
@@ -38,6 +41,8 @@ public class ScanProjectService {
     ScanProjectHostFeign scanProjectHostFeign;
     @Autowired
     ScanProjectContentFeign scanProjectContentFeign;
+    @Autowired
+    ScanSecurityHoleFeign scanSecurityHoleFeign;
     @Autowired
     ProjectSender projectSender;
     @Resource
@@ -120,12 +125,18 @@ public class ScanProjectService {
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
         IPage<ScanProjectEntity> page = scanProjectFeign.basicPage(params);
         List<Long> projectIdList = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
-        List<ScanProjectEntity> numList = scanProjectFeign.getProjectPortNum(projectIdList);
-        Map<Long, Integer> maps = numList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
-        params.put("projectIds", projectIdList);
-        List<ScanProjectContentEntity> contentList = CollectionUtils.isEmpty(projectIdList) ? new ArrayList<>() : scanProjectContentFeign.list(params);
-        Map<Long, List<ScanProjectContentEntity>> contentMap = contentList.stream().collect(Collectors.groupingBy(ScanProjectContentEntity::getProjectId));
-        Date now = new Date();
+        Map<Long, Integer> maps = new HashMap<>();
+        Map<Long, List<ScanProjectContentEntity>> contentMap = new HashMap<>();
+        Map<Long, HoleNumDto> holeMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(projectIdList)) {
+            List<ScanProjectEntity> numList = scanProjectFeign.getProjectPortNum(projectIdList);
+            maps = numList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
+            params.put("projectIds", projectIdList);
+            List<ScanProjectContentEntity> contentList = CollectionUtils.isEmpty(projectIdList) ? new ArrayList<>() : scanProjectContentFeign.list(params);
+            contentMap = contentList.stream().collect(Collectors.groupingBy(ScanProjectContentEntity::getProjectId));
+            List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
+            holeMap = holeList.stream().collect(Collectors.toMap(HoleNumDto::getProjectId, obj -> obj, (key1, key2) -> key1));
+        }
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
                 Integer portNum = maps.get(project.getId());
@@ -134,17 +145,23 @@ public class ScanProjectService {
                 List<ScanProjectContentEntity> scannedList = allList.stream().filter(c -> Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
                 project.setAllHostNum(allList.size());
                 project.setScannedHostNum(scannedList.size());
+
+                HoleNumDto dto = holeMap.get(project.getId());
+                if (dto != null) {
+                    project.setMediumNum(dto.getMediumNum());
+                    project.setHighNum(dto.getHighNum());
+                    project.setCriticalNum(dto.getCriticalNum());
+                } else {
+                    project.setMediumNum(Const.INTEGER_0);
+                    project.setHighNum(Const.INTEGER_0);
+                    project.setCriticalNum(Const.INTEGER_0);
+                }
                 String projectStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
                 if (!StringUtils.isEmpty(projectStr)) {
                     project.setIsCompleted(Const.INTEGER_0);
                 } else {
                     project.setIsCompleted(Const.INTEGER_1);
                 }
-                /*Long second = DateUtil.between(project.getCreateTime(), now, DateUnit.SECOND);
-                // 小于三秒，防止刚建任务就显示扫描完成
-                if (second < Const.LONG_3) {
-                    project.setIsCompleted(Const.INTEGER_0);
-                }*/
             }
         }
         return page;

@@ -1,6 +1,7 @@
 package com.lhh.serveradmin.feign.scan;
 
 import com.lhh.serverbase.common.request.IPage;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
 import com.lhh.serverbase.vo.ScanHoleVo;
@@ -98,6 +99,9 @@ public interface ScanSecurityHoleFeign {
 
     @GetMapping("/scan/security/hole/getHomeNum")
     HomeNumDto getHomeNum(@RequestParam Map<String, Object> params);
+
+    @GetMapping("/scan/security/hole/queryHoleNum")
+    List<HoleNumDto> queryHoleNum(@RequestParam Map<String, Object> params);
 
 }
 

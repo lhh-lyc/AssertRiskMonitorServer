@@ -4,7 +4,6 @@ import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.JwtConst;
 import com.lhh.serverbase.dto.FileInfoDTO;
 import com.lhh.serverbase.utils.FileUtils;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
 import io.minio.Result;
@@ -68,7 +67,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public boolean bucketExists(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public boolean bucketExists(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().bucketExists(bucketName);
     }
 
@@ -93,35 +92,12 @@ public class MinioUtils {
      * @throws InsufficientDataException
      * @throws ErrorResponseException
      */
-    public void uploadFile(String bucketName, String targetName, InputStream stream, String sourceFileName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public void uploadFile(String bucketName, String targetName, InputStream stream, String sourceFileName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, NoResponseException, InvalidBucketNameException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         HashMap<String, String> map = new HashMap<>();
         map.put("sourceFileName", sourceFileName);
         MinioClient client = getClient();
         client.putObject(bucketName, targetName, stream, null, map, null, null);
     }
-
-    /**
-     * 获取文件访问链接
-     *
-     * @param bucketName 文件桶
-     * @param targetName 文件名称
-     * @return
-     * @throws InvalidPortException
-     * @throws InvalidEndpointException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws InsufficientDataException
-     * @throws InternalException
-     * @throws NoResponseException
-     * @throws InvalidBucketNameException
-     * @throws XmlPullParserException
-     * @throws ErrorResponseException
-     */
-    public String getFileUrl(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
-        return getClient().getObjectUrl(bucketName, targetName);
-    }
-
 
     /**
      * 获取文件流
@@ -142,7 +118,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public InputStream getFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public InputStream getFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         return getClient().getObject(bucketName, targetName);
     }
 
@@ -164,7 +140,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public void deleteFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public void deleteFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         getClient().removeObject(bucketName, targetName);
     }
 
@@ -186,7 +162,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public Iterable<Result<DeleteError>> deleteFiles(String bucketName, List<String> targetNames) throws InvalidPortException, InvalidEndpointException {
+    public Iterable<Result<DeleteError>> deleteFiles(String bucketName, List<String> targetNames) {
         Iterable<Result<DeleteError>> results = null;
         try {
             results = getClient().removeObjects(bucketName, targetNames);
@@ -194,30 +170,6 @@ public class MinioUtils {
             e.printStackTrace();
         }
         return results;
-    }
-
-    /**
-     * 复制文件
-     *
-     * @param bucketName     现文件所在桶
-     * @param targetName     现文件名称
-     * @param destBucketName 复制目标文件所在桶
-     * @param destTargetName 复制目标文件名称
-     * @throws InvalidPortException
-     * @throws InvalidEndpointException
-     * @throws IOException
-     * @throws XmlPullParserException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws InvalidArgumentException
-     * @throws InternalException
-     * @throws NoResponseException
-     * @throws InvalidBucketNameException
-     * @throws InsufficientDataException
-     * @throws ErrorResponseException
-     */
-    public void copyFile(String bucketName, String targetName, String destBucketName, String destTargetName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
-        getClient().copyObject(bucketName, targetName, destBucketName, destTargetName);
     }
 
     /**
@@ -238,7 +190,7 @@ public class MinioUtils {
      * @throws InsufficientDataException
      * @throws ErrorResponseException
      */
-    public FileInfoDTO fileDetail(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InvalidArgumentException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public FileInfoDTO fileDetail(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         ObjectStat objectStat = getClient().statObject(bucketName, targetName);
         FileInfoDTO fileInfoDTO = new FileInfoDTO();
         fileInfoDTO.setBucketName(objectStat.bucketName());
@@ -299,32 +251,8 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public String temporaryDownloadURL(String bucketName, String targetName, Integer expires, Map<String, String> requestHeader) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidExpiresRangeException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public String temporaryDownloadURL(String bucketName, String targetName, Integer expires, Map<String, String> requestHeader) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidExpiresRangeException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().presignedGetObject(bucketName, targetName, expires, requestHeader);
-    }
-
-    /**
-     * 临时上传文件链接 注:生成的链接需要使用 HTTP PUT方式
-     *
-     * @param bucketName 文件桶
-     * @param targetName 文件名
-     * @param expires    过期时间 单位秒
-     * @return
-     * @throws InvalidPortException
-     * @throws InvalidEndpointException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws InsufficientDataException
-     * @throws InvalidExpiresRangeException
-     * @throws InternalException
-     * @throws NoResponseException
-     * @throws InvalidBucketNameException
-     * @throws XmlPullParserException
-     * @throws ErrorResponseException
-     */
-    public String temporaryUploadURL(String bucketName, String targetName, Integer expires) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidExpiresRangeException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
-        return getClient().presignedPutObject(bucketName, targetName, expires);
     }
 
     /**
@@ -344,47 +272,8 @@ public class MinioUtils {
      * @throws InternalException
      * @throws RegionConflictException
      */
-    public void createBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, ErrorResponseException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException, RegionConflictException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public void createBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, ErrorResponseException, NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         getClient().makeBucket(bucketName);
     }
 
-    /**
-     * 现有的bucket列表
-     *
-     * @return
-     * @throws InvalidPortException
-     * @throws InvalidEndpointException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws InsufficientDataException
-     * @throws InternalException
-     * @throws NoResponseException
-     * @throws InvalidBucketNameException
-     * @throws XmlPullParserException
-     * @throws ErrorResponseException
-     */
-    public List<Bucket> bucketList() throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
-        return getClient().listBuckets();
-    }
-
-    /**
-     * 删除bucket
-     *
-     * @param bucketName 文件桶名称
-     * @throws InvalidPortException
-     * @throws InvalidEndpointException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws InsufficientDataException
-     * @throws InternalException
-     * @throws NoResponseException
-     * @throws InvalidBucketNameException
-     * @throws XmlPullParserException
-     * @throws ErrorResponseException
-     */
-    public void deleteBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
-        getClient().removeBucket(bucketName);
-    }
 }
