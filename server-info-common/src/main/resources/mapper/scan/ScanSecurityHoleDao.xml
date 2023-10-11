@@ -48,7 +48,7 @@
             and t1.name = #{params.name}
         </if>
         <if test="params.url != null and params.url != ''">
-            and t1.url = #{params.url}
+            and t1.url like concat('%', #{params.url}, '%')
         </if>
         <if test="params.level != null and params.level != ''">
             and t1.level = #{params.level}

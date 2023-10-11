@@ -41,6 +41,10 @@ public class RabbitMqConfig {
     private String reIpRouteKey;
     @Value("${mqtt-setting.reIp-pub-topic}")
     private String reIpPubTopic;
+    @Value("${mqtt-setting.export-route-key}")
+    private String exportRouteKey;
+    @Value("${mqtt-setting.export-pub-topic}")
+    private String exportPubTopic;
 
     //创建连接工厂
     @Bean
@@ -144,7 +148,20 @@ public class RabbitMqConfig {
     @Bean
     public Binding bindingC() {
         //绑定队列到交换机上通过路由
-        return BindingBuilder.bind(queueB()).to(defaultExchange()).with(reIpRouteKey);
+        return BindingBuilder.bind(queueC()).to(defaultExchange()).with(reIpRouteKey);
+    }
+
+    //声明队列
+    @Bean
+    public Queue queueD() {
+        return new Queue(exportPubTopic, true); //队列持久：不会随着服务器重启造成丢失
+    }
+
+    //队列绑定交换机，指定routingkey
+    @Bean
+    public Binding bindingD() {
+        //绑定队列到交换机上通过路由
+        return BindingBuilder.bind(queueD()).to(defaultExchange()).with(exportRouteKey);
     }
 
 }

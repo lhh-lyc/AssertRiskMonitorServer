@@ -27,11 +27,4 @@ public interface SysFilesDao extends BaseMapper<SysFilesEntity> {
     */
     IPage<SysFilesEntity> queryPage(Page page, @Param("params") Map<String, Object> params);
 
-    /**
-     * 查询用户列表
-     * @param params
-     * @return
-     */
-    List<SysFilesEntity> queryList(Map<String, Object> params);
-
 }

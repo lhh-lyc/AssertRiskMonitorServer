@@ -1,11 +1,11 @@
-package com.lhh.serveradmin.service;
+package com.lhh.serverexport.service;
 
-import com.lhh.serveradmin.utils.MinioUtils;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.exception.EmException;
 import com.lhh.serverbase.dto.FileInfoDTO;
 import com.lhh.serverbase.utils.FileUtils;
 import com.lhh.serverbase.utils.UuidUtils;
+import com.lhh.serverexport.utils.MinioUtils;
 import io.minio.Result;
 import io.minio.errors.*;
 import io.minio.messages.DeleteError;
@@ -49,46 +49,34 @@ public class FileService {
      */
     public FileInfoDTO uploadFile(String bucketName, InputStream inputStream, String orgName, String folder) throws EmException {
         FileInfoDTO uploadReturnDTO = new FileInfoDTO();
-//        SysFilesEntity filesEntity = new SysFilesEntity();
         // 原文件名称赋值
         uploadReturnDTO.setFileOrgName(orgName);
-//        filesEntity.setFileOrgName(orgName);
-        // folder 赋值
-//        filesEntity.setFileFolder(folder);
-        // 文件大小赋值
-//        Double tmpSize = FileUtils.FileSizeConvert(fileSize, Const.STR_K);
-//        uploadReturnDTO.setFileSize(tmpSize);
-//        filesEntity.setFileSize(tmpSize);
         try {
             if (!minioUtils.bucketExists(bucketName)) {
                 minioUtils.createBucket(bucketName);
             }
             // bucketName赋值
             uploadReturnDTO.setBucketName(bucketName);
-//            filesEntity.setBucketName(bucketName);
             // 文件类型赋值
             String fileSuffix = FileUtils.GetExtName(orgName);
             uploadReturnDTO.setFileType(fileSuffix);
-//            filesEntity.setFileType(fileSuffix);
             // 生成新文件名称
             StringBuilder targetNameBuilder = new StringBuilder();
             targetNameBuilder.append(folder);
             targetNameBuilder.append(Const.STR_SLASH);
             // uuid新文件名称
-            targetNameBuilder.append(UuidUtils.getUuid());
-            targetNameBuilder.append(Const.STR_SPOT);
-            targetNameBuilder.append(fileSuffix);
+            targetNameBuilder.append(orgName);
+//            targetNameBuilder.append(Const.STR_SPOT);
+//            targetNameBuilder.append(fileSuffix);
             // 新文件名称赋值
             String newFileName = targetNameBuilder.toString();
             uploadReturnDTO.setFileName(newFileName);
-//            filesEntity.setFileName(newFileName);
             // 生产url bucketName+folder+filename
             targetNameBuilder.setLength(0);
             targetNameBuilder.append(bucketName);
             targetNameBuilder.append(Const.STR_SLASH);
             targetNameBuilder.append(newFileName);
             uploadReturnDTO.setFileUrl(newFileName);
-//            filesEntity.setFileUrl(targetNameBuilder.toString());
             // 上传文件
             minioUtils.uploadFile(bucketName, newFileName, inputStream, URLEncoder.encode(orgName, Const.STR_UTF8));
         } catch (Exception e) {

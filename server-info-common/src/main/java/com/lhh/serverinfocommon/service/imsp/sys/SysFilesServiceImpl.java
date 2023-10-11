@@ -1,11 +1,12 @@
 package com.lhh.serverinfocommon.service.imsp.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.request.PageUtil;
 import com.lhh.serverbase.entity.SysFilesEntity;
-import com.lhh.serverbase.utils.Query;
 import com.lhh.serverinfocommon.dao.sys.SysFilesDao;
 import com.lhh.serverinfocommon.service.sys.SysFilesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,8 @@ public class SysFilesServiceImpl extends ServiceImpl<SysFilesDao, SysFilesEntity
      */
     @Override
     public IPage<SysFilesEntity> page(Map<String, Object> params) {
-        IPage<SysFilesEntity> page = this.page(
-                new Query<SysFilesEntity>().getPage(params),
-                new QueryWrapper<SysFilesEntity>()
-        );
-        return page;
+        Page<SysFilesEntity> page = PageUtil.getPageParam(params);
+        return sysFilesDao.queryPage(page, params);
     }
 
     /**

@@ -55,6 +55,8 @@ mqtt-setting:
   reDomain-pub-topic: reScanDomain
   reIp-route-key: key.reScanIp
   reIp-pub-topic: reScanIp
+  export-route-key: key.export
+  export-pub-topic: exportData
   sub-num: 1
   re-sub-num: 1
 

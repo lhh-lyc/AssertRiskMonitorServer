@@ -1,4 +1,4 @@
-package com.lhh.serveradmin.utils;
+package com.lhh.serverexport.utils;
 
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.JwtConst;
@@ -68,7 +68,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public boolean bucketExists(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public boolean bucketExists(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().bucketExists(bucketName);
     }
 
@@ -93,7 +93,7 @@ public class MinioUtils {
      * @throws InsufficientDataException
      * @throws ErrorResponseException
      */
-    public void uploadFile(String bucketName, String targetName, InputStream stream, String sourceFileName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public void uploadFile(String bucketName, String targetName, InputStream stream, String sourceFileName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, com.sun.javaws.exceptions.InvalidArgumentException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, org.apache.commons.math3.exception.InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         HashMap<String, String> map = new HashMap<>();
         map.put("sourceFileName", sourceFileName);
         MinioClient client = getClient();
@@ -118,7 +118,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public String getFileUrl(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public String getFileUrl(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().getObjectUrl(bucketName, targetName);
     }
 
@@ -142,7 +142,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public InputStream getFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public InputStream getFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, com.sun.javaws.exceptions.InvalidArgumentException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         return getClient().getObject(bucketName, targetName);
     }
 
@@ -164,7 +164,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public void deleteFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public void deleteFile(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, com.sun.javaws.exceptions.InvalidArgumentException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         getClient().removeObject(bucketName, targetName);
     }
 
@@ -216,7 +216,7 @@ public class MinioUtils {
      * @throws InsufficientDataException
      * @throws ErrorResponseException
      */
-    public void copyFile(String bucketName, String targetName, String destBucketName, String destTargetName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public void copyFile(String bucketName, String targetName, String destBucketName, String destTargetName) throws InvalidPortException, InvalidEndpointException, IOException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, com.sun.javaws.exceptions.InvalidArgumentException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, org.apache.commons.math3.exception.InsufficientDataException, ErrorResponseException, InvalidResponseException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         getClient().copyObject(bucketName, targetName, destBucketName, destTargetName);
     }
 
@@ -238,7 +238,7 @@ public class MinioUtils {
      * @throws InsufficientDataException
      * @throws ErrorResponseException
      */
-    public FileInfoDTO fileDetail(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InvalidArgumentException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
+    public FileInfoDTO fileDetail(String bucketName, String targetName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, com.sun.javaws.exceptions.InvalidArgumentException, InternalException, InsufficientDataException, InvalidArgumentException, io.minio.errors.InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InvalidArgumentException {
         ObjectStat objectStat = getClient().statObject(bucketName, targetName);
         FileInfoDTO fileInfoDTO = new FileInfoDTO();
         fileInfoDTO.setBucketName(objectStat.bucketName());
@@ -299,7 +299,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public String temporaryDownloadURL(String bucketName, String targetName, Integer expires, Map<String, String> requestHeader) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidExpiresRangeException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public String temporaryDownloadURL(String bucketName, String targetName, Integer expires, Map<String, String> requestHeader) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, InvalidExpiresRangeException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().presignedGetObject(bucketName, targetName, expires, requestHeader);
     }
 
@@ -323,7 +323,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public String temporaryUploadURL(String bucketName, String targetName, Integer expires) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidExpiresRangeException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public String temporaryUploadURL(String bucketName, String targetName, Integer expires) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, InvalidExpiresRangeException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().presignedPutObject(bucketName, targetName, expires);
     }
 
@@ -344,7 +344,7 @@ public class MinioUtils {
      * @throws InternalException
      * @throws RegionConflictException
      */
-    public void createBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, ErrorResponseException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException, RegionConflictException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public void createBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, ErrorResponseException, NoResponseException, InvalidBucketNameException, XmlPullParserException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, RegionConflictException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         getClient().makeBucket(bucketName);
     }
 
@@ -364,7 +364,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public List<Bucket> bucketList() throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public List<Bucket> bucketList() throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         return getClient().listBuckets();
     }
 
@@ -384,7 +384,7 @@ public class MinioUtils {
      * @throws XmlPullParserException
      * @throws ErrorResponseException
      */
-    public void deleteBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
+    public void deleteBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, org.apache.commons.math3.exception.InsufficientDataException, jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         getClient().removeBucket(bucketName);
     }
 }

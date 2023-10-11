@@ -6,12 +6,14 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanPortFeign;
 import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
+import com.lhh.serveradmin.mqtt.ExportSender;
 import com.lhh.serveradmin.service.FileService;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.ExcelConstant;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
+import com.lhh.serverbase.enums.ExportTypeEnum;
 import com.lhh.serverbase.utils.ImportExcelUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
@@ -27,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -39,21 +40,19 @@ import java.util.stream.Collectors;
 @Service
 public class ExportService {
 
-    @Value("${my-config.upload.defFolder}")
-    private String defFolder;
-
     @Value("${my-config.upload.defBucket}")
     private String defBucket;
-
-    @Autowired
-    private FileService fileService;
-
     @Autowired
     ScanHostFeign scanHostFeign;
     @Autowired
     ScanPortFeign scanPortFeign;
     @Autowired
     ScanSecurityHoleFeign scanSecurityHoleFeign;
+    @Autowired
+    ExportSender exportSender;
+    @Autowired
+    FileService fileService;
+
 
     public R upload(MultipartFile file) {
         Map<String, List<List<String>>> excelDataMap = ImportExcelUtils.readExcel(file, 1, 0, 0);
@@ -327,50 +326,25 @@ public class ExportService {
         }
     }
 
+    public void uploadPorts(Map<String, Object> params) {
+        params.put("exportType", ExportTypeEnum.port.getType());
+        exportSender.putExport(params);
+    }
+
     public void uploadHoles(Map<String, Object> params) {
-        ExcelWriter excelWriter = null;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            String fileName =  "repeatedWrite" + System.currentTimeMillis() + ".xlsx";
-            excelWriter = EasyExcel.write(out, ScanHoleVo.class).build();
+        params.put("exportType", ExportTypeEnum.hole.getType());
+        exportSender.putExport(params);
+    }
 
-            //  查询总数并封装相关变量(这块直接拷贝就行了不要改)
-            Integer totalRowCount = scanSecurityHoleFeign.exportNum(params);
-            Integer perSheetRowCount = ExcelConstant.PER_SHEET_ROW_COUNT;
-            Integer pageSize = ExcelConstant.PER_WRITE_ROW_COUNT;
-            Integer sheetCount = totalRowCount % perSheetRowCount == 0 ? (totalRowCount / perSheetRowCount) : (totalRowCount / perSheetRowCount + 1);
-            Integer previousSheetWriteCount = perSheetRowCount / pageSize;
-            Integer lastSheetWriteCount = totalRowCount % perSheetRowCount == 0 ?
-                    previousSheetWriteCount :
-                    (totalRowCount % perSheetRowCount % pageSize == 0 ? totalRowCount % perSheetRowCount / pageSize : (totalRowCount % perSheetRowCount / pageSize + 1));
-
-            for (int i = 0; i < sheetCount; i++) {
-                //  创建SHEET
-                WriteSheet writeSheet = EasyExcel.writerSheet("sheet"+i).build();
-
-                //  写数据  这个j的最大值判断直接拷贝就行了，不要改动
-                for (int j = 0; j < (i != sheetCount - 1 ? previousSheetWriteCount : lastSheetWriteCount); j++) {
-                    params.put("page", j + 1 + previousSheetWriteCount * i);
-                    params.put("limit", pageSize);
-                    List<ScanHoleVo> portList = scanSecurityHoleFeign.exportList(params);
-                    excelWriter.write(portList, writeSheet);
-                }
-            }
-            excelWriter.finish();
-//            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(out.toByteArray());
-//            // 文件真实物理存放路径
-//            fileService.uploadFile(defBucket, byteArrayInputStream, "test1.xlsx", defFolder);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public R exportFiles(List<String> fileUrlList) {
+        List<String> list = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(fileUrlList)) {
+            for (String fileUrl : fileUrlList) {
+                String url = fileService.download(defBucket, fileUrl);
+                list.add(url);
             }
         }
+        return R.ok().put("data", list);
     }
 
 }

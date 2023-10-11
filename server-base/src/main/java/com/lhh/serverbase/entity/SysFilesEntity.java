@@ -19,7 +19,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("sys_files")
-public class SysFilesEntity {
+public class SysFilesEntity extends BaseEntity {
 
     /**
      * 主键ID
@@ -34,10 +34,6 @@ public class SysFilesEntity {
      * 创建人ID
      */
     private Long createId;
-    /**
-     * 创建人
-     */
-    private String createName;
     /**
      * 文件名
      */
@@ -54,6 +50,7 @@ public class SysFilesEntity {
      * 文件url
      */
     private String fileUrl;
+    private Integer type;
     /**
      * 创建时间
      */
@@ -70,4 +67,9 @@ public class SysFilesEntity {
      * 删除标识（0 正常 1 删除）
      */
     private Integer delFlg;
+    /**
+     * 创建人
+     */
+    @TableField(exist = false)
+    private String createName;
 }

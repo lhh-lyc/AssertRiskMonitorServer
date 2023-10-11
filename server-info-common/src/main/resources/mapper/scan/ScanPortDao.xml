@@ -221,13 +221,11 @@
 
     <select id="exportList" resultType="com.lhh.serverbase.vo.ScanPortVo">
         SELECT
-        t1.domain,
-        t1.parent_domain,
-        t1.company,
-        case when t1.ip_long = 0 then '-' else INET_NTOA( t1.ip_long ) end AS ip,
-        t1.ip_long,
-        ifnull( t2.PORT, '-' ) as PORT,
-        ifnull( t2.server_name, '-' ) as server_name,
+        t1.*,
+        INET_NTOA( t1.ip_long ) AS ip,
+        t2.domain,
+        t2.parent_domain,
+        t2.company,
         t4.NAME AS project_name,
         ifnull( t5.url, '-' ) AS url,
         ifnull( t5.title, '-' ) AS title,
@@ -235,15 +233,15 @@
         u.user_id,
         u.user_name
         FROM
-        scan_host t1
-        LEFT JOIN scan_port t2 ON t1.ip_long = t2.ip_long
+        scan_port t1
+        JOIN scan_host t2 ON t2.ip_long = t1.ip_long
         AND t2.del_flg = 0
-        LEFT JOIN scan_project_host t3 ON t3.`host` = t1.domain
+        LEFT JOIN scan_project_host t3 ON t3.`host` = t2.domain
         AND t3.del_flg = 0
         LEFT JOIN scan_project t4 ON t4.id = t3.project_id
         AND t4.del_flg = 0
-        LEFT JOIN scan_host_port t5 ON t5.domain = t1.domain
-        AND t5.`port` = t2.`port`
+        LEFT JOIN scan_host_port t5 ON t5.domain = t2.domain
+        AND t5.`port` = t1.`port`
         AND t5.del_flg = 0
         LEFT JOIN sys_user u ON u.user_id = t4.user_id
         AND u.del_flg = 0
@@ -256,22 +254,22 @@
             and t4.user_id = #{params.userId}
         </if>
         <if test="params.company != null and params.company != ''">
-            and t1.company like concat('%', #{params.company}, '%')
+            and t2.company like concat('%', #{params.company}, '%')
         </if>
         <if test="params.parentDomain != null and params.parentDomain != ''">
-            and t1.parent_domain like concat('%', #{params.parentDomain}, '%')
+            and t2.parent_domain like concat('%', #{params.parentDomain}, '%')
         </if>
         <if test="params.domain != null and params.domain != ''">
-            and t1.domain like concat('%', #{params.domain}, '%')
+            and t2.domain like concat('%', #{params.domain}, '%')
         </if>
         <if test="params.ipLong != null and params.ipLong != ''">
-            and t2.ip_long = #{params.ipLong}
+            and t1.ip_long = #{params.ipLong}
         </if>
         <if test="params.port != null and params.port != ''">
-            and t2.port like concat('%', #{params.port}, '%')
+            and t1.port like concat('%', #{params.port}, '%')
         </if>
         <if test="params.serverName != null and params.serverName != ''">
-            and t2.server_name like concat('%', #{params.serverName}, '%')
+            and t1.server_name like concat('%', #{params.serverName}, '%')
         </if>
         <if test="params.url != null and params.url != ''">
             and t5.url like concat('%', #{params.url}, '%')
@@ -282,7 +280,7 @@
         <if test="params.cms != null and params.cms != ''">
             and t5.cms like concat('%', #{params.cms}, '%')
         </if>
-        order by t1.parent_domain, t1.domain, t1.ip_long, t2.port
+        order by t2.parent_domain, t2.domain, t2.ip_long, t1.port
     </select>
 
     <select id="exportNum" resultType="java.lang.Integer">

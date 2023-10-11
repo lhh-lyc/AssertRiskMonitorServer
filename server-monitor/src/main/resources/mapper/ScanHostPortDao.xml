@@ -53,7 +53,7 @@
     </select>
 
     <insert id="saveBatch">
-        insert scan_host_port
+        insert ignore scan_host_port
         values
         <foreach collection="list" item="host" index="index" separator=",">
             (null,#{host.domain},#{host.port},#{host.url},#{host.title},#{host.cms},

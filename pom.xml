@@ -23,6 +23,7 @@
         <module>server-reScan</module>
         <module>server-task</module>
         <module>server-refresh-data</module>
+        <module>server-export</module>
     </modules>
 
     <properties>

@@ -18,11 +18,6 @@ public class ServerGatewayApplication {
         SpringApplication.run(ServerGatewayApplication.class, args);
     }
 
-//    @Bean
-//    public AuthFilter getAuthFilter(){
-//        return new AuthFilter();
-//    }
-
     @Bean
     public CorsFilter corsFilter() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

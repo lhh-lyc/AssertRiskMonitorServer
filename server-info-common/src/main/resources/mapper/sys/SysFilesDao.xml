@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.sys.SysFilesDao">
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.SysFilesEntity">
+        select
+        t1.*, t2.user_name as create_name
+        from sys_files t1
+        join sys_user t2 on t2.user_id = t1.create_id
+        where t1.del_flg = 0
+        and t2.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.create_id = #{params.userId}
+        </if>
+        <if test="params.fileName != null and params.fileName != ''">
+            and t1.file_name like CONCAT('%',#{params.fileName},'%')
+        </if>
+        <if test="params.type != null and params.type != ''">
+            and t1.type = #{params.type}
+        </if>
+        order by t1.create_time desc
+    </select>
+
+</mapper>

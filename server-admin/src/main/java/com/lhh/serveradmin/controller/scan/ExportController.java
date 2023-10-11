@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -39,10 +40,21 @@ public class ExportController {
         exportService.exportHoles(params, response);
     }
 
-    @ExportExcel(name = "漏洞资产", sheets = @Sheet(sheetName = "漏洞资产"))
+    @GetMapping("uploadPorts")
+    public R uploadPorts(@RequestParam Map<String, Object> params){
+        exportService.uploadPorts(params);
+        return R.ok();
+    }
+
     @GetMapping("uploadHoles")
-    public void uploadHoles(@RequestParam Map<String, Object> params){
+    public R uploadHoles(@RequestParam Map<String, Object> params){
         exportService.uploadHoles(params);
+        return R.ok();
+    }
+
+    @PostMapping("exportFiles")
+    public R exportFiles(@RequestBody List<String> urlList){
+        return exportService.exportFiles(urlList);
     }
 
 }

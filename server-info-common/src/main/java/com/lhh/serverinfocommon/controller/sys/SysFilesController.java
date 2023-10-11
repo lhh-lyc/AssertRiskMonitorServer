@@ -18,7 +18,7 @@ import java.util.Map;
  * @date 2022-12-28 14:21:23
  */
 @RestController
-@RequestMapping("sysfiles")
+@RequestMapping("sys/files")
 public class SysFilesController {
     @Autowired
     private SysFilesService sysFilesService;

@@ -4,34 +4,22 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
-import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
-import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.Query;
-import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.ScanHostDao;
 import com.lhh.servermonitor.dao.ScanProjectContentDao;
-import com.lhh.servermonitor.dao.ScanProjectHostDao;
 import com.lhh.servermonitor.service.NetErrorDataService;
 import com.lhh.servermonitor.service.ScanHostService;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service("scanHostService")
@@ -111,7 +99,9 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     @Override
     public void saveBatch(List<ScanHostEntity> list) {
-        scanHostDao.saveBatch(list);
+        if (!CollectionUtils.isEmpty(list)) {
+            scanHostDao.saveBatch(list);
+        }
     }
 
     @Override

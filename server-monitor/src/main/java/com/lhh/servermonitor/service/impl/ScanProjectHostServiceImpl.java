@@ -2,6 +2,7 @@ package com.lhh.servermonitor.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.constant.CacheConst;
@@ -80,7 +81,9 @@ public class ScanProjectHostServiceImpl extends ServiceImpl<ScanProjectHostDao, 
 
     @Override
     public void saveBatch(List<ScanProjectHostEntity> list) {
-        scanProjectHostDao.saveBatch(list);
+        if (!CollectionUtils.isEmpty(list)) {
+            scanProjectHostDao.saveBatch(list);
+        }
     }
 
 }
