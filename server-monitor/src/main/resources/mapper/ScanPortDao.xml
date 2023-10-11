@@ -32,7 +32,8 @@
     </select>
 
     <insert id="saveBatch">
-        insert ignore scan_port
+        insert ignore into scan_port
+        (port_id, ip_long, port, server_name, create_id, create_time, update_id, update_time,del_flg)
         values
         <foreach collection="list" item="host" index="index" separator=",">
             (null,#{host.ipLong},#{host.port},#{host.serverName},

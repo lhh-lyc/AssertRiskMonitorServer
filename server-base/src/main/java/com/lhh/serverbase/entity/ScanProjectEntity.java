@@ -123,4 +123,13 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
     @TableField(exist = false)
     private String userName;
 
+    @TableField(exist = false)
+    private Integer mediumNum;
+
+    @TableField(exist = false)
+    private Integer highNum;
+
+    @TableField(exist = false)
+    private Integer criticalNum;
+
 }

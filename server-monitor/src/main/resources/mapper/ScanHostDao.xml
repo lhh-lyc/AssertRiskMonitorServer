@@ -66,7 +66,8 @@
     </select>
 
     <insert id="saveBatch">
-        insert ignore scan_host
+        insert ignore into scan_host
+        (host_id, parent_domain, domain, ip_long, scan_ports, company, type, is_major, is_domain, is_scanning, create_id, create_time, update_id, update_time,del_flg)
         values
         <foreach collection="list" item="host" index="index" separator=",">
             (null,#{host.parentDomain},#{host.domain},#{host.ipLong},#{host.scanPorts},#{host.company}

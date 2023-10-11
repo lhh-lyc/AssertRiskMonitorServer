@@ -156,6 +156,7 @@
         select
         <include refid="baseColumn"/>
         from scan_security_hole
+        where del_flg = 0
     </select>
 
     <select id="basicList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleEntity">
@@ -203,6 +204,23 @@
         <if test="userId != null and userId != ''">
             and t2.user_id = #{userId}
         </if>
+    </select>
+
+    <select id="queryHoleNum" resultType="com.lhh.serverbase.dto.HoleNumDto">
+        select
+        project_id,
+        sum(if(level = 1, 1, 0)) as mediumNum,
+        sum(if(level = 2, 1, 0)) as highNum,
+        sum(if(level = 3, 1, 0)) as criticalNum
+        from scan_security_hole
+        where del_flg = 0
+        <if test="params.projectIdList != null and params.projectIdList.size() > 0">
+            and project_id IN
+            <foreach collection="projectIdList" item="projectId" index="index" separator="," close=")" open="(">
+                #{projectId}
+            </foreach>
+        </if>
+        group by project_id
     </select>
 
 </mapper>

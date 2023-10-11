@@ -2,6 +2,7 @@ package com.lhh.serverinfocommon.service.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
 import com.lhh.serverbase.vo.ScanHoleVo;
@@ -41,6 +42,8 @@ public interface ScanSecurityHoleService extends IService<ScanSecurityHoleEntity
     List<ScanSecurityHoleEntity> basicList(Map<String, Object> params);
 
     HomeNumDto queryHomeNum(Map<String, Object> params);
+
+    List<HoleNumDto> queryHoleNum(Map<String, Object> params);
 
 }
 

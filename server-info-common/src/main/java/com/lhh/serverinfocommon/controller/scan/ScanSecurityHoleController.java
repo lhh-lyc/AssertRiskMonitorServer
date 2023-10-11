@@ -1,6 +1,7 @@
 package com.lhh.serverinfocommon.controller.scan;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
 import com.lhh.serverbase.vo.ScanHoleVo;
@@ -130,6 +131,12 @@ public class ScanSecurityHoleController {
     public HomeNumDto queryHomeNum(@RequestParam Map<String, Object> params) {
         HomeNumDto dto = scanSecurityHoleService.queryHomeNum(params);
         return dto;
+    }
+
+    @GetMapping("queryHoleNum")
+    public List<HoleNumDto> queryHoleNum(@RequestParam Map<String, Object> params) {
+        List<HoleNumDto> list = scanSecurityHoleService.queryHoleNum(params);
+        return list;
     }
 
 }

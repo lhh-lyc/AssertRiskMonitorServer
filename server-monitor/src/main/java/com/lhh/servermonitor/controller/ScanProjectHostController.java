@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -42,6 +40,22 @@ public class ScanProjectHostController {
      */
     @PostMapping("saveBatch")
     public void save(@RequestBody List<ScanProjectHostEntity> scanProjectHostList) {
+        scanProjectHostService.saveBatch(scanProjectHostList);
+    }
+
+    @GetMapping("test")
+    public void test() {
+        List<ScanProjectHostEntity> scanProjectHostList = new ArrayList<>();
+        ScanProjectHostEntity scanProjectHostEntity = ScanProjectHostEntity.builder()
+                .projectId(10L).parentDomain("parent").host("son")
+                .isScanning(1)
+                .build();
+        scanProjectHostEntity.setCreateId(1L);
+        scanProjectHostEntity.setCreateTime(new Date());
+        scanProjectHostEntity.setUpdateId(1L);
+        scanProjectHostEntity.setUpdateTime(new Date());
+        scanProjectHostEntity.setDelFlg(1);
+        scanProjectHostList.add(scanProjectHostEntity);
         scanProjectHostService.saveBatch(scanProjectHostList);
     }
 

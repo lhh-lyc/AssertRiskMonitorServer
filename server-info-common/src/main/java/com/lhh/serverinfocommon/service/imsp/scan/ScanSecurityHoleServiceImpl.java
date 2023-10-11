@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhh.serverbase.common.request.PageUtil;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.dto.HomeNumDto;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
@@ -74,6 +75,11 @@ public class ScanSecurityHoleServiceImpl extends ServiceImpl<ScanSecurityHoleDao
     @Override
     public HomeNumDto queryHomeNum(Map<String, Object> params) {
         return scanSecurityHoleDao.queryHomeNum(params);
+    }
+
+    @Override
+    public List<HoleNumDto> queryHoleNum(Map<String, Object> params) {
+        return scanSecurityHoleDao.queryHoleNum(params);
     }
 
 }
