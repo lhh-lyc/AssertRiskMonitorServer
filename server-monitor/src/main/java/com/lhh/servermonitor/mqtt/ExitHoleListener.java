@@ -1,9 +1,12 @@
 package com.lhh.servermonitor.mqtt;
 
-import com.lhh.serverbase.entity.ScanProjectEntity;
+import com.alibaba.fastjson.JSON;
+import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.servermonitor.controller.RedisLock;
-import com.lhh.servermonitor.service.HostCompanyService;
-import com.lhh.servermonitor.service.ScanProjectService;
+import com.lhh.servermonitor.service.ScanHoleService;
+import com.lhh.servermonitor.service.ScanHostPortService;
+import com.lhh.servermonitor.service.ScanPortInfoService;
+import com.lhh.servermonitor.service.SysDictService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -17,28 +20,33 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RabbitListener(bindings = {@QueueBinding(
-        value = @Queue(value = "projectData", durable = "true", autoDelete = "false", exclusive = "false"),
+        value = @Queue(value = "exitHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
         exchange = @Exchange(name = "amp.topic"))})
-public class ProjectListener {
+public class ExitHoleListener {
 
     @Autowired
-    ScanProjectService scanProjectService;
+    SysDictService sysDictService;
+    @Autowired
+    ScanPortInfoService scanPortInfoService;
+    @Autowired
+    ScanHostPortService scanHostPortService;
+    @Autowired
+    ScanHoleService scanHoleService;
     @Autowired
     RedisLock redisLock;
-    @Autowired
-    HostCompanyService hostCompanyService;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
-        ScanProjectEntity project = (ScanProjectEntity) SerializationUtils.deserialize(bytes);
+        ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         try {
-            scanProjectService.saveProject(project);
+            log.info("扫描ip端口：" + JSON.toJSONString(dto));
+            scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
+            redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.error("项目" + project.getQueueId() + ":" + project.getHostList().get(0) + "处理失败", e);
-                e.printStackTrace();
+                log.error("扫描ip端口失败：" + e);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.Const;
@@ -7,6 +8,7 @@ import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
+import com.lhh.serverbase.utils.DateUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.service.ScanHoleService;
 import com.lhh.servermonitor.service.ScanService;
@@ -22,6 +24,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -39,6 +43,8 @@ public class test {
     ScanHoleService scanHoleService;
     @Value("${dir-setting.tool-dir}")
     private String toolDir;
+    @Value("${server-config.vail-day}")
+    private Integer vailDay;
 
     @GetMapping("test")
     public R test(String url){
@@ -129,9 +135,9 @@ public class test {
         return R.ok(list);
     }
 
-    @GetMapping("getDomainScanPorts")
-    public R getDomainScanPorts(String domain){
-        return R.ok(tmpRedisService.getDomainScanPorts(domain));
+    @GetMapping("getHostInfo")
+    public R getHostInfo(String domain){
+        return R.ok(tmpRedisService.getHostInfo(domain));
     }
 
     @GetMapping("nucleiTest")
@@ -183,6 +189,19 @@ public class test {
         String nucleiParams = MapUtil.getStr(params, "nucleiParams");
         scanHoleService.xrayAllScan(projectId, domain, portList, tool, nucleiParams);
         return R.ok();
+    }
+
+    @GetMapping("test2")
+    public R test2(String time){
+        SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Boolean flg = null;
+        try {
+            Date newTime = format.parse(time);
+            flg = DateUtils.isInTwoWeek(newTime, new Date(), vailDay);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return R.ok(flg);
     }
 
 }

@@ -43,6 +43,11 @@ public class CacheConst {
     public final static String REDIS_LOCK_SCANNING_IP = "LOCK_SCANNING_IP:%s";
 
     /**
+     * redis key: LOCK_HOST_PORT
+     */
+    public final static String REDIS_LOCK_HOST_PORT = "LOCK_HOST_PORT:%s";
+
+    /**
      * redis key: LOCK_SCANNING_IP:
      */
     public final static String REDIS_LOCK_RESCAN_PROJECT = "LOCK_RESCAN_PROJECT:%s";
@@ -51,6 +56,21 @@ public class CacheConst {
      * redis key: hostInfo信息更新
      */
     public final static String REDIS_LOCK_HOST_INFO = "LOCK_HOST_INFO:%s";
+
+    /**
+     * redis key: LOCK_UPDATE_PROJECT_HOST
+     */
+    public final static String REDIS_LOCK_UPDATE_PROJECT_HOST = "LOCK_UPDATE_PROJECT_HOST:%s:%s";
+
+    /**
+     * redis key: LOCK_UPDATE_PROJECT_HOST
+     */
+    public final static String REDIS_LOCK_UPDATE_HOST = "LOCK_UPDATE_PROJECT_HOST:%s";
+
+    /**
+     * redis key: LOCK_UPDATE_PROJECT_PORT
+     */
+    public final static String REDIS_LOCK_UPDATE_PORT = "LOCK_UPDATE_PROJECT_PORT:%s";
 
     /**
      * redis key: SCANNING_PROJECT:

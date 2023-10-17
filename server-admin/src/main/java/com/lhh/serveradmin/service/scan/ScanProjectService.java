@@ -63,7 +63,6 @@ public class ScanProjectService {
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
         List<String> validHostList = new ArrayList<>();
         List<String> notValidHostList = new ArrayList<>();
-        Boolean isSubFlag = false;
         Boolean isValid;
         if (!CollectionUtils.isEmpty(hostList)) {
             for (String host : hostList) {
@@ -87,10 +86,6 @@ public class ScanProjectService {
                     }
                 }
                 if (isValid) {
-                    if (!host.equals(RexpUtil.getMajorDomain(host))) {
-                        isSubFlag = true;
-                        break;
-                    }
                     validHostList.add(host);
                 } else {
                     notValidHostList.add(host);
@@ -101,9 +96,6 @@ public class ScanProjectService {
                         .isTop(isTop).unknownTop(unknownTop)
                         .build();
                 saveContentList.add(content);
-            }
-            if (isSubFlag) {
-                return R.error("扫描仅支持输入主域名！");
             }
             project = scanProjectFeign.save(project);
             for (ScanProjectContentEntity content : saveContentList) {

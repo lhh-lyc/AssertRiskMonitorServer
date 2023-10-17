@@ -35,5 +35,7 @@ public interface ScanProjectHostService extends IService<ScanProjectHostEntity> 
 
     void saveBatch(List<ScanProjectHostEntity> list);
 
+    void updateBatch(List<ScanProjectHostEntity> list);
+
 }
 

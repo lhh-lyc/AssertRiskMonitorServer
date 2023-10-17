@@ -8,16 +8,18 @@ import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.*;
+import com.lhh.serverbase.utils.DateUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.dao.HostCompanyDao;
 import com.lhh.servermonitor.dao.ScanProjectDao;
-import com.lhh.servermonitor.mqtt.MqHoleSender;
-import com.lhh.servermonitor.mqtt.MqIpSender;
+import com.lhh.servermonitor.mqtt.ExitHoleSender;
+import com.lhh.servermonitor.mqtt.IpSender;
 import com.lhh.servermonitor.service.*;
 import com.lhh.servermonitor.utils.JedisUtils;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -28,11 +30,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,9 +58,9 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Autowired
     RedisLock redisLock;
     @Autowired
-    MqIpSender mqIpSender;
+    IpSender mqIpSender;
     @Autowired
-    MqHoleSender mqHoleSender;
+    ExitHoleSender mqHoleSender;
     @Autowired
     private RabbitTemplate rabbitTemplate;
     @Autowired
@@ -73,6 +71,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     private String exchange;
     @Value("${mqtt-setting.host-route-key}")
     private String hostRouteKey;
+    @Value("${server-config.vail-day}")
+    private Integer vailDay;
 
     @Override
     public void sendToMqtt(ScanProjectEntity project) {
@@ -110,22 +110,18 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             // 已扫描过且端口也扫描一致的域名和ip
             // 过滤掉以前扫描端口不同的数据
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
-            List<HostCompanyEntity> exitHostInfoList = hostCompanyDao.queryByHostList(project.getHostList());
-            exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts())).collect(Collectors.toList());
+            List<HostCompanyEntity> exitHostInfoList = tmpRedisService.getHostInfoList(project.getHostList());
+            Date now = new Date();
+            exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts()) && DateUtils.isInTwoWeek(i.getScanTime(), now, vailDay)).collect(Collectors.toList());
+            Map<String, HostCompanyEntity> hostCompanyMap = exitHostInfoList.stream().collect(Collectors.toMap(HostCompanyEntity::getHost, h -> h));
             List<String> sameHostList = exitHostInfoList.stream().map(HostCompanyEntity::getHost).collect(Collectors.toList());
-            List<String> finalSameHostList = sameHostList.stream().distinct().collect(Collectors.toList());
+            List<String> finalScanHostList = sameHostList.stream().distinct().collect(Collectors.toList());
 
             // 子域名关联
+            // 按已存在且不重复扫描的主域名，查询已存在的子域名列表
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
-            List<ScanProjectHostEntity> exitProjectHostEntityList = scanProjectHostService.list(new HashMap<String, Object>() {{
-                put("projectId", project.getId());
-            }});
-            List<String> exitProjectHostList = exitProjectHostEntityList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
-            // 按已存在的主域名，查询已存在的子域名列表
-            List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalSameHostList);
+            List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalScanHostList);
             List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).distinct().collect(Collectors.toList());
-            // 去掉主域名
-            exitSubDoMainList.removeAll(exitProjectHostList);
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String subDomain : exitSubDoMainList) {
                     String domain = RexpUtil.getMajorDomain(subDomain);
@@ -135,25 +131,35 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                             .build();
                     saveProjectHostList.add(projectHost);
 
-                    String ports = RexpUtil.isIP(subDomain) ? tmpRedisService.getDomainScanPorts(subDomain) : tmpRedisService.getDomainScanPorts(domain);
-                    ScanParamDto dto = ScanParamDto.builder()
-                            .projectId(project.getId()).domain(domain).subDomain(subDomain).scanPorts(ports)
-                            .build();
-                    mqHoleSender.sendScanningHoleToMqtt(dto);
+                    if (Const.INTEGER_1.equals(project.getNucleiFlag()) || Const.INTEGER_1.equals(project.getAfrogFlag()) || Const.INTEGER_1.equals(project.getXrayFlag())) {
+                        String ports = RexpUtil.isIP(subDomain) ? tmpRedisService.getHostInfo(subDomain).getScanPorts() : tmpRedisService.getHostInfo(domain).getScanPorts();
+                        ScanParamDto dto = ScanParamDto.builder()
+                                .projectId(project.getId()).domain(domain).subDomain(subDomain).scanPorts(ports)
+                                .build();
+                        // 已扫描的域名或ip重新扫描漏洞
+                        mqHoleSender.sendExitHoleToMqtt(dto);
+                    }
                 }
             }
             scanProjectHostService.saveBatch(saveProjectHostList);
+            // 不扫漏洞，已存在的域名流程直接结束
+            if (!Const.INTEGER_1.equals(project.getNucleiFlag()) && !Const.INTEGER_1.equals(project.getAfrogFlag()) && !Const.INTEGER_1.equals(project.getXrayFlag())) {
+                if (!CollectionUtils.isEmpty(finalScanHostList)) {
+                    for (String h : finalScanHostList) {
+                        redisLock.removeProjectRedis(project.getId(), h);
+                    }
+                }
+            }
 
             //扫描新的ip
             Map<String, String> redisMap = new HashMap<>();
-            List<String> newIpList = ipList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
+            List<String> newIpList = ipList.stream().filter(item -> !finalScanHostList.contains(item)).collect(Collectors.toList());
             List<ScanParamDto> scanPortParamList = new ArrayList<>();
             String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
             ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
             if (!CollectionUtils.isEmpty(newIpList)) {
                 for (String ip : newIpList) {
-                    hostCompanyService.updateCompany(ip);
-                    String ports = tmpRedisService.getDomainScanPorts(ip);
+                    String ports = tmpRedisService.getHostInfo(ip).getScanPorts();
                     String allPorts = PortUtils.getAllPorts(ports, project.getScanPorts());
                     // 保存项目-host关联关系
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
@@ -167,6 +173,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                                 .subIp(ip)
                                 .scanPorts(project.getScanPorts())
                                 .allPorts(allPorts)
+                                .scanTime(hostCompanyMap.get(ip) != null ? hostCompanyMap.get(ip).getScanTime() : null)
                                 .portTool(redisProject == null ? Const.INTEGER_1 : redisProject.getPortTool())
                                 .build();
                         scanPortParamList.add(dto);
@@ -181,16 +188,16 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             }
 
             // 扫描新的域名
-            List<String> newDomainList = domainList.stream().filter(item -> !finalSameHostList.contains(item)).collect(Collectors.toList());
+            List<String> newDomainList = domainList.stream().filter(item -> !finalScanHostList.contains(item)).collect(Collectors.toList());
 
             List<ScanParamDto> scanDomainParamList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(newDomainList)) {
                 for (String host : newDomainList) {
-                    hostCompanyService.updateCompany(host);
                     ScanParamDto dto = ScanParamDto.builder()
                             .projectId(project.getId())
                             .host(host)
                             .scanPorts(project.getScanPorts())
+                            .scanTime(hostCompanyMap.get(host) != null ? hostCompanyMap.get(host).getScanTime() : null)
                             .subDomainFlag(project.getSubDomainFlag())
                             .portFlag(project.getPortFlag())
                             .build();
@@ -204,7 +211,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                 // 不需要重新扫描的域名，在此维护scan_project_host表关联
                 if (CollectionUtils.isEmpty(saveProjectHostList) && !CollectionUtils.isEmpty(exitSubDoMainList)) {
                     List<ScanProjectHostEntity> projectDomainList = new ArrayList<>();
-                    for (String host : finalSameHostList) {
+                    for (String host : finalScanHostList) {
                         ScanProjectHostEntity item = ScanProjectHostEntity.builder()
                                 .projectId(project.getId())
                                 .parentDomain(RexpUtil.getMajorDomain(host)).host(host)

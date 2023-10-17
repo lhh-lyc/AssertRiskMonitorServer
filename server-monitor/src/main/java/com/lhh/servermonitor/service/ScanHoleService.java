@@ -103,7 +103,7 @@ public class ScanHoleService {
             e.printStackTrace();
         }
         String outStr = RexpUtil.removeColor(response.getOut());
-        nucleiScan(projectId, domain, tool, outStr, levelList);
+        nucleiScan(projectId, domain, tool, outStr, levelList, cmd);
         log.info("项目" + projectId + Const.STR_COLON + domain + "---nuclei漏洞扫描结束");
     }
 
@@ -138,11 +138,11 @@ public class ScanHoleService {
         }
         String outStr = RexpUtil.removeColor(response.getOut());
         log.info("项目" + projectId + Const.STR_COLON + domain + "---nuclei漏洞扫描响应：" + response.getOut());
-        nucleiScan(projectId, domain, tool, outStr, levelList);
+        nucleiScan(projectId, domain, tool, outStr, levelList, cmd);
         log.info("项目" + projectId + Const.STR_COLON + domain + "---nuclei漏洞扫描结束");
     }
 
-    public void nucleiScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList) {
+    public void nucleiScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList, String cmd) {
         List<String> responseLineList = Arrays.asList(reponseStr.split("\n"));
         List<String> serverLineList = responseLineList.stream().filter(r -> r.startsWith("[") && !r.startsWith("[INF]")).collect(Collectors.toList());
         List<ScanSecurityHoleEntity> holeList = new ArrayList<>();
@@ -185,6 +185,8 @@ public class ScanHoleService {
         if (!CollectionUtils.isEmpty(oldList)) {
             for (ScanSecurityHoleEntity hole : oldList) {
                 hole.setStatus(Const.INTEGER_2);
+                // 修复时，存储当前扫描命令
+                hole.setRemark(cmd);
                 scanSecurityHoleService.updateById(hole);
             }
         }
@@ -215,7 +217,7 @@ public class ScanHoleService {
             e.printStackTrace();
         }
         String outStr = RexpUtil.removeColor(response.getOut());
-        afrogScan(projectId, domain, tool, outStr, levelList);
+        afrogScan(projectId, domain, tool, outStr, levelList, cmd);
         log.info("项目" + projectId + Const.STR_COLON + requestUrl + "---afrog漏洞扫描结束");
     }
 
@@ -250,11 +252,11 @@ public class ScanHoleService {
         }
         String outStr = RexpUtil.removeColor(response.getOut());
         log.info("项目" + projectId + Const.STR_COLON + domain + "---afrog漏洞扫描响应：" + response.getOut());
-        afrogScan(projectId, domain, tool, outStr, levelList);
+        afrogScan(projectId, domain, tool, outStr, levelList, cmd);
         log.info("项目" + projectId + Const.STR_COLON + domain + "---afrog漏洞扫描结束");
     }
 
-    public void afrogScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList) {
+    public void afrogScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList, String cmd) {
         List<String> responseLineList = Arrays.asList(reponseStr.split("\r"));
         List<String> serverLineList = new ArrayList<>();
         Boolean beginFlag = false;
@@ -319,6 +321,7 @@ public class ScanHoleService {
         if (!CollectionUtils.isEmpty(oldList)) {
             for (ScanSecurityHoleEntity hole : oldList) {
                 hole.setStatus(Const.INTEGER_2);
+                hole.setRemark(cmd);
                 scanSecurityHoleService.updateById(hole);
             }
         }
@@ -368,12 +371,12 @@ public class ScanHoleService {
                 log.error("项目" + projectId + Const.STR_COLON + requestUrl + "扫描参数异常，输入参数：" + e);
             }
             String outStr = RexpUtil.removeColor(response.getOut());
-            xrayScan(projectId, domain, tool, outStr);
+            xrayScan(projectId, domain, tool, outStr, cmd);
         }
         log.info("项目" + projectId + Const.STR_COLON + domain + "---xray漏洞扫描结束");
     }
 
-    public void xrayScan(Long projectId, String domain, Integer tool, String reponseStr) {
+    public void xrayScan(Long projectId, String domain, Integer tool, String reponseStr, String cmd) {
         Map<Integer, ScanSecurityHoleEntity> tmpMap = new HashMap<>();
         List<String> responseLineList = Arrays.asList(reponseStr.split(Const.STR_LINEFEED));
         Boolean holeFlag = false;
@@ -436,6 +439,7 @@ public class ScanHoleService {
         if (!CollectionUtils.isEmpty(oldList)) {
             for (ScanSecurityHoleEntity hole : oldList) {
                 hole.setStatus(Const.INTEGER_2);
+                hole.setRemark(cmd);
                 scanSecurityHoleService.updateById(hole);
             }
         }

@@ -1,16 +1,9 @@
 package com.lhh.servermonitor.mqtt;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
-import com.lhh.serverbase.entity.ScanProjectHostEntity;
-import com.lhh.servermonitor.config.RabbitMqConfig;
 import com.lhh.servermonitor.controller.RedisLock;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConfirmListener;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -20,20 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Component
-public class MqHostSender {
+public class IpSender {
 
     @Value("${mqtt-setting.exchange}")
     private String exchange;
-    @Value("${mqtt-setting.host-route-key}")
-    private String hostRouteKey;
+    @Value("${mqtt-setting.ip-route-key}")
+    private String ipRouteKey;
 
     @Autowired
     AmqpTemplate amqpTemplate;
@@ -43,7 +33,7 @@ public class MqHostSender {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void sendScanningHostToMqtt(List<ScanParamDto> dtoList) {
+    public void sendScanningIpToMqtt(List<ScanParamDto> dtoList) {
         if (CollectionUtils.isEmpty(dtoList)) {
             return;
         }
@@ -51,23 +41,24 @@ public class MqHostSender {
         List<ScanParamDto> resetList = new ArrayList<>();
         Integer num = Const.INTEGER_0;
         try {
-            String domain = dtoList.get(0).getHost();
-            Long projectId = dtoList.get(0).getProjectId();
+            //6. 将消息发送到队列
+            for (ScanParamDto dto : dtoList) {
+                redisLock.addDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp());
+            }
             for (ScanParamDto dto : dtoList) {
                 num++;
-                log.info(dto.getSubDomain() + "域名开始投递");
+                log.info(dto.getSubIp() + "ip开始投递");
                 CorrelationData correlationId = new CorrelationData(dto.toString());
                 //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
-                rabbitTemplate.convertAndSend(exchange, hostRouteKey, SerializationUtils.serialize(dto), correlationId);
-                redisLock.addDomainRedis(projectId, domain, dto.getSubDomain());
+                rabbitTemplate.convertAndSend(exchange, ipRouteKey, SerializationUtils.serialize(dto), correlationId);
             }
         } catch (Exception e) {
             reset = true;
             resetList.add(dtoList.get(num));
-            log.error(dtoList.get(0).getHost() + "推送host-mq产生异常",e);
+            log.error("项目id=" + dtoList.get(0).getProjectId()+ "推送ip-mq产生异常",e);
         } finally {
             if (reset) {
-                sendScanningHostToMqtt(resetList);
+                sendScanningIpToMqtt(resetList);
             }
         }
     }

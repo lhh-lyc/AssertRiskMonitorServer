@@ -20,4 +20,16 @@
         </foreach>
     </insert>
 
+    <update id="updateBatch" parameterType="java.util.List" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update scan_project_host
+            <set >
+                <if test="item.updateTime != null" >
+                    update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+                </if>
+            </set>
+            where id = #{item.host_id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
 </mapper>

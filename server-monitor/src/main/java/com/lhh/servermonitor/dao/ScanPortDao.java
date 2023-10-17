@@ -36,4 +36,8 @@ public interface ScanPortDao extends BaseMapper<ScanPortEntity> {
 
     void saveBatch(@Param("list") List<ScanPortEntity> list);
 
+    void updateBatch(@Param("list") List<ScanPortEntity> list);
+
+    void delBatch(@Param("idList") List<Long> list);
+
 }

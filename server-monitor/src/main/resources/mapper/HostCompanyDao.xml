@@ -7,7 +7,8 @@
         id,
         host,
         company,
-        scan_ports
+        scan_ports,
+        scan_time
     </sql>
 
     <!-- 可根据自己的需求，是否要使用 -->

@@ -20,4 +20,6 @@ public interface ScanProjectHostDao extends BaseMapper<ScanProjectHostEntity> {
 
     void saveBatch(@Param("list") List<ScanProjectHostEntity> list);
 
+    void updateBatch(@Param("list") List<ScanProjectHostEntity> list);
+
 }

@@ -74,6 +74,10 @@ public class ScanSecurityHoleEntity extends BaseEntity {
      */
     private String preUrl;
     /**
+     * 备注
+     */
+    private String remark;
+    /**
      * 用户名称
      */
     @TableField(exist = false)

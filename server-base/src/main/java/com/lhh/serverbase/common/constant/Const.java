@@ -146,7 +146,7 @@ public class Const {
     // &&-表示前面命令执行成功在执行后面命令; ||表示前面命令执行失败了在执行后面命令; ";"表示一次执行两条命令
     public static String STR_SUBFINDER_SUBDOMAIN = "cd %s/subfinder&&./subfinder -d %s -silent";
 
-    public static String STR_MASSCAN_PORT = "masscan %s -p%s --rate 3000 --wait 0 -sS";
+    public static String STR_MASSCAN_PORT = "masscan %s -p %s --rate 3000 --wait 0 -sS";
 
     public static String STR_NMAP_SERVER = "nmap -p %s %s -sS -Pn";
 

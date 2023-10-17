@@ -40,6 +40,10 @@ public class RabbitMqConfig {
     private String holeRouteKey;
     @Value("${mqtt-setting.scanning-hole-pub-topic}")
     private String holeTopic;
+    @Value("${mqtt-setting.exit-hole-route-key}")
+    private String exitHoleRouteKey;
+    @Value("${mqtt-setting.exit-hole-pub-topic}")
+    private String exitHoleTopic;
 
     //创建连接工厂
     @Bean
@@ -144,6 +148,19 @@ public class RabbitMqConfig {
     public Binding bindingC() {
         //绑定队列到交换机上通过路由
         return BindingBuilder.bind(queueC()).to(defaultExchange()).with(holeRouteKey);
+    }
+
+    //声明队列
+    @Bean
+    public Queue queueD() {
+        return new Queue(exitHoleTopic, true); //队列持久：不会随着服务器重启造成丢失
+    }
+
+    //队列绑定交换机，指定routingkey
+    @Bean
+    public Binding bindingD() {
+        //绑定队列到交换机上通过路由
+        return BindingBuilder.bind(queueD()).to(defaultExchange()).with(exitHoleRouteKey);
     }
 
 }

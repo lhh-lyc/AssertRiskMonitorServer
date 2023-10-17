@@ -57,9 +57,11 @@ public class ProjectListener {
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
+        log.info("开始导出文件");
         ByteArrayOutputStream out = null;
         try {
             Map<String, Object> params = (Map<String, Object>) JSON.parse((String) SerializationUtils.deserialize(bytes));
+            log.info("导出入参为:" + JSON.toJSONString(params));
             out = new ByteArrayOutputStream();
             String filename = MapUtil.getStr(params, "filename");
             ExcelWriter excelWriter = null;
@@ -118,12 +120,13 @@ public class ProjectListener {
                     .build();
             sysFilesFeign.save(saveFile);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+            log.info("导出成功");
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                e.printStackTrace();
+                log.error("导出失败", e);
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                log.error("导出失败", ioException);
             }
         } finally {
             if (out != null) {

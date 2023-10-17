@@ -56,7 +56,7 @@ public class SpringAMQPConsumerConfig {
     public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = new SimpleRabbitListenerContainerFactory();
         simpleRabbitListenerContainerFactory.setConnectionFactory(connectionFactory);
-        simpleRabbitListenerContainerFactory.setMessageConverter(new Jackson2JsonMessageConverter()); // json转消息
+//        simpleRabbitListenerContainerFactory.setMessageConverter(new Jackson2JsonMessageConverter()); // json转消息
         // 设置消费者线程数
         simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
         // 设置最大消费者线程数

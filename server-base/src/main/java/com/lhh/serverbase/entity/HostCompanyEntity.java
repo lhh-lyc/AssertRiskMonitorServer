@@ -1,5 +1,6 @@
 package com.lhh.serverbase.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -7,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 /**
  * 系统_用户表
@@ -38,5 +41,10 @@ public class HostCompanyEntity {
      * 扫描的端口
      */
     private String scanPorts;
+    /**
+     * 扫描完成时间
+     */
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private Date scanTime;
 
 }

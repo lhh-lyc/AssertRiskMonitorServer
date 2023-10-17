@@ -29,8 +29,8 @@ public interface ScanHostPortDao extends BaseMapper<ScanHostPortEntity> {
 
     List<ScanHostPortEntity> queryList(Map<String, Object> params);
 
-    List<Integer> queryPortList(@Param("domain") String domain);
-
     void saveBatch(@Param("list") List<ScanHostPortEntity> list);
+
+    void delByDomain(@Param("domain") String domain);
 
 }

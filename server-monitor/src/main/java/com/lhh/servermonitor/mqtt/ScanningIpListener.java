@@ -1,27 +1,30 @@
 package com.lhh.servermonitor.mqtt;
 
 import com.alibaba.fastjson.JSON;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.IpLongUtils;
-import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.servermonitor.controller.RedisLock;
 import com.lhh.servermonitor.service.*;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.*;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -43,15 +46,23 @@ public class ScanningIpListener {
     @Autowired
     HostCompanyService hostCompanyService;
     @Autowired
+    TmpRedisService tmpRedisService;
+    @Autowired
+    HoleSender holeSender;
+    @Autowired
     RedisLock redisLock;
+    @Autowired
+    RedissonClient redisson;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @RabbitHandler
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
-            String company = hostCompanyService.getCompany(dto.getSubIp());
-            List<ScanHostEntity> exitIpList = scanHostService.getIpByIpList(Arrays.asList(IpLongUtils.ipToLong(dto.getSubIp())));
+            String company = tmpRedisService.getHostInfo(dto.getSubIp()).getCompany();
+            List<ScanHostEntity> exitIpList = scanHostService.getByIpList(Arrays.asList(IpLongUtils.ipToLong(dto.getSubIp())), dto.getSubIp());
             if (CollectionUtils.isEmpty(exitIpList)) {
                 ScanHostEntity scanIp = ScanHostEntity.builder()
                         .domain(dto.getSubIp()).parentDomain(dto.getSubIp())
@@ -63,11 +74,31 @@ public class ScanningIpListener {
                         .isScanning(Const.INTEGER_0)
                         .build();
                 scanHostService.save(scanIp);
+            } else {
+                ScanHostEntity host = exitIpList.get(0);
+                host.setUpdateTime(new Date());
+                String lockKey = String.format(CacheConst.REDIS_LOCK_UPDATE_HOST, dto.getSubIp());
+                RLock lock = redisson.getLock(lockKey);
+                try {
+                    lock.lock();
+                    scanHostService.updateById(host);
+                } finally {
+                    lock.unlock();
+                }
             }
             scanPortInfoService.scanIpsPortList(dto);
             scanHostPortService.scanSingleHostPortList(dto.getSubIp());
-            scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubIp());
-            redisLock.delDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp(), dto.getScanPorts());
+            String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, dto.getProjectId()));
+            ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
+            if (Const.INTEGER_1.equals(redisProject.getNucleiFlag()) || Const.INTEGER_1.equals(redisProject.getAfrogFlag()) || Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
+                ScanParamDto holeDto = ScanParamDto.builder()
+                        .projectId(dto.getProjectId()).domain(dto.getSubIp())
+                        .subDomain(dto.getSubIp()).scanPorts(dto.getScanPorts())
+                        .build();
+                holeSender.sendHoleToMqtt(holeDto);
+            } else {
+                redisLock.delDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp(), dto.getScanPorts());
+            }
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

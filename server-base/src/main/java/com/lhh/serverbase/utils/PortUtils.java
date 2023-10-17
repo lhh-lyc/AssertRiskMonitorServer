@@ -2,6 +2,7 @@ package com.lhh.serverbase.utils;
 
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.RexpConst;
+import com.lhh.serverbase.entity.ScanPortEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -87,6 +88,13 @@ public class PortUtils {
         return CollectionUtils.isEmpty(tSet2) && CollectionUtils.isEmpty(uSet2);
     }
 
+
+    /**
+     * 获取所有扫描的端口（已扫描端口+本次扫描端口）
+     * @param oldPorts
+     * @param newPorts
+     * @return
+     */
     public static String getAllPorts(String oldPorts, String newPorts) {
         Map<String, Set<Integer>> map1 = parsePorts(oldPorts);
         Map<String, Set<Integer>> map2 = parsePorts(newPorts);
@@ -159,6 +167,12 @@ public class PortUtils {
         return String.join(",", ranges);
     }
 
+    /**
+     * 获取本次扫描的新端口（本次扫描端口-已扫描端口）
+     * @param oldPorts
+     * @param newPorts
+     * @return
+     */
     public static String getNewPorts(String oldPorts, String newPorts) {
         Map<String, Set<Integer>> map1 = parsePorts(oldPorts);
         Map<String, Set<Integer>> map2 = parsePorts(newPorts);
@@ -225,6 +239,23 @@ public class PortUtils {
         }
         ranges.add(start == end ? Const.STR_U + end : Const.STR_U + start + Const.STR_CROSSBAR + end);
         return String.join(",", ranges);
+    }
+
+    /**
+     * 只过滤保留本次扫描的端口数据
+     * @param portList
+     * @param scanPorts
+     * @return
+     */
+    public static List<ScanPortEntity> filterPortList(List<ScanPortEntity> portList, String scanPorts){
+        if (CollectionUtils.isEmpty(portList)) {
+            return portList;
+        }
+        Map<String, Set<Integer>> map = parsePorts(scanPorts);
+        Set<Integer> tSet = CollectionUtils.isEmpty(map.get("tSet")) ? new HashSet<>() : map.get("tSet");
+        Set<Integer> uSet = CollectionUtils.isEmpty(map.get("uSet")) ? new HashSet<>() : map.get("uSet");
+        List<ScanPortEntity> tList = portList.stream().filter(p->tSet.contains(p.getPort())).collect(Collectors.toList());
+        return tList;
     }
 
 }

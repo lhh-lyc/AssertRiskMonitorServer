@@ -40,5 +40,9 @@ public interface ScanPortService extends IService<ScanPortEntity> {
 
     void saveBatch(List<ScanPortEntity> list);
 
+    void updateBatch(List<ScanPortEntity> list);
+
+    void delBatch(List<Long> list);
+
 }
 

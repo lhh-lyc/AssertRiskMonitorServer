@@ -36,6 +36,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     /**
      * 分页查询列表数据
+     *
      * @param params
      * @return
      */
@@ -50,6 +51,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     /**
      * 查询列表数据
+     *
      * @param params
      * @return
      */
@@ -99,9 +101,18 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
 
     @Override
     public void saveBatch(List<ScanHostEntity> list) {
-        if (!CollectionUtils.isEmpty(list)) {
-            scanHostDao.saveBatch(list);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
         }
+        scanHostDao.saveBatch(list);
+    }
+
+    @Override
+    public void updateBatch(List<ScanHostEntity> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        scanHostDao.updateBatch(list);
     }
 
     @Override

@@ -49,19 +49,16 @@ public class ProjectSender {
         List<HostCompanyEntity> hostInfoList = new ArrayList<>();
         List<HostCompanyEntity> oldList = hostCompanyFeign.list(new HashMap<String, Object>(){{put("hostList", project.getHostList());}});
         Map<String, HostCompanyEntity> oldMap = oldList.stream().collect(Collectors.toMap(HostCompanyEntity::getHost, host -> host));
-        List<String> existParentDomainList = new ArrayList<>();
         for (String host : project.getHostList()) {
-            String parentDomain = RexpUtil.getMajorDomain(host);
-            if (!oldMap.containsKey(parentDomain) && !existParentDomainList.contains(parentDomain)) {
-                existParentDomainList.add(parentDomain);
+            if (!oldMap.containsKey(host)) {
                 String company = Const.STR_CROSSBAR;
-                String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, parentDomain));
+                String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, host));
                 if (!StringUtils.isEmpty(value)) {
                     HostCompanyEntity hostInfo = JSON.parseObject(value, HostCompanyEntity.class);
                     company = StringUtils.isEmpty(hostInfo.getCompany()) ? Const.STR_EMPTY : hostInfo.getCompany();
                 }
                 HostCompanyEntity saveCompany = HostCompanyEntity.builder()
-                        .host(parentDomain).company(company)
+                        .host(host).company(company)
                         .build();
                 hostInfoList.add(saveCompany);
             }

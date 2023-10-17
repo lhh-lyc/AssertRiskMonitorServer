@@ -23,7 +23,7 @@
     </select>
 
     <select id="basicByIpList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
-        select ip_long, port
+        select port_id, ip_long, port
         from scan_port
         where ip_long in
         <foreach collection="ipList" item="ipLong" index="index" separator="," close=")" open="(">
@@ -38,6 +38,29 @@
         <foreach collection="list" item="host" index="index" separator=",">
             (null,#{host.ipLong},#{host.port},#{host.serverName},
             #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update scan_port
+            <set >
+                <if test="item.serverName != null" >
+                    server_name = #{item.serverName,jdbcType=VARCHAR},
+                </if>
+                <if test="item.updateTime != null" >
+                    update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+                </if>
+            </set>
+            where port_id = #{item.portId,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <insert id="delBatch">
+        delete from scan_port
+        where port_id in
+        <foreach collection="idList" item="id" index="index" separator="," close=")" open="(">
+            #{id}
         </foreach>
     </insert>
 

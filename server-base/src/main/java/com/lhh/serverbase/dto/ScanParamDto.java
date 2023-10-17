@@ -1,11 +1,13 @@
 package com.lhh.serverbase.dto;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -45,6 +47,11 @@ public class ScanParamDto implements Serializable {
      * 扫描端口工具（1.masscan 2.nmap）
      */
     private Integer portTool;
+    /**
+     * 扫描完成时间
+     */
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private Date scanTime;
 
     List<ScanParamDto> dtoList;
 

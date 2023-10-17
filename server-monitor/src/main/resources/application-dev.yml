@@ -73,6 +73,12 @@ mqtt-setting:
   scanning-ip-pub-topic: scanningIpData
   hole-route-key: key.hole
   scanning-hole-pub-topic: scanningHoleData
+  exit-hole-route-key: key.exitHole
+  exit-hole-pub-topic: exitHoleData
   concurrent_consumers: 1
   maxConcurrent_consumers: 1
   prefetch_count: 1
+
+# 天数（新建任务中过期则重新扫描）
+server-config:
+  vail-day: 14

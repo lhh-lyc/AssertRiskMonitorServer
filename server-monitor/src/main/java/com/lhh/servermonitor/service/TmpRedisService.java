@@ -1,5 +1,6 @@
 package com.lhh.servermonitor.service;
 
+import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.HostCompanyEntity;
@@ -9,7 +10,11 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -22,17 +27,16 @@ public class TmpRedisService {
     @Autowired
     RedissonClient redisson;
 
-    public String getDomainScanPorts(String domain) {
-        String scanPorts = hostCompanyService.getScanPorts(domain);
-        if (StringUtils.isEmpty(scanPorts)) {
+    public HostCompanyEntity getHostInfo(String domain) {
+        HostCompanyEntity hostInfo = hostCompanyService.getHostInfo(domain);
+        if (hostInfo != null) {
             String lockKey = String.format(CacheConst.REDIS_LOCK_HOST_INFO, domain);
             RLock lock = redisson.getLock(lockKey);
             try {
                 lock.lock();
-                scanPorts = hostCompanyService.getScanPorts(domain);
-                if (StringUtils.isEmpty(scanPorts)) {
-                    HostCompanyEntity hostInfo = hostCompanyService.setHostInfo(domain);
-                    scanPorts = StringUtils.isEmpty(hostInfo.getScanPorts()) ? Const.STR_EMPTY : hostInfo.getScanPorts();
+                hostInfo = hostCompanyService.getHostInfo(domain);
+                if (hostInfo == null) {
+                    hostInfo = hostCompanyService.setHostInfo(domain);
                 }
             } catch (Exception e) {
                 log.error(domain + "主域名信息查询报错", e);
@@ -44,7 +48,26 @@ public class TmpRedisService {
                 }
             }
         }
-        return scanPorts;
+        return hostInfo;
+    }
+
+    public List<HostCompanyEntity> getHostInfoList(List<String> domainList) {
+        List<HostCompanyEntity> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(domainList)) {
+            return result;
+        }
+        List<String> newList = new ArrayList<>();
+        for (String domain : domainList) {
+            String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, domain));
+            if (!StringUtils.isEmpty(value)) {
+                HostCompanyEntity hostInfo = JSON.parseObject(value, HostCompanyEntity.class);
+                result.add(hostInfo);
+                newList.remove(domain);
+            }
+        }
+        List<HostCompanyEntity> hostInfoList = hostCompanyService.setHostInfoList(newList);
+        result.addAll(hostInfoList);
+        return result;
     }
 
 }

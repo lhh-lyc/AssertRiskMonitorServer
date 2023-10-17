@@ -75,9 +75,26 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
 
     @Override
     public void saveBatch(List<ScanPortEntity> list) {
-        if (!CollectionUtils.isEmpty(list)) {
-            scanPortDao.saveBatch(list);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
         }
+        scanPortDao.saveBatch(list);
+    }
+
+    @Override
+    public void updateBatch(List<ScanPortEntity> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        scanPortDao.updateBatch(list);
+    }
+
+    @Override
+    public void delBatch(List<Long> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        scanPortDao.delBatch(list);
     }
 
 }

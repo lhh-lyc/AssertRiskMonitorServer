@@ -11,17 +11,17 @@ import com.lhh.serverbase.utils.CopyUtils;
 import com.lhh.serverbase.utils.DomainIpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
-import com.lhh.servermonitor.mqtt.MqHostSender;
+import com.lhh.servermonitor.mqtt.HostSender;
 import com.lhh.servermonitor.utils.ExecUtil;
-import com.lhh.servermonitor.utils.JedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -46,11 +46,15 @@ public class ScanService {
     @Autowired
     HostCompanyService hostCompanyService;
     @Autowired
+    TmpRedisService tmpRedisService;
+    @Autowired
     RedisLock redisLock;
     @Autowired
-    MqHostSender mqHostSender;
+    HostSender mqHostSender;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    RedissonClient redisson;
 
     public List<String> getSubDomainTest(String domain) {
         List<String> subdomainList = new ArrayList<>();
@@ -86,12 +90,12 @@ public class ScanService {
         List<Map> result = new ArrayList<>();
         if (!CollectionUtils.isEmpty(serverLineList)) {
             for (String str : serverLineList) {
-                String [] list = str.split(Const.STR_BLANK);
-                String server = list[0].substring(1, list[0].length()-1);
-                String h = list[1].substring(1, list[1].length()-1);
-                String level = list[2].substring(1, list[2].length()-1);
+                String[] list = str.split(Const.STR_BLANK);
+                String server = list[0].substring(1, list[0].length() - 1);
+                String h = list[1].substring(1, list[1].length() - 1);
+                String level = list[2].substring(1, list[2].length() - 1);
                 String url = list[3];
-                String f = list.length > 4 ? list[4].substring(1, list[4].length()-1) : Const.STR_CROSSBAR;
+                String f = list.length > 4 ? list[4].substring(1, list[4].length() - 1) : Const.STR_CROSSBAR;
                 Map m = new HashMap();
                 m.put("s", server);
                 m.put("h", h);
@@ -106,31 +110,60 @@ public class ScanService {
 
     public void scanDomainList(ScanParamDto scanDto) {
         List<ScanParamDto> subdomainList = getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
-        List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
+        List<ScanProjectHostEntity> saveList = new ArrayList<>();
+        List<ScanProjectHostEntity> updateList = new ArrayList<>();
         List<ScanParamDto> dtoList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
             // 查询域名关联是否已存在，防止服务重启等情况导致一个项目多个相同域名关联
             List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), Const.STR_EMPTY);
-            List<String> exitPhList = phList.stream().map(ScanProjectHostEntity::getHost).collect(Collectors.toList());
+            Map<String, ScanProjectHostEntity> phMap = phList.stream().collect(Collectors.toMap(ScanProjectHostEntity::getHost, ph -> ph));
+            Date now = new Date();
             for (ScanParamDto subdomain : subdomainList) {
                 // 保存项目-host关联关系
-                if (!exitPhList.contains(subdomain.getHost())) {
+                if (!phMap.containsKey(subdomain.getHost())) {
                     ScanProjectHostEntity item = ScanProjectHostEntity.builder()
                             .projectId(scanDto.getProjectId())
                             .parentDomain(scanDto.getHost().equals(subdomain.getHost()) ? RexpUtil.getMajorDomain(subdomain.getHost()) : scanDto.getHost())
                             .host(subdomain.getHost())
                             .isScanning(Const.INTEGER_1)
                             .build();
-                    projectHostList.add(item);
+                    saveList.add(item);
 
                     ScanParamDto dto = new ScanParamDto();
                     CopyUtils.copyProperties(scanDto, dto);
                     dto.setSubDomain(subdomain.getHost());
                     dto.setSubIpList(subdomain.getSubIpList());
                     dtoList.add(dto);
+                } else {
+                    ScanProjectHostEntity ph = phMap.get(subdomain.getHost());
+                    ph.setUpdateTime(now);
+                    updateList.add(ph);
+                    phMap.remove(subdomain.getHost());
                 }
             }
-            scanProjectHostService.saveBatch(projectHostList);
+            if (!CollectionUtils.isEmpty(saveList)) {
+                scanProjectHostService.saveBatch(saveList);
+            }
+            List<Long> delIds = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(phMap)) {
+                Collection<ScanProjectHostEntity> delList = phMap.values();
+                delIds = delList.stream().map(ScanProjectHostEntity::getId).collect(Collectors.toList());
+            }
+            if (!CollectionUtils.isEmpty(updateList) || !CollectionUtils.isEmpty(delIds)) {
+                String lockKey = String.format(CacheConst.REDIS_LOCK_UPDATE_PROJECT_HOST, scanDto.getProjectId(), scanDto.getHost());
+                RLock lock = redisson.getLock(lockKey);
+                try {
+                    lock.lock();
+                    if (!CollectionUtils.isEmpty(updateList) ) {
+                        scanProjectHostService.updateBatch(updateList);
+                    }
+                    if (!CollectionUtils.isEmpty(delIds)) {
+                        scanProjectHostService.removeByIds(delIds);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
             mqHostSender.sendScanningHostToMqtt(dtoList);
         } else {
             // 未扫描出子域名或者子域名未解析出ip，主域名结束流程
@@ -272,7 +305,7 @@ public class ScanService {
         List<ScanParamDto> result = new ArrayList<>();
         List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
         List<ScanHostEntity> saveHostList = new ArrayList<>();
-        String company = hostCompanyService.getCompany(domain);
+        String company = tmpRedisService.getHostInfo(domain).getCompany();
         if (!CollectionUtils.isEmpty(dtoList)) {
             for (ScanParamDto dto : dtoList) {
                 if (dto.getSubIpList().size() == 1 && dto.getSubIpList().get(0).equals(Const.STR_CROSSBAR)) {
