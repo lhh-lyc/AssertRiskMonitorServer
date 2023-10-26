@@ -41,6 +41,7 @@ public class HoleListener {
         try {
             log.info("扫描漏洞入参：" + JSON.toJSONString(dto));
             scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
+            log.info("漏洞扫描完成，删除key:" + dto.getProjectId() + "_" + dto.getSubDomain());
             redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {

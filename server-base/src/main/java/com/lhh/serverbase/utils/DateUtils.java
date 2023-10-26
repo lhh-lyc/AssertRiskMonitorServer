@@ -1,6 +1,7 @@
 package com.lhh.serverbase.utils;
 
 import cn.hutool.core.date.DateUtil;
+import com.lhh.serverbase.common.constant.Const;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -20,8 +21,11 @@ import java.util.Set;
 public class DateUtils {
 
     public static boolean isInTwoWeek(Date addTime,Date now, Integer days) {
-        if (addTime == null) {
+        if (addTime == null || days == null) {
             return false;
+        }
+        if (Const.INTEGER_0.equals(days)) {
+            return true;
         }
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);

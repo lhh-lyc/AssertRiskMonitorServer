@@ -22,7 +22,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("host_company")
-public class HostCompanyEntity {
+public class HostCompanyEntity extends BaseEntity{
 
     /**
      * 项目ID

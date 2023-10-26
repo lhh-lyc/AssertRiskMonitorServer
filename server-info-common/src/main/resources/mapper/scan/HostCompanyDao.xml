@@ -34,6 +34,9 @@
                 #{host}
             </foreach>
         </if>
+        <if test="createTime != null and createTime != ''">
+            and DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%S') <![CDATA[ >= ]]> #{createTime}
+        </if>
     </select>
 
     <select id="queryBasicInfo" resultType="com.lhh.serverbase.entity.HostCompanyEntity">

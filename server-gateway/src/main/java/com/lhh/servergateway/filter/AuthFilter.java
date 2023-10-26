@@ -119,7 +119,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
             }
         }
         String isAdmin = header.getFirst(IS_ADMIN);
-        if (Const.STR_0.equals(isAdmin)) {
+        if (StringUtils.isEmpty(isAdmin) || Const.STR_0.equals(isAdmin)) {
             query.append("userId").append("=").append(userId);
         }
         URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build().encode().toUri();

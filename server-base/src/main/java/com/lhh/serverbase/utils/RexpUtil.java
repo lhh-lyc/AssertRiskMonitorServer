@@ -3,8 +3,11 @@ package com.lhh.serverbase.utils;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.RexpConst;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +43,12 @@ public class RexpUtil {
     public static void main(String[] args) {
         String domainName = "";
         String b = "";
-        Boolean flag;
+        Boolean flag1 = startWithSchedule("53% (1633/3063), 34s");
+        System.out.println(flag1);
+        Boolean flag2 = startWithSchedule("");
+        System.out.println(flag2);
+        Boolean flag3 = startWithSchedule("004 10-24 11:37:16 nacos-default-password HIGH http://18.166.253.67:8848/nacos/v1/auth/users/login ");
+        System.out.println(flag3);
 //        flag = isMajorDomain("freetyst.vip.migu.cn");
 //        System.out.println(flag);
 //        domainName = "baidu.com";
@@ -217,6 +225,24 @@ public class RexpUtil {
         // 使用空字符串替换颜色代码
         String result = matcher.replaceAll("");
         return result;
+    }
+
+    /**
+     * 1-100%匹配字符串开头
+     *
+     * @param str
+     * @return
+     */
+    public static Boolean startWithSchedule(String str) {
+        if (!StringUtils.isEmpty(str)) {
+            List<String> list = Arrays.asList(str.split(Const.STR_BLANK));
+            if (!CollectionUtils.isEmpty(list)) {
+                if (list.get(0).matches(RexpConst.scheduleRex)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

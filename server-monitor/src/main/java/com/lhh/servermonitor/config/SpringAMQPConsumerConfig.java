@@ -8,6 +8,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.support.ConsumerTagStrategy;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,7 +57,7 @@ public class SpringAMQPConsumerConfig {
     public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory = new SimpleRabbitListenerContainerFactory();
         simpleRabbitListenerContainerFactory.setConnectionFactory(connectionFactory);
-        simpleRabbitListenerContainerFactory.setMessageConverter(new Jackson2JsonMessageConverter()); // json转消息
+        simpleRabbitListenerContainerFactory.setMessageConverter(new Jackson2JsonMessageConverter());
         // 设置消费者线程数
         simpleRabbitListenerContainerFactory.setConcurrentConsumers(concurrentConsumers);
         // 设置最大消费者线程数
@@ -75,4 +76,10 @@ public class SpringAMQPConsumerConfig {
         simpleRabbitListenerContainerFactory.setAutoStartup(true);
         return simpleRabbitListenerContainerFactory;
     }
+
+    @Bean
+    public MessageConverter jackson2JsonMessageConverter(){
+        return new Jackson2JsonMessageConverter("*");
+    }
+
 }

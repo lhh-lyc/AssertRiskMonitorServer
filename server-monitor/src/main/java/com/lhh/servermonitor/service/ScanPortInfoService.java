@@ -30,9 +30,6 @@ import java.util.stream.Collectors;
 @Service
 public class ScanPortInfoService {
 
-    @Value("${server-config.vail-day}")
-    private Integer vailDay;
-
     @Autowired
     RedissonClient redisson;
     @Autowired
@@ -62,6 +59,8 @@ public class ScanPortInfoService {
             lock.lock();
             log.info("开始扫描" + ip + "端口");
             String ports = tmpRedisService.getHostInfo(dto.getSubIp()).getScanPorts();
+            String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
+            Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
             if (PortUtils.portEquals(ports, dto.getScanPorts()) && DateUtils.isInTwoWeek(dto.getScanTime(), new Date(), vailDay)) {
                 // 扫描ip端口，推迟缓存有效期，目的是让后面相同的ip不用重复扫描
                 stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_IP, ipLong), PortUtils.getAllPorts(ports, dto.getScanPorts()), 60 * 60 * 24L, TimeUnit.SECONDS);
@@ -103,6 +102,8 @@ public class ScanPortInfoService {
             }
             // 扫描ip端口，推迟缓存有效期，目的是让后面相同的ip不用重复扫描
             String ports = tmpRedisService.getHostInfo(dto.getHost()).getScanPorts();
+            String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
+            Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
             if (PortUtils.portEquals(ports, dto.getScanPorts()) && DateUtils.isInTwoWeek(dto.getScanTime(), new Date(), vailDay)) {
                 stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_IP, ipLong), PortUtils.getAllPorts(ports, dto.getScanPorts()), 60 * 60 * 24L, TimeUnit.SECONDS);
                 log.info("ip:" + ip + "已被扫描!");
@@ -215,7 +216,9 @@ public class ScanPortInfoService {
                             scanPortService.delBatch(delIds);
                         }
                     } finally {
-                        lock.unlock();
+                        if (lock.isHeldByCurrentThread()) {
+                            lock.unlock();
+                        }
                     }
                 }
             }
@@ -292,7 +295,9 @@ public class ScanPortInfoService {
                         scanPortService.removeByIds(delIds);
                     }
                 } finally {
-                    lock.unlock();
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
                 }
             }
             log.info(CollectionUtils.isEmpty(portList) ? ip + "未扫描出新端口" : ip + "扫描出新端口:" + String.join(Const.STR_COMMA, portList.stream().map(i -> String.valueOf(i)).collect(Collectors.toList())));

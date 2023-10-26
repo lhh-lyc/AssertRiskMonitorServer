@@ -11,6 +11,9 @@ import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -29,15 +32,22 @@ public class ExitHoleSender {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void sendExitHoleToMqtt(ScanParamDto dto) {
-        try {
-            log.info(dto.getSubDomain() + "已扫描漏洞子域名开始投递");
-            CorrelationData correlationId = new CorrelationData(dto.getProjectId() + Const.STR_COLON + dto.getSubDomain());
-            rabbitTemplate.convertAndSend(exchange, exitHoleRouteKey, SerializationUtils.serialize(dto), correlationId);
-            redisLock.addDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain());
-        } catch (Exception e) {
-            log.error(String.format("推送已扫描漏洞子域名失败：项目%s_子域名%s", dto.getProjectId(), dto.getSubDomain()) + e);
+    public void sendExitHoleToMqtt(List<ScanParamDto> dtoList) {
+        if (!CollectionUtils.isEmpty(dtoList)) {
+            for (ScanParamDto dto : dtoList) {
+                redisLock.addDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain());
+            }
+            for (ScanParamDto dto : dtoList) {
+                try {
+                    log.info(dto.getSubDomain() + "已扫描漏洞子域名开始投递");
+                    CorrelationData correlationId = new CorrelationData(dto.getProjectId() + Const.STR_COLON + dto.getSubDomain());
+                    rabbitTemplate.convertAndSend(exchange, exitHoleRouteKey, SerializationUtils.serialize(dto), correlationId);
+                } catch (Exception e) {
+                    log.error(String.format("推送已扫描漏洞子域名失败：项目%s_子域名%s", dto.getProjectId(), dto.getSubDomain()) + e);
+                }
+            }
         }
+
     }
 
 }

@@ -48,7 +48,7 @@ public class CacheConst {
     public final static String REDIS_LOCK_HOST_PORT = "LOCK_HOST_PORT:%s";
 
     /**
-     * redis key: LOCK_SCANNING_IP:
+     * redis key: LOCK_RESCAN_PROJECT:
      */
     public final static String REDIS_LOCK_RESCAN_PROJECT = "LOCK_RESCAN_PROJECT:%s";
 
@@ -174,5 +174,10 @@ public class CacheConst {
      * 消费时先判断有没有该缓存，有就说明已经消费过了，直接确认
      */
     public final static String REDIS_END_HOST_PORT = "END_HOST_PORT:%s";
+
+    /**
+     * redis key: 天数（新建任务中过期则重新扫描）
+     */
+    public final static String REDIS_VAIL_DAY = "VAIL_DAY";
 
 }

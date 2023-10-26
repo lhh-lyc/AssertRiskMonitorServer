@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -37,9 +38,6 @@ import java.util.stream.Collectors;
         value = @Queue(value = "scanningHostData", durable = "true", autoDelete = "false", exclusive = "false"),
         exchange = @Exchange(name = "amp.topic"))})
 public class ScanningHostListener {
-
-    @Value("${server-config.vail-day}")
-    private Integer vailDay;
 
     @Autowired
     ScanProjectHostService scanProjectHostService;
@@ -98,6 +96,8 @@ public class ScanningHostListener {
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
             String ports = tmpRedisService.getHostInfo(dto.getHost()).getScanPorts();
+            String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
+            Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
             if (PortUtils.portEquals(ports, dto.getScanPorts()) && DateUtils.isInTwoWeek(dto.getScanTime(), new Date(), vailDay)) {
                 redisLock.delDomainRedis(dto.getProjectId(), dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
                 log.info(dto.getSubDomain() + "该子域名的主域名已全部扫描完毕!");
@@ -175,7 +175,9 @@ public class ScanningHostListener {
                         scanHostService.removeByIds(delIds);
                     }
                 } finally {
-                    lock.unlock();
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
                 }
             }
             scanPortParamList.stream().forEach(d -> {

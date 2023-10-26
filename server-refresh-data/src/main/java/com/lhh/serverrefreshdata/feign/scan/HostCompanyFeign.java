@@ -2,10 +2,7 @@ package com.lhh.serverrefreshdata.feign.scan;
 
 import com.lhh.serverbase.entity.HostCompanyEntity;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -33,8 +30,8 @@ public interface HostCompanyFeign {
      *
      * @param
      */
-    @GetMapping("host/company/list")
-    List<HostCompanyEntity> list(@RequestParam Map<String, Object> params);
+    @PostMapping("host/company/list")
+    List<HostCompanyEntity> list(@RequestBody Map<String, Object> params);
 
     /**
      * 保存

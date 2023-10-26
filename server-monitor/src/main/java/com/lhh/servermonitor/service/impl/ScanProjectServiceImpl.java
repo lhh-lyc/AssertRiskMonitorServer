@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -71,8 +72,6 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     private String exchange;
     @Value("${mqtt-setting.host-route-key}")
     private String hostRouteKey;
-    @Value("${server-config.vail-day}")
-    private Integer vailDay;
 
     @Override
     public void sendToMqtt(ScanProjectEntity project) {
@@ -112,6 +111,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<ScanProjectHostEntity> projectHostList = new ArrayList<>();
             List<HostCompanyEntity> exitHostInfoList = tmpRedisService.getHostInfoList(project.getHostList());
             Date now = new Date();
+            String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
+            Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
             exitHostInfoList = exitHostInfoList.stream().filter(i -> PortUtils.portEquals(i.getScanPorts(), project.getScanPorts()) && DateUtils.isInTwoWeek(i.getScanTime(), now, vailDay)).collect(Collectors.toList());
             Map<String, HostCompanyEntity> hostCompanyMap = exitHostInfoList.stream().collect(Collectors.toMap(HostCompanyEntity::getHost, h -> h));
             List<String> sameHostList = exitHostInfoList.stream().map(HostCompanyEntity::getHost).collect(Collectors.toList());
@@ -122,6 +123,7 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
             List<ScanProjectHostEntity> saveProjectHostList = new ArrayList<>();
             List<ScanHostEntity> exitSubDoMainEntityList = scanHostService.getByParentDomainList(finalScanHostList);
             List<String> exitSubDoMainList = exitSubDoMainEntityList.stream().map(ScanHostEntity::getDomain).distinct().collect(Collectors.toList());
+            List<ScanParamDto> sendHoleList = new ArrayList<>();
             if (!CollectionUtils.isEmpty(exitSubDoMainList)) {
                 for (String subDomain : exitSubDoMainList) {
                     String domain = RexpUtil.getMajorDomain(subDomain);
@@ -137,10 +139,11 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                                 .projectId(project.getId()).domain(domain).subDomain(subDomain).scanPorts(ports)
                                 .build();
                         // 已扫描的域名或ip重新扫描漏洞
-                        mqHoleSender.sendExitHoleToMqtt(dto);
+                        sendHoleList.add(dto);
                     }
                 }
             }
+            mqHoleSender.sendExitHoleToMqtt(sendHoleList);
             scanProjectHostService.saveBatch(saveProjectHostList);
             // 不扫漏洞，已存在的域名流程直接结束
             if (!Const.INTEGER_1.equals(project.getNucleiFlag()) && !Const.INTEGER_1.equals(project.getAfrogFlag()) && !Const.INTEGER_1.equals(project.getXrayFlag())) {

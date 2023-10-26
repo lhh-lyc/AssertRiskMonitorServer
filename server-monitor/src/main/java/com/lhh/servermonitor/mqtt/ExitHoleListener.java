@@ -39,14 +39,14 @@ public class ExitHoleListener {
     public void processMessage(byte[] bytes, Message message, Channel channel) {
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         try {
-            log.info("扫描ip端口：" + JSON.toJSONString(dto));
+            log.info("已存扫描漏洞入参：" + JSON.toJSONString(dto));
             scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
             redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);
-                log.error("扫描ip端口失败：" + e);
+                log.error("已存扫描漏洞失败：" + e);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

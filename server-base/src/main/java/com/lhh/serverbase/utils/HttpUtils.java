@@ -59,6 +59,10 @@ public class HttpUtils {
         return obj;
     }
 
+    public static void main(String[] args) {
+        getDomainUnit("njgdkyhb.com");
+    }
+
     /**
      * 单日1000次
      * @param domain

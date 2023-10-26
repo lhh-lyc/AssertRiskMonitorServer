@@ -41,7 +41,6 @@ public class IpSender {
         List<ScanParamDto> resetList = new ArrayList<>();
         Integer num = Const.INTEGER_0;
         try {
-            //6. 将消息发送到队列
             for (ScanParamDto dto : dtoList) {
                 redisLock.addDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp());
             }
@@ -49,7 +48,6 @@ public class IpSender {
                 num++;
                 log.info(dto.getSubIp() + "ip开始投递");
                 CorrelationData correlationId = new CorrelationData(dto.toString());
-                //把消息放入ROUTINGKEY_A对应的队列当中去，对应的是队列A
                 rabbitTemplate.convertAndSend(exchange, ipRouteKey, SerializationUtils.serialize(dto), correlationId);
             }
         } catch (Exception e) {

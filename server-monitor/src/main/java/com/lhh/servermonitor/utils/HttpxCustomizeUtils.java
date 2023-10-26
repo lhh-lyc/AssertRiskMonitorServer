@@ -61,7 +61,7 @@ public class HttpxCustomizeUtils {
 
         if (title.contains("�") || title.contains("\uDBA6\uDD33")) {
             title = Const.STR_CROSSBAR;
-            System.out.println("乱码");
+            log.info("乱码");
         }
         String cms = getCms(stringRedisTemplate, toolDir, firstHttp, firstHttps);
         Map<String, String> result = new HashMap<>();

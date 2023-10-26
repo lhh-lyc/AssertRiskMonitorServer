@@ -82,9 +82,9 @@ public class ScanService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(requestUrl);
+        log.info(requestUrl);
         String outStr = RexpUtil.removeColor(response.getOut());
-        System.out.println(outStr);
+        log.info(outStr);
         List<String> responseLineList = Arrays.asList(outStr.split("\n"));
         List<String> serverLineList = responseLineList.stream().filter(r -> r.startsWith("[") && !r.startsWith("[INF]")).collect(Collectors.toList());
         List<Map> result = new ArrayList<>();
@@ -114,8 +114,7 @@ public class ScanService {
         List<ScanProjectHostEntity> updateList = new ArrayList<>();
         List<ScanParamDto> dtoList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
-            // 查询域名关联是否已存在，防止服务重启等情况导致一个项目多个相同域名关联
-            List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), Const.STR_EMPTY);
+            List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), scanDto.getHost());
             Map<String, ScanProjectHostEntity> phMap = phList.stream().collect(Collectors.toMap(ScanProjectHostEntity::getHost, ph -> ph));
             Date now = new Date();
             for (ScanParamDto subdomain : subdomainList) {
@@ -154,14 +153,16 @@ public class ScanService {
                 RLock lock = redisson.getLock(lockKey);
                 try {
                     lock.lock();
-                    if (!CollectionUtils.isEmpty(updateList) ) {
+                    if (!CollectionUtils.isEmpty(updateList)) {
                         scanProjectHostService.updateBatch(updateList);
                     }
                     if (!CollectionUtils.isEmpty(delIds)) {
                         scanProjectHostService.removeByIds(delIds);
                     }
                 } finally {
-                    lock.unlock();
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
                 }
             }
             mqHostSender.sendScanningHostToMqtt(dtoList);

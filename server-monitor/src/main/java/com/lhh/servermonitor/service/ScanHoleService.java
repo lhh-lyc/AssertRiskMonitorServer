@@ -55,20 +55,9 @@ public class ScanHoleService {
         String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, projectId));
         ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
         List<Integer> portList = scanPortService.queryPortList(domain);
+        log.info("portList：" + JSON.toJSONString(portList));
+        log.info("flg：" + (!CollectionUtils.isEmpty(portList) && !StringUtils.isEmpty(redisProject)));
         if (!CollectionUtils.isEmpty(portList) && !StringUtils.isEmpty(redisProject)) {
-            /*for (Integer port : portList) {
-                String requestUrl = domain + Const.STR_COLON + port;
-                if (Const.INTEGER_1.equals(redisProject.getNucleiFlag())) {
-                    Integer tool = ToolEnum.nuclei.getToolType();
-                    nucleiSingleScan(projectId, domain, requestUrl, tool, nucleiParams);
-                }
-                if (Const.INTEGER_1.equals(redisProject.getAfrogFlag())) {
-                    Integer tool = ToolEnum.afrog.getToolType();
-                }
-                if (Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
-                    Integer tool = ToolEnum.xray.getToolType();
-                }
-            }*/
             if (Const.INTEGER_1.equals(redisProject.getNucleiFlag())) {
                 nucleiAllScan(projectId, domain, portList, ToolEnum.nuclei.getToolType(), redisProject.getNucleiParams());
             }
@@ -125,6 +114,7 @@ public class ScanHoleService {
         for (Integer port : portList) {
             urlList.add(domain + Const.STR_COLON + port);
         }
+        log.info("项目" + projectId + Const.STR_COLON + domain + "-nuclei扫描对象：" + JSON.toJSONString(urlList));
         String urls = String.join("\\\\" + "n", urlList);
         SshResponse response = null;
         String cmd = String.format(Const.STR_NUCLEI_LIST, toolDir, projectId + Const.STR_UNDERLINE + domain, param);
@@ -239,6 +229,7 @@ public class ScanHoleService {
         for (Integer port : portList) {
             urlList.add(domain + Const.STR_COLON + port);
         }
+        log.info("项目" + projectId + Const.STR_COLON + domain + "-afrog扫描对象：" + JSON.toJSONString(urlList));
         String urls = String.join("\\\\" + "n", urlList);
         SshResponse response = null;
         String cmd = String.format(Const.STR_AFROG_LIST, toolDir, projectId + Const.STR_UNDERLINE + domain, param);
@@ -257,7 +248,7 @@ public class ScanHoleService {
     }
 
     public void afrogScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList, String cmd) {
-        List<String> responseLineList = Arrays.asList(reponseStr.split("\r"));
+        List<String> responseLineList = Arrays.asList(reponseStr.split(Const.STR_LINEFEED));
         List<String> serverLineList = new ArrayList<>();
         Boolean beginFlag = false;
         if (!CollectionUtils.isEmpty(responseLineList)) {
@@ -363,6 +354,7 @@ public class ScanHoleService {
         String requestUrl;
         for(Integer port : portList) {
             requestUrl = domain + Const.STR_COLON + port;
+            log.info("项目" + projectId + Const.STR_COLON + domain + "-xray扫描对象：" + requestUrl);
             SshResponse response = null;
             String cmd = String.format(Const.STR_XRAY, toolDir, requestUrl, param);
             try {

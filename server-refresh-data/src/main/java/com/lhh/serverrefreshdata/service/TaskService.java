@@ -1,5 +1,6 @@
 package com.lhh.serverrefreshdata.service;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.google.gson.Gson;
@@ -78,10 +79,10 @@ public class TaskService {
         }
         allList.addAll(list);
         stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON, JSON.toJSONString(allList));
-        List<CmsJsonEntity> domList = allList.stream().filter(f->"keyword".equals(f.getMethod())).collect(Collectors.toList());
+        List<CmsJsonEntity> domList = allList.stream().filter(f -> "keyword".equals(f.getMethod())).collect(Collectors.toList());
         stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
-        Map<String, String> faviconMap = allList.stream().filter(f->"faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
-                CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1 , key2) -> key1));
+        Map<String, String> faviconMap = allList.stream().filter(f -> "faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
+                CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1, key2) -> key1));
         stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
         log.info("fingerJson更新结束");
     }
@@ -101,38 +102,59 @@ public class TaskService {
 
     public void companyTask() {
         log.info("companyTask开始执行！");
-        List<String> hostList = scanHostFeign.getParentList();
-        if (!CollectionUtils.isEmpty(hostList)) {
-            for (String host : hostList) {
+        Map<String, Object> params = new HashMap<>(Const.INTEGER_1);
+        params.put("createTime", DateUtil.offsetHour(new Date(), Const.INTEGER_MINUS_1));
+        List<HostCompanyEntity> hostCompanyList = hostCompanyFeign.list(params);
+        if (!CollectionUtils.isEmpty(hostCompanyList)) {
+            for (HostCompanyEntity hostCompany : hostCompanyList) {
                 try {
-                    String company = HttpUtils.getDomainUnit(host);
+                    String company = HttpUtils.getDomainUnit(hostCompany.getHost());
                     company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
-                    HostCompanyEntity entity = hostCompanyFeign.queryBasicInfo(host);
-                    if (entity == null) {
-                        HostCompanyEntity c = HostCompanyEntity.builder()
-                                .host(host).company(company)
-                                .build();
-                        hostCompanyFeign.save(c);
-                    } else {
-                        if (!company.equals(entity.getCompany())) {
-                            entity.setCompany(company);
-                            hostCompanyFeign.update(entity);
-                        }
-                    }
-                    String parentDomain = RexpUtil.getMajorDomain(host);
-                    String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, parentDomain));
+                    hostCompany.setCompany(company);
+                    hostCompanyFeign.update(hostCompany);
+                    String value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, hostCompany.getHost()));
                     HostCompanyEntity obj;
                     if (StringUtils.isEmpty(value)) {
                         obj = HostCompanyEntity.builder()
-                                .host(parentDomain).company(company)
+                                .host(hostCompany.getHost()).company(company)
+                                .scanPorts(Const.STR_CROSSBAR)
                                 .build();
                     } else {
                         obj = JSON.parseObject(value, HostCompanyEntity.class);
                         obj.setCompany(company);
                     }
-                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_HOST_INFO, parentDomain), JSON.toJSONString(obj));
+                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_HOST_INFO, hostCompany.getHost()), JSON.toJSONString(obj));
+
+                    //子域名的主域名同时保存
+                    if (!RexpUtil.isMajorDomain(hostCompany.getHost())) {
+                        String parentDomain = RexpUtil.getMajorDomain(hostCompany.getHost());
+                        company = HttpUtils.getDomainUnit(parentDomain);
+                        company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+                        HostCompanyEntity entity = hostCompanyFeign.queryBasicInfo(parentDomain);
+                        if (entity == null) {
+                            entity = HostCompanyEntity.builder()
+                                    .host(parentDomain).company(company)
+                                    .scanPorts(Const.STR_CROSSBAR)
+                                    .build();
+                            hostCompanyFeign.save(entity);
+                        } else {
+                            entity.setCompany(company);
+                            hostCompanyFeign.update(entity);
+                        }
+                        value = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_HOST_INFO, parentDomain));
+                        if (StringUtils.isEmpty(value)) {
+                            obj = HostCompanyEntity.builder()
+                                    .host(parentDomain).company(company)
+                                    .scanPorts(Const.STR_CROSSBAR)
+                                    .build();
+                        } else {
+                            obj = JSON.parseObject(value, HostCompanyEntity.class);
+                            obj.setCompany(company);
+                        }
+                        stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_HOST_INFO, parentDomain), JSON.toJSONString(obj));
+                    }
                 } catch (Exception e) {
-                    log.error(host + "查询企业失败", e);
+                    log.error(hostCompany.getHost() + "查询企业失败", e);
                 }
             }
         }

@@ -75,10 +75,6 @@ mqtt-setting:
   scanning-hole-pub-topic: scanningHoleData
   exit-hole-route-key: key.exitHole
   exit-hole-pub-topic: exitHoleData
-  concurrent_consumers: 1
-  maxConcurrent_consumers: 1
+  concurrent_consumers: 8
+  maxConcurrent_consumers: 8
   prefetch_count: 1
-
-# 天数（新建任务中过期则重新扫描）
-server-config:
-  vail-day: 14

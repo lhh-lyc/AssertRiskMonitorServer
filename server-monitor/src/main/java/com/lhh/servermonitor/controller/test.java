@@ -3,6 +3,7 @@ package com.lhh.servermonitor.controller;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.dto.ScanParamDto;
@@ -43,8 +44,6 @@ public class test {
     ScanHoleService scanHoleService;
     @Value("${dir-setting.tool-dir}")
     private String toolDir;
-    @Value("${server-config.vail-day}")
-    private Integer vailDay;
 
     @GetMapping("test")
     public R test(String url){
@@ -197,6 +196,8 @@ public class test {
         Boolean flg = null;
         try {
             Date newTime = format.parse(time);
+            String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
+            Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
             flg = DateUtils.isInTwoWeek(newTime, new Date(), vailDay);
         } catch (ParseException e) {
             e.printStackTrace();

@@ -131,7 +131,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
         Integer limit = params.get("limit") != null ? Const.INTEGER_10 : MapUtil.getInt(params, "limit");
         params.put("limit", limit);
         List<KeyValueDto> list = scanHostDao.companyRanking(params);
-        if (list.size() < limit) {
+        /*if (list.size() < limit) {
             List<String> companyList = list.stream().map(KeyValueDto::getType).collect(Collectors.toList());
             companyList.add(Const.STR_CROSSBAR);
             Integer num = limit - list.size();
@@ -144,7 +144,7 @@ public class ScanHostServiceImpl extends ServiceImpl<ScanHostDao, ScanHostEntity
                     list.add(dto);
                 }
             }
-        }
+        }*/
         return list;
     }
 

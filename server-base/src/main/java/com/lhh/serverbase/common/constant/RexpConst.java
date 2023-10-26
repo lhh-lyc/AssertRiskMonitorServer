@@ -57,4 +57,9 @@ public class RexpConst {
      */
     public static String colorRex = "\\u001B\\[[;\\d]*[ -/]*[@-~]";
 
+    /**
+     * 1-100%匹配
+     */
+    public static String scheduleRex = "^(1|[1-9]\\d|100)%";
+
 }

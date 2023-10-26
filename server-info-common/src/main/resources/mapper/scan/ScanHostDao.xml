@@ -30,7 +30,8 @@
             ifnull( t5.title, '-' ) AS title,
             ifnull( t5.cms, '-' ) AS cms,
             u.user_id,
-            u.user_name
+            u.user_name,
+            case when isnull(t2.update_time) then t1.update_time else t2.update_time end as update_time
         FROM
             scan_host t1
                 LEFT JOIN scan_port t2 ON t1.ip_long = t2.ip_long
@@ -148,7 +149,7 @@
     </select>
 
     <select id="companyRanking" resultType="com.lhh.serverbase.dto.KeyValueDto">
-        SELECT t1.company as type,
+        SELECT hc.company as type,
         <if test='type == "1"'>
             COUNT(DISTINCT t1.parent_domain)
         </if>
@@ -181,9 +182,9 @@
             JOIN scan_host_port t5 ON t5.domain = t1.domain
             AND t5.del_flg = 0
         </if>
+        join host_company hc on hc.`host` = t1.parent_domain
+        and hc.company != '-'
         WHERE t1.del_flg = 0
-        and t1.company is not null
-        and t1.company != '-'
         <if test='type == "5"'>
             and t4.server_name != '-'
         </if>
@@ -193,7 +194,7 @@
         <if test="userId != null and userId != ''">
             and t3.user_id = #{userId}
         </if>
-        GROUP BY t1.company
+        GROUP BY hc.company
         ORDER BY value desc
         limit #{limit}
     </select>
