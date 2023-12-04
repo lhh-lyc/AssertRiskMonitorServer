@@ -7,6 +7,7 @@ import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.servermonitor.dao.ScanHostPortDao;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.HttpxCustomizeUtils;
+import com.netflix.discovery.converters.Auto;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -41,6 +42,8 @@ public class ScanHostPortService {
     ScanProjectHostService scanProjectHostService;
     @Autowired
     RedissonClient redisson;
+    @Autowired
+    HttpxCustomizeUtils httpxCustomizeUtils;
 
     /**
      * 解析url请求title/cms
@@ -60,7 +63,7 @@ public class ScanHostPortService {
                     for (Integer port : portList) {
                         Map<String, String> result = null;
                         try {
-                            result = HttpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, domain + Const.STR_COLON + port);
+                            result = httpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, domain + Const.STR_COLON + port);
                         } catch (IOException e) {
                             log.error("请求错误：" + domain + Const.STR_COLON + port, e);
                             e.printStackTrace();

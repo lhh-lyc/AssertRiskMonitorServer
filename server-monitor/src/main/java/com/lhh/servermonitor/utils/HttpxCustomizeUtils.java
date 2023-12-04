@@ -8,10 +8,13 @@ import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.CmsJsonEntity;
 import com.lhh.serverbase.entity.SshResponse;
+import com.lhh.servermonitor.dao.CmsJsonDao;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -28,19 +31,20 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 自定义httpx逻辑，查询url、title
  */
 @Slf4j
+@Service
 public class HttpxCustomizeUtils {
 
-    public static Map<String, String> getUrlMap(StringRedisTemplate stringRedisTemplate, String toolDir, String initialUrl) throws IOException {
+    @Autowired
+    CmsJsonDao cmsJsonDao;
+
+    public Map<String, String> getUrlMap(StringRedisTemplate stringRedisTemplate, String toolDir, String initialUrl) throws IOException {
         Integer statusCode;
         Map<String, Object> firstHttp = new HashMap<>();
         String url = "https://" + initialUrl;
@@ -71,7 +75,7 @@ public class HttpxCustomizeUtils {
         return result;
     }
 
-    public static String getCms(StringRedisTemplate stringRedisTemplate, String toolDir, Map<String, Object> firstHttp, Map<String, Object> firstHttps){
+    public String getCms(StringRedisTemplate stringRedisTemplate, String toolDir, Map<String, Object> firstHttp, Map<String, Object> firstHttps){
         String cms;
         Integer statusCode;
         statusCode = MapUtil.getInt(firstHttps, "statusCode");
@@ -160,7 +164,7 @@ public class HttpxCustomizeUtils {
         return result;
     }
 
-    public static String getAllCms(StringRedisTemplate stringRedisTemplate, String toolDir, String cmsUrl, Map<String, Object> responseMap) {
+    public String getAllCms(StringRedisTemplate stringRedisTemplate, String toolDir, String cmsUrl, Map<String, Object> responseMap) {
         String hashCms = getHashCms(stringRedisTemplate, toolDir, cmsUrl);
         List<String> keyWordCms = getKeyWordCms(stringRedisTemplate, responseMap);
         List<String> regulaCms = getRegulaCms(stringRedisTemplate, responseMap);
@@ -173,7 +177,7 @@ public class HttpxCustomizeUtils {
         return cms;
     }
 
-    public static String getHashCms(StringRedisTemplate stringRedisTemplate, String toolDir, String cmsUrl) {
+    public String getHashCms(StringRedisTemplate stringRedisTemplate, String toolDir, String cmsUrl) {
         String cms = Const.STR_EMPTY;
         Integer hash;
         if (!Const.STR_CROSSBAR.equals(cmsUrl)) {
@@ -184,8 +188,11 @@ public class HttpxCustomizeUtils {
                 response = ExecUtil.runCommand(cmd);
                 try {
                     hash = CollectionUtils.isEmpty(response.getOutList()) ? Const.INTEGER_0 : Integer.valueOf(response.getOutList().get(0));
-                    String cmsJsonMapStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_CMS_JSON_MAP);
-                    Map<String,String> cmsJsonMap = StringUtils.isEmpty(cmsJsonMapStr) ? new HashMap<>() : JSONObject.parseObject(cmsJsonMapStr, Map.class);
+//                    String cmsJsonMapStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_CMS_JSON_MAP);
+//                    Map<String,String> cmsJsonMap = StringUtils.isEmpty(cmsJsonMapStr) ? new HashMap<>() : JSONObject.parseObject(cmsJsonMapStr, Map.class);
+                    List<CmsJsonEntity> cmsJsonList = cmsJsonDao.queryList(new HashMap<String, Object>(){{put("method", "faviconhash");}});
+                    Map<String, String> cmsJsonMap = cmsJsonList.stream().collect(Collectors.toMap(
+                            CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1, key2) -> key1));
                     if (cmsJsonMap.containsKey(String.valueOf(hash))) {
                         cms = cmsJsonMap.get(String.valueOf(hash));
                     }
@@ -199,16 +206,18 @@ public class HttpxCustomizeUtils {
         return cms;
     }
 
-    public static List<String> getKeyWordCms(StringRedisTemplate stringRedisTemplate, Map<String, Object> responseMap) {
+    public List<String> getKeyWordCms(StringRedisTemplate stringRedisTemplate, Map<String, Object> responseMap) {
         List<String> cmsList = new ArrayList<>();
-        String cmsJsonListStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_CMS_JSON_LIST);
-        List<CmsJsonEntity> cmsJsonList = StringUtils.isEmpty(cmsJsonListStr) ? new ArrayList<>() : JSONArray.parseArray(cmsJsonListStr, CmsJsonEntity.class);
+//        String cmsJsonListStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_CMS_JSON_LIST);
+//        List<CmsJsonEntity> cmsJsonList = StringUtils.isEmpty(cmsJsonListStr) ? new ArrayList<>() : JSONArray.parseArray(cmsJsonListStr, CmsJsonEntity.class);
+        List<CmsJsonEntity> cmsJsonList = cmsJsonDao.queryList(new HashMap<String, Object>(){{put("method", "keyword");}});
         if (!CollectionUtils.isEmpty(cmsJsonList)) {
             for (CmsJsonEntity json : cmsJsonList) {
+                List<String> keyWordList = new ArrayList<>(Arrays.asList(json.getKeyword().split(Const.STR_COMMA)));
                 //一个规则有一组多个keyword，所有keyword都被包含才算识别到该规则
                 Boolean flg = true;
-                for (String key : json.getKeywordList()) {
-                    if (!MapUtil.getStr(responseMap, json.getLocation()).contains(key)) {
+                for (String key : keyWordList) {
+                    if (!responseMap.containsKey(json.getLocation()) || !MapUtil.getStr(responseMap, json.getLocation()).contains(key)) {
                         flg = false;
                     }
                 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.lhh.serverinfocommon.dao.sys.CmsJsonDao">
+<mapper namespace="com.lhh.servermonitor.dao.CmsJsonDao">
 
     <sql id="baseColumn">
                     id,
@@ -20,24 +20,14 @@
                     <result property="keyword" column="keyword"/>
             </resultMap>
 
-    <select id="queryPage" resultType="com.lhh.serverbase.entity.CmsJsonEntity">
-        select
-        <include refid="baseColumn"/>
-        from cms_json
-        where 1=1
-        <if test="cms != null and cms != ''">
-            and cms = #{cms}
-        </if>
-    </select>
-
     <select id="queryList" resultType="com.lhh.serverbase.entity.CmsJsonEntity">
         select
         <include refid="baseColumn"/>
         from cms_json
+        where 1=1
+          <if test="method != null and method != ''">
+              and method = #{method}
+          </if>
     </select>
-
-    <delete id="clearAll">
-        truncate cms_json;
-    </delete>
 
 </mapper>

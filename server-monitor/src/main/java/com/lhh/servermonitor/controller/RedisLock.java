@@ -82,7 +82,7 @@ public class RedisLock {
                 }
             }
         } catch (Exception e) {
-            log.error("项目" + projectId + "redis删除域名报错", e);
+            log.error("redis项目删除域名报错,项目id:" + projectId + ":"+ domain, e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {
@@ -137,7 +137,7 @@ public class RedisLock {
                 }
             }
         } catch (Exception e) {
-            log.error(domain + "redis主域名删除子域名报错", e);
+            log.error("redis主域名删除子域名报错" + domain + "-" + subDomain, e);
         } finally {
             // 判断当前线程是否持有锁
             if (lock.isHeldByCurrentThread()) {

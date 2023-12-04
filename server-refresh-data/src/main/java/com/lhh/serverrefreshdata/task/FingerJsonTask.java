@@ -19,7 +19,7 @@ public class FingerJsonTask {
      * 获取finger匹配的favicon hash值
      * @return
      */
-    @Scheduled(cron = "0 * * * * ? ")
+//    @Scheduled(cron = "0 * * * * ? ")
     @GetMapping("fingerJson")
     public R fingerJson() {
         log.info("FingerJson定时任务开始");

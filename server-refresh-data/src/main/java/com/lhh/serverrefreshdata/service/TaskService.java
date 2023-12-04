@@ -13,6 +13,7 @@ import com.lhh.serverbase.entity.HostCompanyEntity;
 import com.lhh.serverbase.utils.HttpUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverrefreshdata.feign.scan.*;
+import com.lhh.serverrefreshdata.utils.ICPUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -40,6 +41,8 @@ public class TaskService {
     HostCompanyFeign hostCompanyFeign;
     @Autowired
     CmsJsonFeign cmsJsonFeign;
+    @Autowired
+    ICPUtils icpUtils;
 
     public void fingerJson() {
         String response = null;
@@ -77,13 +80,19 @@ public class TaskService {
                 json.setKeywordList(new ArrayList<>(Arrays.asList(json.getKeyword().split(Const.STR_COMMA))));
             }
         }
+        // 保存新的规则
+        allList.removeAll(list);
+        if (!CollectionUtils.isEmpty(allList)) {
+            cmsJsonFeign.saveBatch(allList);
+        }
+        // 更新规则缓存
         allList.addAll(list);
-        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON, JSON.toJSONString(allList));
-        List<CmsJsonEntity> domList = allList.stream().filter(f -> "keyword".equals(f.getMethod())).collect(Collectors.toList());
-        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
-        Map<String, String> faviconMap = allList.stream().filter(f -> "faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
-                CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1, key2) -> key1));
-        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
+//        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON, JSON.toJSONString(allList));
+//        List<CmsJsonEntity> domList = allList.stream().filter(f -> "keyword".equals(f.getMethod())).collect(Collectors.toList());
+//        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
+//        Map<String, String> faviconMap = allList.stream().filter(f -> "faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
+//                CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1, key2) -> key1));
+//        stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
         log.info("fingerJson更新结束");
     }
 
@@ -108,7 +117,8 @@ public class TaskService {
         if (!CollectionUtils.isEmpty(hostCompanyList)) {
             for (HostCompanyEntity hostCompany : hostCompanyList) {
                 try {
-                    String company = HttpUtils.getDomainUnit(hostCompany.getHost());
+//                    HttpUtils.getDomainUnit(hostCompany.getHost());
+                    String company = icpUtils.getCompany(hostCompany.getHost());
                     company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
                     hostCompany.setCompany(company);
                     hostCompanyFeign.update(hostCompany);
@@ -128,7 +138,8 @@ public class TaskService {
                     //子域名的主域名同时保存
                     if (!RexpUtil.isMajorDomain(hostCompany.getHost())) {
                         String parentDomain = RexpUtil.getMajorDomain(hostCompany.getHost());
-                        company = HttpUtils.getDomainUnit(parentDomain);
+//                        company = HttpUtils.getDomainUnit(parentDomain);
+                        company = icpUtils.getCompany(hostCompany.getHost());
                         company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
                         HostCompanyEntity entity = hostCompanyFeign.queryBasicInfo(parentDomain);
                         if (entity == null) {
@@ -159,6 +170,15 @@ public class TaskService {
             }
         }
         log.info("companyTask执行完毕！");
+    }
+
+    public void test() {
+        try {
+            String s = icpUtils.getCompany("www.njgdkyhb.com");
+            System.out.println(s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

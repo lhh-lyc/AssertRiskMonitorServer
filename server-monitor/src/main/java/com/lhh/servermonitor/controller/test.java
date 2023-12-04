@@ -12,6 +12,7 @@ import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.DateUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.service.ScanHoleService;
+import com.lhh.servermonitor.service.ScanHostPortService;
 import com.lhh.servermonitor.service.ScanService;
 import com.lhh.servermonitor.service.TmpRedisService;
 import com.lhh.servermonitor.utils.ExecUtil;
@@ -33,6 +34,8 @@ import java.util.*;
 @RequestMapping("")
 @Slf4j
 public class test {
+    @Value("${dir-setting.tool-dir}")
+    private String toolDir;
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
@@ -42,14 +45,24 @@ public class test {
     ScanService scanService;
     @Autowired
     ScanHoleService scanHoleService;
-    @Value("${dir-setting.tool-dir}")
-    private String toolDir;
+    @Autowired
+    RedisLock redisLock;
+    @Autowired
+    HttpxCustomizeUtils httpxCustomizeUtils;
+    @Autowired
+    ScanHostPortService scanHostPortService;
+
+    @GetMapping("delDomainRedis")
+    public R delDomainRedis(){
+        redisLock.delDomainRedis(20L, "58.216.50.68", "58.216.50.68", "1-65535");
+        return R.ok();
+    }
 
     @GetMapping("test")
     public R test(String url){
         Map<String, String> result = new HashMap<>();
         try {
-            result = HttpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, url);
+            result = httpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, url);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -116,7 +129,7 @@ public class test {
         for (Integer port : portList) {
             Map<String, String> result = null;
             try {
-                result = HttpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, domain + Const.STR_COLON + port);
+                result = httpxCustomizeUtils.getUrlMap(stringRedisTemplate, toolDir, domain + Const.STR_COLON + port);
             } catch (IOException e) {
                 log.error("请求错误：" + domain + Const.STR_COLON + port, e);
                 e.printStackTrace();
@@ -203,6 +216,12 @@ public class test {
             e.printStackTrace();
         }
         return R.ok(flg);
+    }
+
+    @PostMapping("scanSingleHostPortListTest")
+    public R scanSingleHostPortListTest(String domain){
+        scanHostPortService.scanSingleHostPortList(domain);
+        return R.ok();
     }
 
 }

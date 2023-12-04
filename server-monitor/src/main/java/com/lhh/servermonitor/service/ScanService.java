@@ -181,10 +181,11 @@ public class ScanService {
         log.info("开始判断" + domain + "是否为泛解析主域名");
         for (int i = 0; i < n; i++) {
             String pre = RandomStringUtils.random(Const.INTEGER_10, Const.STR_LETTERS);
-            List<String> list = DomainIpUtils.getDomainIpList(pre + Const.STR_DOT + domain);
+            List<String> list = DomainIpUtils.getRandomDomainIpList(pre + Const.STR_DOT + domain);
             blackIpList.addAll(list);
             if (Const.INTEGER_1.equals(list.size()) && list.get(0).equals(Const.STR_CROSSBAR)) {
                 manyFlg = false;
+                log.info(domain + "不是泛解析主域名");
                 break;
             }
         }

@@ -21,4 +21,9 @@ public class CompanyTask {
         taskService.companyTask();
     }
 
+    @GetMapping("test")
+    public void test(){
+        taskService.test();
+    }
+
 }

@@ -95,6 +95,7 @@ public class ScanningHostListener {
     public void deal(ScanParamDto dto, Message message, Channel channel) {
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
+            stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_SUB_DOMAIN, dto.getSubDomain()), Const.STR_1);
             String ports = tmpRedisService.getHostInfo(dto.getHost()).getScanPorts();
             String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);
             Integer vailDay = StringUtils.isEmpty(vailDayStr) ? Const.INTEGER_0 : Integer.valueOf(vailDayStr);
@@ -200,6 +201,8 @@ public class ScanningHostListener {
                 redisLock.delDomainRedis(dto.getProjectId(), dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
             }
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+            stringRedisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_SUB_DOMAIN, dto.getSubDomain()));
+            log.info("处理项目域名完毕:" + dto.getProjectId() + "域名：" + dto.getSubDomain());
         } catch (Exception e) {
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), true, true);

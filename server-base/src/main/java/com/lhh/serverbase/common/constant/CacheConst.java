@@ -83,6 +83,11 @@ public class CacheConst {
     public final static String REDIS_SCANNING_DOMAIN = "SCANNING_DOMAIN:%s:%s";
 
     /**
+     * redis key: SCANNING_SUB_DOMAIN:
+     */
+    public final static String REDIS_SCANNING_SUB_DOMAIN = "SCANNING_SUB_DOMAIN:%s";
+
+    /**
      * redis key: SCANNING_IP:
      */
     public final static String REDIS_SCANNING_IP = "SCANNING_IP:%s";
@@ -179,5 +184,10 @@ public class CacheConst {
      * redis key: 天数（新建任务中过期则重新扫描）
      */
     public final static String REDIS_VAIL_DAY = "VAIL_DAY";
+
+    /**
+     * redis key: 备案信息查询
+     */
+    public final static String REDIS_COMPANY_QUERY = "COMPANY_QUERY";
 
 }

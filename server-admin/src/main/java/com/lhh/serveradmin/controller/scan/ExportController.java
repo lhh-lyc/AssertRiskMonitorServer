@@ -28,6 +28,15 @@ public class ExportController {
         return R.ok();
     }
 
+    @PostMapping("uploadCms")
+    public R uploadCms(@RequestPart("file") MultipartFile file){
+        if (file == null) {
+            return R.failed("文件不能为空");
+        }
+        exportService.uploadCms(file);
+        return R.ok();
+    }
+
     @ExportExcel(name = "用户资产", sheets = @Sheet(sheetName = "用户资产"))
     @GetMapping("exportPorts")
     public void exportPorts(@RequestParam Map<String, Object> params, HttpServletResponse response){

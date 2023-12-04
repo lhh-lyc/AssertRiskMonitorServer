@@ -28,7 +28,7 @@
                     update_time = #{item.updateTime,jdbcType=TIMESTAMP},
                 </if>
             </set>
-            where id = #{item.host_id,jdbcType=BIGINT}
+            where id = #{item.id,jdbcType=BIGINT}
         </foreach>
     </update>
 

@@ -3,14 +3,23 @@ package com.lhh.serveradmin.service.scan;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.fastjson2.JSON;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanPortFeign;
 import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
+import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
 import com.lhh.serveradmin.mqtt.ExportSender;
 import com.lhh.serveradmin.service.FileService;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.ExcelConstant;
 import com.lhh.serverbase.common.response.R;
+import com.lhh.serverbase.dto.CmsJsonDto;
+import com.lhh.serverbase.dto.FingerprintListDTO;
+import com.lhh.serverbase.entity.CmsJsonEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.enums.ExportTypeEnum;
@@ -20,8 +29,10 @@ import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.serverbase.vo.ScanHoleVo;
 import com.lhh.serverbase.vo.ScanPortVo;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -29,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -52,6 +64,10 @@ public class ExportService {
     ExportSender exportSender;
     @Autowired
     FileService fileService;
+    @Autowired
+    CmsJsonFeign cmsJsonFeign;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
 
     public R upload(MultipartFile file) {
@@ -223,6 +239,53 @@ public class ExportService {
         if (!CollectionUtils.isEmpty(savePortList)) {
             scanPortFeign.saveBatch(savePortList);
         }
+        return R.ok();
+    }
+
+    public R uploadCms(MultipartFile multipartFile) {
+        String fileName = multipartFile.getOriginalFilename();
+        File file = new File("./"+ fileName);
+        try {
+            FileUtils.copyInputStreamToFile(multipartFile.getInputStream(),file);
+            String jsonString = FileUtils.readFileToString(file, "UTF-8");
+            Gson gson = new Gson();
+            FingerprintListDTO fingerprintListDTO = gson.fromJson(jsonString, FingerprintListDTO.class);
+            List<CmsJsonDto> cmsJsonDtoList = fingerprintListDTO.getFingerprint();
+            if (CollectionUtils.isEmpty(cmsJsonDtoList)) {
+                return R.error("请上传正确的规则！");
+            }
+            List<CmsJsonEntity> newList = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(cmsJsonDtoList)) {
+                for (CmsJsonDto dto : cmsJsonDtoList) {
+                    CmsJsonEntity entity = CmsJsonEntity.builder()
+                            .cms(dto.getCms()).method(dto.getMethod())
+                            .location(dto.getLocation())
+                            .keywordList(dto.getKeyword())
+                            .build();
+                    if (!CollectionUtils.isEmpty(dto.getKeyword())) {
+                        entity.setKeyword(String.join(Const.STR_COMMA, dto.getKeyword()));
+                    }
+                    newList.add(entity);
+                }
+            }
+            List<CmsJsonEntity> oldList = cmsJsonFeign.list(new HashMap<>());
+            // 保存新的规则
+            newList.removeAll(oldList);
+            if (!CollectionUtils.isEmpty(newList)) {
+                cmsJsonFeign.saveBatch(newList);
+            }
+            // 更新规则缓存
+            newList.addAll(oldList);
+//            stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON, JSON.toJSONString(newList));
+//            List<CmsJsonEntity> domList = newList.stream().filter(f -> "keyword".equals(f.getMethod())).collect(Collectors.toList());
+//            stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_LIST, JSON.toJSONString(domList));
+//            Map<String, String> faviconMap = newList.stream().filter(f -> "faviconhash".equals(f.getMethod())).collect(Collectors.toMap(
+//                    CmsJsonEntity::getKeyword, CmsJsonEntity::getCms, (key1, key2) -> key1));
+//            stringRedisTemplate.opsForValue().set(CacheConst.REDIS_CMS_JSON_MAP, JSON.toJSONString(faviconMap));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        file.delete();
         return R.ok();
     }
 

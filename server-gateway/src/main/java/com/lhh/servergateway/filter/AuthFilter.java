@@ -28,8 +28,10 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component("authFilter")
@@ -83,10 +85,15 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return unauthorizedResponse(exchange, response, ResponseCodeEnum.TOKEN_CHECK_INFO_FAILED);
         }
 
-        String encUserId = header.getFirst(ENC_USER_ID);
-        ResponseCodeEnum e = jwtTokenUtil.isSelf(userId, encUserId);
-        if (e != null) {
-            return unauthorizedResponse(exchange, response, e);
+        try {
+            String requestUserId = getRequestUserId(request.getURI().getQuery());
+            String encUserId = header.getFirst(ENC_USER_ID);
+            ResponseCodeEnum e = jwtTokenUtil.isSelf(userId, encUserId, requestUserId);
+            if (e != null) {
+                return unauthorizedResponse(exchange, response, e);
+            }
+        } catch (UnsupportedEncodingException unsupportedEncodingException) {
+            unsupportedEncodingException.printStackTrace();
         }
 
         /*boolean isRefreshTokenNotExisted = jwtTokenUtil.isRefreshTokenNotExistCache(token);
@@ -137,6 +144,19 @@ public class AuthFilter implements GlobalFilter, Ordered {
                 .request(buildReuqest)
                 .response(response)
                 .build());
+    }
+
+    public static String getRequestUserId(String query) throws UnsupportedEncodingException {
+        Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+        String[] pairs = query.split("&");
+        String userId = Const.STR_EMPTY;
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+            if ("userId".equals(URLDecoder.decode(pair.substring(0, idx), "UTF-8"))) {
+                userId = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+            }
+        }
+        return userId;
     }
 
     @Override

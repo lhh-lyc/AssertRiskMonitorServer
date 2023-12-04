@@ -183,7 +183,7 @@ public class PassJavaJwtTokenUtil {
      * @param userId
      * @return true=不存在，false=存在
      */
-    public ResponseCodeEnum isSelf(String userId, String encUserId) {
+    public ResponseCodeEnum isSelf(String userId, String encUserId, String requestUserId) {
         String isSelfValid = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_IS_SELF_VALID);
         if (StringUtils.isEmpty(isSelfValid)) {
             isSelfValid = Const.STR_1;
@@ -193,8 +193,16 @@ public class PassJavaJwtTokenUtil {
             if (StringUtils.isEmpty(encUserId)) {
                 return ResponseCodeEnum.REQUEST_HEADER_ERROR;
             }
-            if (!MD5.getEncryptPwd(userId, Const.STR_SALT).equals(encUserId)) {
-                return ResponseCodeEnum.USER_ERROR;
+            if (!StringUtils.isEmpty(requestUserId)) {
+                if (!MD5.getEncryptPwd(userId, Const.STR_SALT).equals(encUserId) ||
+                        !MD5.getEncryptPwd(requestUserId, Const.STR_SALT).equals(encUserId) ||
+                        !userId.equals(requestUserId)) {
+                    return ResponseCodeEnum.USER_ERROR;
+                }
+            } else {
+                if (!MD5.getEncryptPwd(userId, Const.STR_SALT).equals(encUserId)) {
+                    return ResponseCodeEnum.USER_ERROR;
+                }
             }
         }
         return null;

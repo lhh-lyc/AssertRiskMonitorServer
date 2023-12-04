@@ -8,6 +8,10 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 passjava:
   jwt:
