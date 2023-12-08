@@ -43,6 +43,8 @@ public class ScanPortInfoService {
     @Autowired
     HostCompanyService hostCompanyService;
     @Autowired
+    ScanAddRecordService scanAddRecordService;
+    @Autowired
     TmpRedisService tmpRedisService;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
@@ -179,6 +181,7 @@ public class ScanPortInfoService {
                         }
                     }
                 }
+                List<ScanAddRecordEntity> recordList = new ArrayList<>();
                 Date now = new Date();
                 for (String p : scanPortList) {
                     if (exitPortMap.containsKey(Integer.valueOf(p))) {
@@ -194,10 +197,20 @@ public class ScanPortInfoService {
                                 .serverName(StringUtils.isEmpty(port) ? Const.STR_CROSSBAR : serverMap.get(p))
                                 .build();
                         savePortList.add(scanPort);
+
+                        // 新增扫描端口记录
+                        ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                                .projectId(dto.getProjectId()).parentName(ipLong.toString())
+                                .subName(port.toString()).addRecordType(Const.INTEGER_2)
+                                .build();
+                        recordList.add(record);
                     }
                 }
                 if (!CollectionUtils.isEmpty(savePortList)) {
                     scanPortService.saveBatch(savePortList);
+                }
+                if (!CollectionUtils.isEmpty(recordList)) {
+                    scanAddRecordService.saveBatch(recordList);
                 }
                 List<Long> delIds = new ArrayList<>();
                 if (!CollectionUtils.isEmpty(exitPortMap)) {
@@ -257,6 +270,7 @@ public class ScanPortInfoService {
             List<ScanPortEntity> savePortList = new ArrayList<>();
             List<ScanPortEntity> updatePortList = new ArrayList<>();
             List<Integer> portList = new ArrayList<>();
+            List<ScanAddRecordEntity> recordList = new ArrayList<>();
             Date now = new Date();
             for (String p : serverMap.keySet()) {
                 Integer port = Integer.valueOf(p);
@@ -273,10 +287,20 @@ public class ScanPortInfoService {
                             .serverName(StringUtils.isEmpty(port) ? Const.STR_CROSSBAR : serverMap.get(p))
                             .build();
                     savePortList.add(scanPort);
+
+                    // 新增扫描端口记录
+                    ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                            .projectId(dto.getProjectId()).parentName(ipLong.toString())
+                            .subName(port.toString()).addRecordType(Const.INTEGER_2)
+                            .build();
+                    recordList.add(record);
                 }
             }
             if (!CollectionUtils.isEmpty(savePortList)) {
                 scanPortService.saveBatch(savePortList);
+            }
+            if (!CollectionUtils.isEmpty(recordList)) {
+                scanAddRecordService.saveBatch(recordList);
             }
             List<Long> delIds = new ArrayList<>();
             if (!CollectionUtils.isEmpty(exitPortMap)) {

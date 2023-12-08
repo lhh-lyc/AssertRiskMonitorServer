@@ -126,6 +126,7 @@ public class ScanningHostListener {
                     // 扫描端口ip
                     if (Const.INTEGER_1.equals(dto.getPortFlag())) {
                         ScanParamDto ipDto = ScanParamDto.builder()
+                                .projectId(dto.getProjectId())
                                 .host(dto.getHost()).subDomain(dto.getSubDomain())
                                 .subIp(ip).scanPorts(scanPorts).allPorts(allPorts)
                                 .scanTime(dto.getScanTime())
@@ -200,8 +201,8 @@ public class ScanningHostListener {
             } else {
                 redisLock.delDomainRedis(dto.getProjectId(), dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
             }
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
             stringRedisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_SUB_DOMAIN, dto.getSubDomain()));
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
             log.info("处理项目域名完毕:" + dto.getProjectId() + "域名：" + dto.getSubDomain());
         } catch (Exception e) {
             try {

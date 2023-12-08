@@ -59,6 +59,9 @@ public class ScanProjectService {
         }
         project.setUserId(userId);
         List<String> hostList = new ArrayList<>(Arrays.asList(project.getHosts().replace(" ", "").split(Const.STR_LINEFEED)));
+        if (hostList.size() > 2000) {
+            return R.error("域名数量请保持在2000个以内！");
+        }
         project.setHostList(hostList);
         List<ScanProjectContentEntity> saveContentList = new ArrayList<>();
         List<String> validHostList = new ArrayList<>();
@@ -124,8 +127,6 @@ public class ScanProjectService {
             List<ScanProjectEntity> numList = scanProjectFeign.getProjectPortNum(projectIdList);
             maps = numList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
             params.put("projectIds", projectIdList);
-            List<ScanProjectContentEntity> contentList = CollectionUtils.isEmpty(projectIdList) ? new ArrayList<>() : scanProjectContentFeign.list(params);
-            contentMap = contentList.stream().collect(Collectors.groupingBy(ScanProjectContentEntity::getProjectId));
             List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
             holeMap = holeList.stream().collect(Collectors.toMap(HoleNumDto::getProjectId, obj -> obj, (key1, key2) -> key1));
         }
@@ -133,10 +134,6 @@ public class ScanProjectService {
             for (ScanProjectEntity project : page.getRecords()) {
                 Integer portNum = maps.get(project.getId());
                 project.setPortNum(portNum);
-                List<ScanProjectContentEntity> allList = contentMap.containsKey(project.getId()) ? contentMap.get(project.getId()) : new ArrayList<>();
-                List<ScanProjectContentEntity> scannedList = allList.stream().filter(c -> Const.INTEGER_1.equals(c.getIsCompleted())).collect(Collectors.toList());
-                project.setAllHostNum(allList.size());
-                project.setScannedHostNum(scannedList.size());
 
                 HoleNumDto dto = holeMap.get(project.getId());
                 if (dto != null) {

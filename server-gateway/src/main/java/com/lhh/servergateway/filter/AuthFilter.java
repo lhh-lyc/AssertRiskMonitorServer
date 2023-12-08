@@ -86,7 +86,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
 
         try {
-            String requestUserId = getRequestUserId(request.getURI().getQuery());
+            String requestUserId = getRequestUserId(request);
             String encUserId = header.getFirst(ENC_USER_ID);
             ResponseCodeEnum e = jwtTokenUtil.isSelf(userId, encUserId, requestUserId);
             if (e != null) {
@@ -146,14 +146,16 @@ public class AuthFilter implements GlobalFilter, Ordered {
                 .build());
     }
 
-    public static String getRequestUserId(String query) throws UnsupportedEncodingException {
-        Map<String, String> query_pairs = new LinkedHashMap<String, String>();
-        String[] pairs = query.split("&");
+    public static String getRequestUserId(ServerHttpRequest request) throws UnsupportedEncodingException {
         String userId = Const.STR_EMPTY;
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-            if ("userId".equals(URLDecoder.decode(pair.substring(0, idx), "UTF-8"))) {
-                userId = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+        if ("GET".equals(request.getMethod())) {
+            String query = request.getURI().getQuery();
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                int idx = pair.indexOf("=");
+                if ("userId".equals(URLDecoder.decode(pair.substring(0, idx), "UTF-8"))) {
+                    userId = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                }
             }
         }
         return userId;

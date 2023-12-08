@@ -1,6 +1,7 @@
 package com.lhh.servermonitor.service;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
@@ -13,6 +14,7 @@ import com.lhh.servermonitor.dao.SysDictDao;
 import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.HttpxCustomizeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -21,6 +23,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +41,8 @@ public class ScanHoleService {
     ScanPortService scanPortService;
     @Autowired
     ScanSecurityHoleService scanSecurityHoleService;
+    @Autowired
+    ScanAddRecordService scanAddRecordService;
     @Autowired
     SysDictService sysDictService;
     @Autowired
@@ -55,8 +61,6 @@ public class ScanHoleService {
         String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, projectId));
         ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
         List<Integer> portList = scanPortService.queryPortList(domain);
-        log.info("portList：" + JSON.toJSONString(portList));
-        log.info("flg：" + (!CollectionUtils.isEmpty(portList) && !StringUtils.isEmpty(redisProject)));
         if (!CollectionUtils.isEmpty(portList) && !StringUtils.isEmpty(redisProject)) {
             if (Const.INTEGER_1.equals(redisProject.getNucleiFlag())) {
                 nucleiAllScan(projectId, domain, portList, ToolEnum.nuclei.getToolType(), redisProject.getNucleiParams());
@@ -133,6 +137,7 @@ public class ScanHoleService {
     }
 
     public void nucleiScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList, String cmd) {
+        String majorDomain = RexpUtil.getMajorDomain(domain);
         List<String> responseLineList = Arrays.asList(reponseStr.split("\n"));
         List<String> serverLineList = responseLineList.stream().filter(r -> r.startsWith("[") && !r.startsWith("[INF]")).collect(Collectors.toList());
         List<ScanSecurityHoleEntity> holeList = new ArrayList<>();
@@ -146,7 +151,7 @@ public class ScanHoleService {
                 String describe = list.length > 4 ? list[4].substring(1, list[4].length() - 1) : Const.STR_CROSSBAR;
                 ScanSecurityHoleEntity hole = ScanSecurityHoleEntity.builder()
                         .projectId(projectId)
-                        .domain(RexpUtil.getMajorDomain(domain)).subDomain(domain)
+                        .domain(majorDomain).subDomain(domain)
                         .name(holeName).level(LevelEnum.getLevel(level))
                         .protocol(protocol).url(url).info(describe)
                         .status(Const.INTEGER_1).toolType(tool)
@@ -182,6 +187,19 @@ public class ScanHoleService {
         }
         if (!CollectionUtils.isEmpty(holeList)) {
             scanSecurityHoleService.saveBatch(holeList);
+            List<ScanAddRecordEntity> recordList = new ArrayList<>();
+            for (ScanSecurityHoleEntity hole : holeList) {
+                // 新增扫描端口记录
+                String target = getUrlTarget(hole.getUrl());
+                ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                        .projectId(projectId).parentName(target)
+                        .subName(hole.getName()).addRecordType(Const.INTEGER_3)
+                        .build();
+                recordList.add(record);
+            }
+            if (!CollectionUtils.isEmpty(recordList)) {
+                scanAddRecordService.saveBatch(recordList);
+            }
         }
     }
 
@@ -248,6 +266,7 @@ public class ScanHoleService {
     }
 
     public void afrogScan(Long projectId, String domain, Integer tool, String reponseStr, List<String> levelList, String cmd) {
+        String majorDomain = RexpUtil.getMajorDomain(domain);
         List<String> responseLineList = Arrays.asList(reponseStr.split(Const.STR_LINEFEED));
         List<String> serverLineList = new ArrayList<>();
         Boolean beginFlag = false;
@@ -283,7 +302,7 @@ public class ScanHoleService {
                 String describe = Const.STR_CROSSBAR;
                 ScanSecurityHoleEntity hole = ScanSecurityHoleEntity.builder()
                         .projectId(projectId)
-                        .domain(RexpUtil.getMajorDomain(domain)).subDomain(domain)
+                        .domain(majorDomain).subDomain(domain)
                         .name(holeName).level(LevelEnum.getLevel(level))
                         .protocol(protocol).url(url).info(describe)
                         .status(Const.INTEGER_1).toolType(tool)
@@ -318,6 +337,19 @@ public class ScanHoleService {
         }
         if (!CollectionUtils.isEmpty(holeList)) {
             scanSecurityHoleService.saveBatch(holeList);
+            List<ScanAddRecordEntity> recordList = new ArrayList<>();
+            for (ScanSecurityHoleEntity hole : holeList) {
+                // 新增扫描端口记录
+                String target = getUrlTarget(hole.getUrl());
+                ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                        .projectId(projectId).parentName(target)
+                        .subName(hole.getName()).addRecordType(Const.INTEGER_3)
+                        .build();
+                recordList.add(record);
+            }
+            if (!CollectionUtils.isEmpty(recordList)) {
+                scanAddRecordService.saveBatch(recordList);
+            }
         }
     }
 
@@ -369,6 +401,7 @@ public class ScanHoleService {
     }
 
     public void xrayScan(Long projectId, String domain, Integer tool, String reponseStr, String cmd) {
+        String majorDomain = RexpUtil.getMajorDomain(domain);
         Map<Integer, ScanSecurityHoleEntity> tmpMap = new HashMap<>();
         List<String> responseLineList = Arrays.asList(reponseStr.split(Const.STR_LINEFEED));
         Boolean holeFlag = false;
@@ -386,7 +419,7 @@ public class ScanHoleService {
                 if (holeFlag) {
                     ScanSecurityHoleEntity hole = tmpMap.get(num) == null ? ScanSecurityHoleEntity.builder()
                             .projectId(projectId)
-                            .domain(RexpUtil.getMajorDomain(domain))
+                            .domain(majorDomain)
                             .subDomain(domain)
                             .protocol(Const.STR_CROSSBAR)
                             .info(Const.STR_CROSSBAR)
@@ -437,7 +470,34 @@ public class ScanHoleService {
         }
         if (!CollectionUtils.isEmpty(holeList)) {
             scanSecurityHoleService.saveBatch(holeList);
+            List<ScanAddRecordEntity> recordList = new ArrayList<>();
+            for (ScanSecurityHoleEntity hole : holeList) {
+                // 新增扫描端口记录
+                String target = getUrlTarget(hole.getUrl());
+                ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                        .projectId(projectId).parentName(target)
+                        .subName(hole.getName()).addRecordType(Const.INTEGER_3)
+                        .build();
+                recordList.add(record);
+            }
+            if (!CollectionUtils.isEmpty(recordList)) {
+                scanAddRecordService.saveBatch(recordList);
+            }
         }
+    }
+
+    public String getUrlTarget(String requestUrl){
+        URL url = null;
+        try {
+            url = new URL(requestUrl);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        int port = url.getPort();
+        String portString = (port == -1) ? "" : (":" + port);
+        String urlWithoutPort = url.getProtocol() + "://" + url.getHost();
+        String target = urlWithoutPort + portString;
+        return target;
     }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
+import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectHostEntity;
 import com.lhh.serverbase.entity.SshResponse;
@@ -43,6 +44,8 @@ public class ScanService {
     ScanProjectContentService scanProjectContentService;
     @Autowired
     ScanPortInfoService scanPortInfoService;
+    @Autowired
+    ScanAddRecordService scanAddRecordService;
     @Autowired
     HostCompanyService hostCompanyService;
     @Autowired
@@ -112,6 +115,7 @@ public class ScanService {
         List<ScanParamDto> subdomainList = getSubDomainList(scanDto.getProjectId(), scanDto.getHost(), scanDto.getSubDomainFlag(), scanDto.getScanPorts());
         List<ScanProjectHostEntity> saveList = new ArrayList<>();
         List<ScanProjectHostEntity> updateList = new ArrayList<>();
+        List<ScanAddRecordEntity> recordList = new ArrayList<>();
         List<ScanParamDto> dtoList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
             List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), scanDto.getHost());
@@ -128,6 +132,13 @@ public class ScanService {
                             .build();
                     saveList.add(item);
 
+                    // 新增扫描子域名记录
+                    ScanAddRecordEntity record = ScanAddRecordEntity.builder()
+                            .projectId(scanDto.getProjectId()).parentName(scanDto.getHost())
+                            .subName(subdomain.getHost()).addRecordType(Const.INTEGER_1)
+                            .build();
+                    recordList.add(record);
+
                     ScanParamDto dto = new ScanParamDto();
                     CopyUtils.copyProperties(scanDto, dto);
                     dto.setSubDomain(subdomain.getHost());
@@ -142,6 +153,9 @@ public class ScanService {
             }
             if (!CollectionUtils.isEmpty(saveList)) {
                 scanProjectHostService.saveBatch(saveList);
+            }
+            if (!CollectionUtils.isEmpty(recordList)) {
+                scanAddRecordService.saveBatch(recordList);
             }
             List<Long> delIds = new ArrayList<>();
             if (!CollectionUtils.isEmpty(phMap)) {

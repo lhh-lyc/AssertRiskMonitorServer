@@ -86,7 +86,15 @@ public class ScanningIpListener {
                     lock.unlock();
                 }
             }
-            scanPortInfoService.scanIpsPortList(dto);
+
+            ScanParamDto ipDto = ScanParamDto.builder()
+                    .projectId(dto.getProjectId())
+                    .host(dto.getSubIp()).subDomain(dto.getSubIp())
+                    .subIp(dto.getSubIp()).scanPorts(dto.getScanPorts()).allPorts(dto.getAllPorts())
+                    .scanTime(dto.getScanTime())
+                    .portTool(dto.getPortTool())
+                    .build();
+            scanPortInfoService.scanIpsPortList(ipDto);
             scanHostPortService.scanSingleHostPortList(dto.getSubIp());
             String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, dto.getProjectId()));
             ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
