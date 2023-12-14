@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverinfocommon.dao.scan.HoleYamlDao">
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.HoleYamlEntity">
+        select
+        t1.*, t2.user_name
+        from hole_yaml t1
+        join sys_user t2 on t2.user_id = t1.user_id
+        where t1.del_flg = 0
+        and t2.del_flg = 0
+        <if test="params.userId != null and params.userId != ''">
+            and t1.user_id = #{params.userId}
+        </if>
+        <if test="params.fileName != null and params.fileName != ''">
+            and t1.file_name like CONCAT('%',#{params.fileName},'%')
+        </if>
+        order by t1.create_time desc
+    </select>
+
+</mapper>

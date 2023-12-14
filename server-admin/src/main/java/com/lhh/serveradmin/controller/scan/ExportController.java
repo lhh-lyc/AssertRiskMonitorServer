@@ -5,6 +5,7 @@ import cn.allbs.excel.annotation.Sheet;
 import com.lhh.serveradmin.service.scan.ExportService;
 import com.lhh.serverbase.common.response.R;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,6 +35,15 @@ public class ExportController {
             return R.failed("文件不能为空");
         }
         exportService.uploadCms(file);
+        return R.ok();
+    }
+
+    @PostMapping("uploadFiles")
+    public R uploadFiles(@RequestPart("files") List<MultipartFile> files){
+        if (CollectionUtils.isEmpty(files)) {
+            return R.failed("文件不能为空");
+        }
+        exportService.uploadFiles(files);
         return R.ok();
     }
 

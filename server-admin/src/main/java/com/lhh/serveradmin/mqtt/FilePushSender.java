@@ -1,6 +1,7 @@
 package com.lhh.serveradmin.mqtt;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
 import com.lhh.serverbase.common.constant.CacheConst;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class ExportSender {
+public class FilePushSender {
 
     @Value("${mqtt-setting.exchange}")
     private String exchange;

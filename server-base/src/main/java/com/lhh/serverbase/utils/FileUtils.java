@@ -52,7 +52,7 @@ public class FileUtils {
         if (StringUtils.isEmpty(fileName)) {
             return null;
         }
-        if (fileName.indexOf(Const.STR_SPOT) > 0) {
+        if (fileName.indexOf(Const.STR_SPOT) >= 0) {
             return fileName.substring(fileName.lastIndexOf(Const.STR_SPOT) + 1);
         }
         return null;

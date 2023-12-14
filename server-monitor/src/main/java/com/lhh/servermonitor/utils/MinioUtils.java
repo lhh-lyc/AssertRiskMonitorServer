@@ -1,4 +1,4 @@
-package com.lhh.serveradmin.utils;
+package com.lhh.servermonitor.utils;
 
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.JwtConst;
@@ -18,6 +18,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -273,6 +277,20 @@ public class MinioUtils {
      */
     public void createBucket(String bucketName) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, ErrorResponseException, NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, InvalidResponseException, InsufficientDataException, InternalException, io.minio.errors.InsufficientDataException, io.minio.errors.InternalException {
         getClient().makeBucket(bucketName);
+    }
+
+    /**
+     *
+     * @param bucketName
+     * @param folderName
+     * @param objectName
+     * @param target
+     */
+    public void uploadFileToTarget(String bucketName, String folderName, String objectName, String fileName, String target) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException, XmlPullParserException {
+        Path tempFilePath = Files.createTempFile("minio-download-", ".tmp");
+        getClient().getObject(bucketName, folderName + Const.STR_SLASH + objectName, tempFilePath.toString());
+        Path localFilePath = Paths.get(target, fileName);
+        Files.copy(tempFilePath, localFilePath, StandardCopyOption.REPLACE_EXISTING);
     }
 
 }

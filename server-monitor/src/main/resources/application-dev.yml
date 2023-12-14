@@ -78,3 +78,14 @@ mqtt-setting:
   concurrent_consumers: 8
   maxConcurrent_consumers: 8
   prefetch_count: 1
+
+my-config:
+  minio:
+    endpoint: http://49.235.104.19:9000
+    accesskey: minioadmin
+    secretkey: minioadmin
+  upload:
+    defFolder: def
+    defBucket: assertfiles
+  file:
+    target: D:\Documents

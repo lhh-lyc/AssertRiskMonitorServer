@@ -3,23 +3,25 @@ package com.lhh.serveradmin.service.scan;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
-import com.alibaba.fastjson2.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.lhh.serveradmin.feign.scan.HoleYamlFeign;
 import com.lhh.serveradmin.feign.scan.ScanHostFeign;
 import com.lhh.serveradmin.feign.scan.ScanPortFeign;
 import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
-import com.lhh.serveradmin.mqtt.ExportSender;
+import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
+import com.lhh.serveradmin.mqtt.FilePushSender;
 import com.lhh.serveradmin.service.FileService;
-import com.lhh.serverbase.common.constant.CacheConst;
+import com.lhh.serveradmin.utils.MinioUtils;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.constant.ExcelConstant;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.dto.CmsJsonDto;
+import com.lhh.serverbase.dto.FileInfoDTO;
 import com.lhh.serverbase.dto.FingerprintListDTO;
 import com.lhh.serverbase.entity.CmsJsonEntity;
+import com.lhh.serverbase.entity.HoleYamlEntity;
 import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.enums.ExportTypeEnum;
@@ -38,20 +40,20 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ExportService {
 
+    @Value("${my-config.upload.defFolder}")
+    private String defFolder;
     @Value("${my-config.upload.defBucket}")
     private String defBucket;
     @Autowired
@@ -61,13 +63,17 @@ public class ExportService {
     @Autowired
     ScanSecurityHoleFeign scanSecurityHoleFeign;
     @Autowired
-    ExportSender exportSender;
+    FilePushSender filePushSender;
     @Autowired
     FileService fileService;
     @Autowired
     CmsJsonFeign cmsJsonFeign;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private PassJavaJwtTokenUtil jwtTokenUtil;
+    @Resource
+    private HoleYamlFeign holeYamlFeign;
 
 
     public R upload(MultipartFile file) {
@@ -391,12 +397,12 @@ public class ExportService {
 
     public void uploadPorts(Map<String, Object> params) {
         params.put("exportType", ExportTypeEnum.port.getType());
-        exportSender.putExport(params);
+        filePushSender.putExport(params);
     }
 
     public void uploadHoles(Map<String, Object> params) {
         params.put("exportType", ExportTypeEnum.hole.getType());
-        exportSender.putExport(params);
+        filePushSender.putExport(params);
     }
 
     public R exportFiles(List<String> fileUrlList) {
@@ -408,6 +414,32 @@ public class ExportService {
             }
         }
         return R.ok().put("data", list);
+    }
+
+    public R uploadFiles(List<MultipartFile> files){
+        List<HoleYamlEntity> saveList = new ArrayList<>();
+        for (MultipartFile file : files) {
+            FileInfoDTO dto = null;
+            String[] arr = file.getOriginalFilename().split(Const.STR_SLASH);
+            String fileName = arr[arr.length-1];
+            try {
+                dto = fileService.uploadFile(defBucket, file.getInputStream(), fileName, "hole");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Long userId = Long.valueOf(jwtTokenUtil.getUserId());
+            HoleYamlEntity yaml = HoleYamlEntity.builder()
+                    .bucketName(dto.getBucketName())
+                    .fileName(dto.getFileOrgName()).fileUrl(dto.getFileUrl())
+                    .fileType(dto.getFileType()).userId(userId)
+                    .build();
+            yaml.setCreateTime(new Date());
+            yaml.setUpdateTime(new Date());
+            yaml.setDelFlg(Const.INTEGER_0);
+            saveList.add(yaml);
+        }
+        holeYamlFeign.saveBatch(saveList);
+        return R.ok();
     }
 
 }

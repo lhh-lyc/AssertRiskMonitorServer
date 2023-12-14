@@ -50,7 +50,10 @@ public class SpringAMQPConsumerConfig {
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
-        return new RabbitAdmin(connectionFactory);
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        // 服务启动时候开启自动启动
+        rabbitAdmin.setAutoStartup(true);
+        return rabbitAdmin;
     }
 
     @Bean

@@ -85,6 +85,7 @@ public class FileService {
         }
         return uploadReturnDTO;
     }
+
     public String download(String bucketName, String targetName) {
         String url = Const.STR_EMPTY;
         try {

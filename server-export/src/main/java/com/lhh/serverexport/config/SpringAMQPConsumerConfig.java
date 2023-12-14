@@ -69,7 +69,7 @@ public class SpringAMQPConsumerConfig {
         simpleRabbitListenerContainerFactory.setConsumerTagStrategy(new ConsumerTagStrategy() {
             @Override
             public String createConsumerTag(String s) {
-                return "域名扫描逻辑消费者";
+                return "导出消费者";
             }
         });
         simpleRabbitListenerContainerFactory.setAutoStartup(true);
