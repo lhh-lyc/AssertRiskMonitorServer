@@ -39,11 +39,11 @@ public class ExportController {
     }
 
     @PostMapping("uploadFiles")
-    public R uploadFiles(@RequestPart("files") List<MultipartFile> files){
+    public R uploadFiles(List<MultipartFile> files, @RequestParam("toolType") Integer toolType){
         if (CollectionUtils.isEmpty(files)) {
             return R.failed("文件不能为空");
         }
-        exportService.uploadFiles(files);
+        exportService.uploadFiles(files, toolType);
         return R.ok();
     }
 

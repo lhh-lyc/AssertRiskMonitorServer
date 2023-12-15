@@ -122,7 +122,7 @@ public class SysMenuController {
     public SysMenuEntity getInfo(Long id) {
         SysMenuEntity sysMenu = sysMenuService.getById(id);
         SysMenuEntity parentMenu = sysMenuService.getById(sysMenu.getParentId());
-        sysMenu.setParentName(Const.LONG_0.equals(parentMenu.getMenuId()) ? "一级菜单" : parentMenu.getName());
+        sysMenu.setParentName(Const.LONG_0.equals(sysMenu.getParentId()) ? "一级菜单" : parentMenu.getName());
         return sysMenu;
     }
 

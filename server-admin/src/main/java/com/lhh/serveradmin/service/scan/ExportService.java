@@ -416,7 +416,7 @@ public class ExportService {
         return R.ok().put("data", list);
     }
 
-    public R uploadFiles(List<MultipartFile> files){
+    public R uploadFiles(List<MultipartFile> files, Integer toolType){
         List<HoleYamlEntity> saveList = new ArrayList<>();
         for (MultipartFile file : files) {
             FileInfoDTO dto = null;
@@ -429,7 +429,7 @@ public class ExportService {
             }
             Long userId = Long.valueOf(jwtTokenUtil.getUserId());
             HoleYamlEntity yaml = HoleYamlEntity.builder()
-                    .bucketName(dto.getBucketName())
+                    .bucketName(dto.getBucketName()).toolType(toolType)
                     .fileName(dto.getFileOrgName()).fileUrl(dto.getFileUrl())
                     .fileType(dto.getFileType()).userId(userId)
                     .build();

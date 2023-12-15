@@ -49,6 +49,10 @@ public class HoleYamlEntity extends BaseEntity {
      */
     private String fileType;
     /**
+     * toolType
+     */
+    private Integer toolType;
+    /**
      * 文件大小(KB)
      */
     private Double fileSize;
