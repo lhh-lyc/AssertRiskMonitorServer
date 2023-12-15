@@ -192,6 +192,8 @@ public class Const {
      */
     public static String STR_FAVICON_HASH = "cd %s/Finger&&python3 faviconHash.py %s";
 
+    public static String STR_DEL_HOLE_YAML = "rm -rf %s";
+
     public static String STR_SALT = "ac79f869b5e546e8ab6423an35b215";
 
     public static String STR_LETTERS = "abcdefghijklmnopqrstuvwxyz";

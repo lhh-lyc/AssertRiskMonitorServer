@@ -17,10 +17,13 @@ public interface HoleYamlFeign {
     @GetMapping("/hole/yaml/page")
     IPage<HoleYamlEntity> page(@RequestParam Map<String, Object> params);
 
-    @GetMapping("/hole/yaml/list")
-    List<HoleYamlEntity> list(@RequestParam Map<String, Object> params);
+    @PostMapping("/hole/yaml/list")
+    List<HoleYamlEntity> list(@RequestBody Map<String, Object> params);
 
     @PostMapping("/hole/yaml/saveBatch")
     void saveBatch(@RequestBody List<HoleYamlEntity> holeYamlEntityList);
+
+    @PostMapping("/hole/yaml/deleteBatch")
+    void deleteBatch(@RequestBody List<Long> ids);
 
 }

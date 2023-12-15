@@ -46,6 +46,13 @@ ribbon:
   ReadTimeout: 600000
   ConnectTimeout: 600000
 
+server-setting:
+  is_prod: 0
+  host_name: 180.110.202.160
+  user_name: root
+  pwd: Lhh110112
+  exec_timeout: 6000
+
 # mqtt配置
 mqtt-setting:
   exchange: amp.topic
@@ -68,3 +75,7 @@ my-config:
   upload:
     defFolder: def
     defBucket: assertfiles
+  file:
+    nuclei-folder: /root/nuclei-templates/custom
+    afrog-folder: /root/afrog-pocs/custom
+    xray-folder: /root/xray-pocs/custom

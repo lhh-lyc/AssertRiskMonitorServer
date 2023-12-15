@@ -16,6 +16,12 @@
         <if test="params.fileName != null and params.fileName != ''">
             and t1.file_name like CONCAT('%',#{params.fileName},'%')
         </if>
+        <if test="params.idList != null and params.idList.size() > 0">
+            and t1.id IN
+            <foreach collection="params.idList" item="id" index="index" separator="," close=")" open="(">
+                #{id}
+            </foreach>
+        </if>
         order by t1.create_time desc
     </select>
 

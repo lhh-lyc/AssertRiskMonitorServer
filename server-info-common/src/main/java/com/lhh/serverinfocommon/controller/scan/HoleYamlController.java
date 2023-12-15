@@ -77,9 +77,8 @@ public class HoleYamlController {
      */
     @PostMapping("deleteBatch")
     @ApiOperation(value = "批量删除")
-    public void deleteBatch(@RequestBody Long[] ids) {
-        List<Long> idList = Arrays.asList(ids);
-        holeYamlService.removeByIds(idList);
+    public void deleteBatch(@RequestBody List<Long> ids) {
+        holeYamlService.removeByIds(ids);
     }
 
     /**
@@ -105,9 +104,9 @@ public class HoleYamlController {
     /**
      * 根据条件查询列表数据
      */
-    @GetMapping("list")
+    @PostMapping("list")
     @ApiOperation(value = "根据条件查询列表数据")
-    public List<HoleYamlEntity> list(@RequestParam Map<String, Object> params) {
+    public List<HoleYamlEntity> list(@RequestBody Map<String, Object> params) {
         List<HoleYamlEntity> sysFilesList = holeYamlService.list(params);
         return sysFilesList;
     }

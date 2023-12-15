@@ -61,21 +61,9 @@ public class HoleYamlEntity extends BaseEntity {
      */
     private String fileUrl;
     /**
-     * 创建时间
-     */
-    private Date createTime;
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-    /**
      * 备注
      */
     private String remark;
-    /**
-     * 删除标识（0 正常 1 删除）
-     */
-    private Integer delFlg;
     /**
      * 创建人
      */

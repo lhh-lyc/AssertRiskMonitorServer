@@ -88,4 +88,6 @@ my-config:
     defFolder: def
     defBucket: assertfiles
   file:
-    target: D:\Documents
+    nuclei-folder: /root/nuclei-templates/custom
+    afrog-folder: /root/afrog-pocs/custom
+    xray-folder: /root/xray-pocs/custom

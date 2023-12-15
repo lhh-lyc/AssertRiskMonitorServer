@@ -75,9 +75,7 @@ public class FileService {
             targetNameBuilder.append(folder);
             targetNameBuilder.append(Const.STR_SLASH);
             // uuid新文件名称
-            targetNameBuilder.append(UuidUtils.getUuid());
-            targetNameBuilder.append(Const.STR_SPOT);
-            targetNameBuilder.append(fileSuffix);
+            targetNameBuilder.append(orgName);
             // 新文件名称赋值
             String newFileName = targetNameBuilder.toString();
             uploadReturnDTO.setFileName(newFileName);
@@ -97,6 +95,7 @@ public class FileService {
         }
         return uploadReturnDTO;
     }
+
     public String download(String bucketName, String targetName) {
         String url = Const.STR_EMPTY;
         try {
