@@ -45,7 +45,7 @@
             and t1.sub_domain like concat('%', #{params.subDomain}, '%')
         </if>
         <if test="params.name != null and params.name != ''">
-            and t1.name = #{params.name}
+            and t1.name like concat('%', #{params.name}, '%')
         </if>
         <if test="params.url != null and params.url != ''">
             and t1.url like concat('%', #{params.url}, '%')

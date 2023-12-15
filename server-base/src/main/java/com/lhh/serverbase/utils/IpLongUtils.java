@@ -16,6 +16,9 @@ public class IpLongUtils {
             return Const.LONG_0;
         }
         String[] ip = ipStr.split("\\.");
+        if (ip != null && ip.length < 4) {
+            return Const.LONG_0;
+        }
         return (Long.valueOf(ip[0]) << 24) + (Long.valueOf(ip[1]) << 16)
                 + (Long.valueOf(ip[2]) << 8) + Long.valueOf(ip[3]);
     }
