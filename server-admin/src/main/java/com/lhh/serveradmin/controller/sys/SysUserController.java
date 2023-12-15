@@ -7,6 +7,7 @@ import com.lhh.serverbase.entity.SysUserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -70,6 +71,17 @@ public class SysUserController {
     public R info(@PathVariable("userId") Long userId) {
         SysUserEntity user = sysUserService.info(userId);
         return R.ok(user);
+    }
+
+    /**
+     * 删除
+     *
+     * @return
+     */
+    @PostMapping("/resetPwd")
+    public R resetPwd(@RequestBody List<Long> ids) {
+        sysUserService.resetPwd(ids);
+        return R.ok();
     }
 
 }

@@ -51,8 +51,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity> i
      */
     @Override
     public List<SysUserEntity> list(Map<String, Object> params) {
+        List<Long> userIdList = (List<Long>)params.get("userIdList");
         QueryWrapper wrapper = Wrappers.query()
                 .eq(!StringUtils.isEmpty(MapUtil.getStr(params, "userName")), "user_name", MapUtil.getStr(params, "userName"))
+                .in(!CollectionUtils.isEmpty(userIdList), "user_id", userIdList)
                 .eq("del_flg", Const.INTEGER_0);
         List<SysUserEntity> list = list(wrapper);
         return list;

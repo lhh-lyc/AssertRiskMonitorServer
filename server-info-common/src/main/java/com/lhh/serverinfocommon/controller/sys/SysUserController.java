@@ -97,9 +97,9 @@ public class SysUserController {
     /**
      * 根据条件查询列表数据
      */
-    @GetMapping("list")
+    @PostMapping("list")
     @ApiOperation(value = "根据条件查询列表数据")
-    public List<SysUserEntity> list(@RequestParam Map<String, Object> params) {
+    public List<SysUserEntity> list(@RequestBody Map<String, Object> params) {
         List<SysUserEntity> sysUserList = sysUserService.list(params);
         return sysUserList;
     }

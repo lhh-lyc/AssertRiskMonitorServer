@@ -17,8 +17,8 @@ public interface SysUserFeign {
     @GetMapping("/sys/user/page")
     IPage<SysUserEntity> page(@RequestParam Map<String, Object> params);
 
-    @GetMapping("/sys/user/list")
-    List<SysUserEntity> list(@RequestParam Map<String, Object> params);
+    @PostMapping("/sys/user/list")
+    List<SysUserEntity> list(@RequestBody Map<String, Object> params);
 
     @GetMapping("/sys/user/queryByName")
     SysUserEntity queryByName(@RequestParam("userName") String userName);

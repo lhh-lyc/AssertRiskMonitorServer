@@ -15,6 +15,7 @@ import com.lhh.serverbase.utils.MD5;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -87,7 +88,7 @@ public class SysUserService {
     public void save(SysUserEntity user) {
         String salt = RandomStringUtils.randomAlphanumeric(20);
         user.setSalt(salt);
-        String pwd = MD5.encryptPwdFirst("123456");
+        String pwd = MD5.encryptPwdFirst("fq_123456");
         String password = MD5.getEncryptPwd(pwd, salt);
         user.setPassword(password);
         Long userId = sysUserFeign.save(user);
@@ -111,6 +112,20 @@ public class SysUserService {
         List<Long> adminIdList = sysUserFeign.getAdminIdList();
         Integer flag = adminIdList.contains(userId) ? Const.INTEGER_1 : Const.INTEGER_0;
         return flag;
+    }
+
+    public void resetPwd(List<Long> ids){
+        Map<String, Object> params = new HashMap<>();
+        params.put("userIdList", ids);
+        List<SysUserEntity> userList = sysUserFeign.list(params);
+        if (!CollectionUtils.isEmpty(userList)) {
+            for (SysUserEntity user : userList) {
+                String pwd = MD5.encryptPwdFirst("fq_123456");
+                String password = MD5.getEncryptPwd(pwd, user.getSalt());
+                user.setPassword(password);
+                sysUserFeign.update(user);
+            }
+        }
     }
 
 }
