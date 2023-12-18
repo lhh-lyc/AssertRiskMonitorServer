@@ -3,7 +3,9 @@ package com.lhh.serverinfocommon.service.imsp.sys;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.request.PageUtil;
 import com.lhh.serverbase.entity.CmsJsonEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.serverinfocommon.dao.sys.CmsJsonDao;
@@ -29,11 +31,8 @@ public class CmsJsonServiceImpl extends ServiceImpl<CmsJsonDao, CmsJsonEntity> i
      */
     @Override
     public IPage<CmsJsonEntity> page(Map<String, Object> params) {
-        IPage<CmsJsonEntity> page = this.page(
-                new Query<CmsJsonEntity>().getPage(params),
-                new QueryWrapper<CmsJsonEntity>()
-        );
-        return page;
+        Page<CmsJsonEntity> page = PageUtil.getPageParam(params);
+        return cmsJsonDao.queryPage(page, params);
     }
 
     /**

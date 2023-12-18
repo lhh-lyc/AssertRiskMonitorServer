@@ -27,13 +27,14 @@
         select
         t1.id, t3.user_name, t1.project_id, t2.`name` as project_name, t1.domain, t1.sub_domain,
         t1.status, d1.code as status_name, t1.tool_type, d2.code as tool_type_name,
-        t1.name, t1.level, d3.code as level_name, t1.protocol, t1.url, t1.info, t1.update_time
+        t1.name, t1.level, case when t1.level is null then '-' else d3.CODE end AS level_name,
+        t1.protocol, t1.url, t1.info, t1.update_time
         from scan_security_hole t1
         join scan_project t2 on t2.id = t1.project_id
         join sys_user t3 on t3.user_id = t2.user_id and t3.del_flg = 0
-        join sys_dict d1 on d1.`value` = t1.`status` and d1.type = 'hole_status' and d1.del_flg = 0
-        join sys_dict d2 on d2.`value` = t1.`tool_type` and d2.type = 'scan_tool_type' and d2.del_flg = 0
-        join sys_dict d3 on d3.`value` = t1.`level` and d3.type = 'hole_level' and d3.del_flg = 0
+        left join sys_dict d1 on d1.`value` = t1.`status` and d1.type = 'hole_status' and d1.del_flg = 0
+        left join sys_dict d2 on d2.`value` = t1.`tool_type` and d2.type = 'scan_tool_type' and d2.del_flg = 0
+        left join sys_dict d3 on d3.`value` = t1.`level` and d3.type = 'hole_level' and d3.del_flg = 0
         where t1.del_flg = 0
         <if test="params.projectId != null and params.projectId != ''">
             and t1.project_id = #{params.projectId}

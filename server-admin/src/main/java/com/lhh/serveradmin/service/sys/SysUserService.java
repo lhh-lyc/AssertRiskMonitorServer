@@ -88,7 +88,7 @@ public class SysUserService {
     public void save(SysUserEntity user) {
         String salt = RandomStringUtils.randomAlphanumeric(20);
         user.setSalt(salt);
-        String pwd = MD5.encryptPwdFirst("fq_123456");
+        String pwd = MD5.encryptPwdFirst("123456");
         String password = MD5.getEncryptPwd(pwd, salt);
         user.setPassword(password);
         Long userId = sysUserFeign.save(user);
@@ -120,7 +120,7 @@ public class SysUserService {
         List<SysUserEntity> userList = sysUserFeign.list(params);
         if (!CollectionUtils.isEmpty(userList)) {
             for (SysUserEntity user : userList) {
-                String pwd = MD5.encryptPwdFirst("fq_123456");
+                String pwd = MD5.encryptPwdFirst("123456");
                 String password = MD5.getEncryptPwd(pwd, user.getSalt());
                 user.setPassword(password);
                 sysUserFeign.update(user);
