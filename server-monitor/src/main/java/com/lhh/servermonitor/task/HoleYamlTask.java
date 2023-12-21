@@ -84,7 +84,7 @@ public class HoleYamlTask {
                 String path = yaml.getFileUrl().replace(yaml.getFileName(), Const.STR_EMPTY);
                 mkdir(folder + Const.STR_SLASH + path);
                 String fileUrl = yaml.getFileUrl();
-                minioUtils.uploadFileToTarget(yaml.getBucketName(), fileUrl, yaml.getFileName(), folder);
+                minioUtils.uploadFileToTarget(yaml.getBucketName(), fileUrl, yaml.getFileName(), folder + Const.STR_SLASH + path);
             }
         }
     }
