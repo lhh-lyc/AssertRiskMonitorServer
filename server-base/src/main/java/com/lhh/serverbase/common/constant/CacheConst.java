@@ -190,4 +190,9 @@ public class CacheConst {
      */
     public final static String REDIS_COMPANY_QUERY = "COMPANY_QUERY";
 
+    /**
+     * redis key: 扫描漏洞服务名
+     */
+    public final static String REDIS_SERVER_NAMES = "SERVER_NAMES";
+
 }

@@ -282,13 +282,12 @@ public class MinioUtils {
     /**
      *
      * @param bucketName
-     * @param folderName
-     * @param objectName
+     * @param fileUrl
      * @param target
      */
-    public void uploadFileToTarget(String bucketName, String folderName, String objectName, String fileName, String target) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException, XmlPullParserException {
+    public void uploadFileToTarget(String bucketName, String fileUrl, String fileName, String target) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException, XmlPullParserException {
         Path tempFilePath = Files.createTempFile("minio-download-", ".tmp");
-        getClient().getObject(bucketName, folderName + Const.STR_SLASH + objectName, tempFilePath.toString());
+        getClient().getObject(bucketName, fileUrl, tempFilePath.toString());
         Path localFilePath = Paths.get(target, fileName);
         Files.copy(tempFilePath, localFilePath, StandardCopyOption.REPLACE_EXISTING);
     }

@@ -4,16 +4,20 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.ScanPortEntity;
 import com.lhh.serverbase.utils.Query;
 import com.lhh.servermonitor.dao.ScanPortDao;
 import com.lhh.servermonitor.service.ScanPortService;
+import com.lhh.servermonitor.utils.JedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +58,12 @@ public class ScanPortServiceImpl extends ServiceImpl<ScanPortDao, ScanPortEntity
 
     @Override
     public List<Integer> queryWebPortList(String domain) {
-        return scanPortDao.queryWebPortList(domain);
+        String serverNames = JedisUtils.getJson(CacheConst.REDIS_SERVER_NAMES);
+        if (StringUtils.isEmpty(serverNames)) {
+            JedisUtils.setJson(CacheConst.REDIS_SERVER_NAMES, "http,https");
+        }
+        List<String> serverNameList = Arrays.asList(serverNames.split(Const.STR_COMMA));
+        return scanPortDao.queryWebPortList(domain, serverNameList);
     }
 
     @Override

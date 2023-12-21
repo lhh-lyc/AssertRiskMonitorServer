@@ -13,7 +13,10 @@
         select DISTINCT t1.port from scan_port t1
         join scan_host t2 on t2.ip_long = t1.ip_long
         where t2.domain = #{domain}
-        and (t1.server_name = 'http' or t1.server_name = 'https')
+        AND t1.server_name IN
+        <foreach collection="serverNameList" item="serverName" index="index" separator="," close=")" open="(">
+                #{serverName}
+        </foreach>
     </select>
 
     <select id="queryPortList" resultType="java.lang.Integer">

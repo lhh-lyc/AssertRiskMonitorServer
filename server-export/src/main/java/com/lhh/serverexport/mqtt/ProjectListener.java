@@ -25,6 +25,7 @@ import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -103,6 +104,7 @@ public class ProjectListener {
             Date now = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
             String time = sdf.format(now);
+            filename = StringUtils.isEmpty(filename) ? "漏洞资产" : filename;
             if (filename.contains("(")) {
                 filename = filename.replace("(", time + "(");
             } else {

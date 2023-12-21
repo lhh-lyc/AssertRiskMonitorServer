@@ -80,12 +80,11 @@ public class HoleYamlTask {
 
     public void upload(List<HoleYamlEntity> yamlList, String folder) throws MinioException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         if (!CollectionUtils.isEmpty(yamlList)) {
-            mkdir(folder);
             for (HoleYamlEntity yaml : yamlList) {
+                String path = yaml.getFileUrl().replace(yaml.getFileName(), Const.STR_EMPTY);
+                mkdir(folder + Const.STR_SLASH + path);
                 String fileUrl = yaml.getFileUrl();
-                String foldName = fileUrl.split(Const.STR_SLASH)[0];
-                String objectName = fileUrl.split(Const.STR_SLASH)[1];
-                minioUtils.uploadFileToTarget(yaml.getBucketName(), foldName, objectName, yaml.getFileName(), folder);
+                minioUtils.uploadFileToTarget(yaml.getBucketName(), fileUrl, yaml.getFileName(), folder);
             }
         }
     }

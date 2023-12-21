@@ -74,12 +74,9 @@ public class FileService {
             StringBuilder targetNameBuilder = new StringBuilder();
             targetNameBuilder.append(folder);
             targetNameBuilder.append(Const.STR_SLASH);
-            // uuid新文件名称
             targetNameBuilder.append(orgName);
-            // 新文件名称赋值
             String newFileName = targetNameBuilder.toString();
             uploadReturnDTO.setFileName(newFileName);
-//            filesEntity.setFileName(newFileName);
             // 生产url bucketName+folder+filename
             targetNameBuilder.setLength(0);
             targetNameBuilder.append(bucketName);
