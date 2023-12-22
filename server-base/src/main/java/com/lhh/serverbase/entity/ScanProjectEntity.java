@@ -118,6 +118,9 @@ public class ScanProjectEntity extends BaseEntity implements Serializable {
     private Integer portNum;
 
     @TableField(exist = false)
+    private Integer urlNum;
+
+    @TableField(exist = false)
     private Integer isCompleted;
 
     @TableField(exist = false)

@@ -120,20 +120,23 @@ public class ScanProjectService {
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
         IPage<ScanProjectEntity> page = scanProjectFeign.basicPage(params);
         List<Long> projectIdList = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
-        Map<Long, Integer> maps = new HashMap<>();
+        Map<Long, Integer> portNumMap = new HashMap<>();
+        Map<Long, Integer> urlNumMap = new HashMap<>();
         Map<Long, List<ScanProjectContentEntity>> contentMap = new HashMap<>();
         Map<Long, HoleNumDto> holeMap = new HashMap<>();
         if (!CollectionUtils.isEmpty(projectIdList)) {
-            List<ScanProjectEntity> numList = scanProjectFeign.getProjectPortNum(projectIdList);
-            maps = numList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
+            List<ScanProjectEntity> portNumList = scanProjectFeign.getProjectPortNum(projectIdList);
+            portNumMap = portNumList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
+            List<ScanProjectEntity> urlNumList = scanProjectFeign.getProjectUrlNum(projectIdList);
+            urlNumMap = urlNumList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getUrlNum));
             params.put("projectIds", projectIdList);
             List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
             holeMap = holeList.stream().collect(Collectors.toMap(HoleNumDto::getProjectId, obj -> obj, (key1, key2) -> key1));
         }
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
-                Integer portNum = maps.get(project.getId());
-                project.setPortNum(portNum);
+                project.setPortNum(portNumMap.get(project.getId()));
+                project.setUrlNum(urlNumMap.get(project.getId()));
 
                 HoleNumDto dto = holeMap.get(project.getId());
                 if (dto != null) {

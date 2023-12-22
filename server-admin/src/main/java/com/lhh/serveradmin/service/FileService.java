@@ -154,15 +154,15 @@ public class FileService {
      * @param bucketName 文件桶名称
      * @throws EmException
      */
-    public void deleteFile(List<FileInfoDTO> fileList, String bucketName) {
+    public void deleteFile(String bucketName, List<String> fileList) {
         if (fileList != null || fileList.size() > 0) {
             if (fileList.size() == Const.INTEGER_1) {
 //                sysFilesDao.deleteById(fileList.get(Const.INT_0).getFileId());
-                doDeleteFile(fileList.get(Const.INTEGER_0).getFileName(), bucketName);
+                doDeleteFile(bucketName, fileList.get(Const.INTEGER_0));
                 return;
             }
 //            sysFilesDao.deleteBatchIds(fileList.stream().map(e -> e.getFileId()).collect(Collectors.toList()));
-            doDeleteFile(fileList.stream().map(e -> e.getFileName()).collect(Collectors.toList()), bucketName);
+            doDeleteFile(bucketName, fileList);
         }
     }
 
@@ -173,7 +173,7 @@ public class FileService {
      * @param targetNameList 文件名称List
      * @throws EmException
      */
-    public void doDeleteFile(List<String> targetNameList, String bucketName) throws EmException {
+    public void doDeleteFile(String bucketName, List<String> targetNameList) throws EmException {
         try {
             if (!minioUtils.bucketExists(bucketName)) {
                 log.error("文件桶名称不存在");
@@ -194,7 +194,7 @@ public class FileService {
      * @param targetName 目标文件
      * @param bucketName 文件桶名称
      */
-    private void doDeleteFile(String targetName, String bucketName) {
+    private void doDeleteFile(String bucketName, String targetName) {
         try {
             if (!minioUtils.bucketExists(bucketName)) {
                 log.error("文件桶名称不存在");

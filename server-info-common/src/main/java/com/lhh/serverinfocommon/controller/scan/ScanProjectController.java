@@ -119,6 +119,15 @@ public class ScanProjectController {
         return scanProjectList;
     }
 
+    @PostMapping("/getProjectUrlNum")
+    public List<ScanProjectEntity> getProjectUrlNum(@RequestBody List<Long> projectIdList) {
+        if (CollectionUtils.isEmpty(projectIdList)) {
+            return new ArrayList<>();
+        }
+        List<ScanProjectEntity> scanProjectList = scanProjectService.getProjectUrlNum(projectIdList);
+        return scanProjectList;
+    }
+
     /**
      * 分页查询列表
      */

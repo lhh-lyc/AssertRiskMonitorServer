@@ -70,6 +70,26 @@
         group by t1.project_id
     </select>
 
+    <select id="getProjectUrlNum" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
+        select t1.project_id as id, ifnull(count(t4.id), 0) as url_num
+        from scan_project_host t1
+                 LEFT JOIN scan_host t2 ON t2.domain = t1.host
+            and t2.del_flg = 0
+                 left join scan_port t3 on t3.ip_long = t2.ip_long
+            and t3.del_flg = 0
+                 left join scan_host_port t4 on t4.domain = t2.domain
+            and t4.`port` = t3.`port`
+            and t4.del_flg = 0
+        where t1.del_flg = 0
+        <if test="projectIdList != null and projectIdList.size() > 0">
+            AND t1.project_id IN
+            <foreach collection="projectIdList" item="projectId" index="index" separator="," close=")" open="(">
+                #{projectId}
+            </foreach>
+        </if>
+        group by t1.project_id
+    </select>
+
     <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanProjectEntity">
         select t.* from (
         select

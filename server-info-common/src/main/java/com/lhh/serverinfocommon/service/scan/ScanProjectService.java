@@ -20,6 +20,8 @@ public interface ScanProjectService extends IService<ScanProjectEntity> {
 
     List<ScanProjectEntity> getProjectPortNum(List<Long> projectIdList);
 
+    List<ScanProjectEntity> getProjectUrlNum(List<Long> projectIdList);
+
     /**
      * 分页查询列表数据
      * @param params

@@ -70,10 +70,6 @@ public class ExportService {
     CmsJsonFeign cmsJsonFeign;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
-    @Resource
-    private PassJavaJwtTokenUtil jwtTokenUtil;
-    @Resource
-    private HoleYamlFeign holeYamlFeign;
 
 
     public R upload(MultipartFile file) {
@@ -414,35 +410,6 @@ public class ExportService {
             }
         }
         return R.ok().put("data", list);
-    }
-
-    public R uploadFiles(List<MultipartFile> files, List<String> paths, Integer toolType){
-        List<HoleYamlEntity> saveList = new ArrayList<>();
-        for (int i = 0; i < files.size(); i++) {
-            MultipartFile file = files.get(i);
-            String path = paths.get(i);
-            FileInfoDTO dto = null;
-            String[] arr = file.getOriginalFilename().split(Const.STR_SLASH);
-            String fileName = arr[arr.length-1];
-            String folder = path.replace(Const.STR_SLASH + fileName, Const.STR_EMPTY);
-            try {
-                dto = fileService.uploadFile(defBucket, file.getInputStream(), fileName, folder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Long userId = Long.valueOf(jwtTokenUtil.getUserId());
-            HoleYamlEntity yaml = HoleYamlEntity.builder()
-                    .bucketName(dto.getBucketName()).toolType(toolType)
-                    .fileName(dto.getFileOrgName()).fileUrl(dto.getFileUrl())
-                    .fileType(dto.getFileType()).userId(userId)
-                    .build();
-            yaml.setCreateTime(new Date());
-            yaml.setUpdateTime(new Date());
-            yaml.setDelFlg(Const.INTEGER_0);
-            saveList.add(yaml);
-        }
-        holeYamlFeign.saveBatch(saveList);
-        return R.ok();
     }
 
 }

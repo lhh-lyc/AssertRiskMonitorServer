@@ -20,10 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -81,9 +78,16 @@ public class HoleYamlTask {
     public void upload(List<HoleYamlEntity> yamlList, String folder) throws MinioException, XmlPullParserException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         if (!CollectionUtils.isEmpty(yamlList)) {
             for (HoleYamlEntity yaml : yamlList) {
-                String path = yaml.getFileUrl().replace(yaml.getFileName(), Const.STR_EMPTY);
+                String [] folderList = yaml.getFileUrl().split(Const.STR_SLASH);
+                List<String> newFolderList = new ArrayList<>();
+                for (int i = 1; i < folderList.length; i++) {
+                    newFolderList.add(folderList[i]);
+                }
+                String newPath = String.join(Const.STR_SLASH, newFolderList);
+                String path = newPath.replace(yaml.getFileName(), Const.STR_EMPTY);
+                path.split(Const.STR_SLASH);
                 mkdir(folder + Const.STR_SLASH + path);
-                String fileUrl = yaml.getFileUrl();
+                String fileUrl = Const.STR_CUSTOM + yaml.getFileUrl();
                 minioUtils.uploadFileToTarget(yaml.getBucketName(), fileUrl, yaml.getFileName(), folder + Const.STR_SLASH + path);
             }
         }

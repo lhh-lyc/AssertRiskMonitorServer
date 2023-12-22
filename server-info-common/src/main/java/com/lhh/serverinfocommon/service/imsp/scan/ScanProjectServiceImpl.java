@@ -52,6 +52,11 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
         return scanProjectDao.getProjectPortNum(projectIdList);
     }
 
+    @Override
+    public List<ScanProjectEntity> getProjectUrlNum(List<Long> projectIdList) {
+        return scanProjectDao.getProjectUrlNum(projectIdList);
+    }
+
     /**
      * 分页查询列表数据
      *

@@ -104,6 +104,12 @@ public class Const {
      * 字符串：utf-8
      */
     public final static String STR_UTF8 = "utf-8";
+
+    /**
+     * 字符串：minio 漏洞规则目录前缀
+     */
+    public final static String STR_CUSTOM = "/custom";
+
     /**
      * 字符串：\n 换行
      */

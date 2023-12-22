@@ -23,6 +23,9 @@ public interface ScanProjectFeign {
     @GetMapping("/scan/project/getProjectPortNum")
     List<ScanProjectEntity> getProjectPortNum(@RequestBody List<Long> projectIdList);
 
+    @GetMapping("/scan/project/getProjectUrlNum")
+    List<ScanProjectEntity> getProjectUrlNum(@RequestBody List<Long> projectIdList);
+
     @GetMapping("/scan/project/page")
     IPage<ScanProjectEntity> page(@RequestParam Map<String, Object> params);
 
