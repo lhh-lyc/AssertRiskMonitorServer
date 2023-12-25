@@ -12,6 +12,7 @@ import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.serverbase.utils.PortUtils;
 import com.lhh.serverbase.utils.RexpUtil;
 import com.lhh.servermonitor.controller.RedisLock;
+import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.service.*;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,8 @@ public class ScanningHostListener {
     @Autowired
     HostCompanyService hostCompanyService;
     @Autowired
+    private ScanProjectDao scanProjectDao;
+    @Autowired
     IpSender mqIpSender;
     @Autowired
     HoleSender holeSender;
@@ -95,6 +98,13 @@ public class ScanningHostListener {
     public void deal(ScanParamDto dto, Message message, Channel channel) {
         try {
             log.info("开始处理项目" + dto.getProjectId() + "域名：" + dto.getSubDomain());
+            ScanProjectEntity oldProject = scanProjectDao.selectById(dto.getProjectId());
+            if (oldProject == null) {
+                redisLock.delDomainRedis(dto.getProjectId(), dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+                log.info("项目id=" + dto.getProjectId() + "已被删除,不处理域名" + dto.getSubDomain());
+                return;
+            }
             stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_SUB_DOMAIN, dto.getSubDomain()), Const.STR_1);
             String ports = tmpRedisService.getHostInfo(dto.getHost()).getScanPorts();
             String vailDayStr = stringRedisTemplate.opsForValue().get(CacheConst.REDIS_VAIL_DAY);

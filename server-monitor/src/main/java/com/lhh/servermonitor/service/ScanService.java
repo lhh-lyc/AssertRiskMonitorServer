@@ -119,7 +119,8 @@ public class ScanService {
         List<ScanParamDto> dtoList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(subdomainList)) {
             List<ScanProjectHostEntity> phList = scanProjectHostService.selByProIdAndHost(scanDto.getProjectId(), scanDto.getHost());
-            Map<String, ScanProjectHostEntity> phMap = phList.stream().collect(Collectors.toMap(ScanProjectHostEntity::getHost, ph -> ph));
+//            Map<String, ScanProjectHostEntity> phMap = phList.stream().collect(Collectors.toMap(ScanProjectHostEntity::getHost, ph -> ph));
+            Map<String, List<ScanProjectHostEntity>> phMap = phList.stream().collect(Collectors.groupingBy(ScanProjectHostEntity::getHost));
             Date now = new Date();
             for (ScanParamDto subdomain : subdomainList) {
                 // 保存项目-host关联关系
@@ -145,9 +146,11 @@ public class ScanService {
                     dto.setSubIpList(subdomain.getSubIpList());
                     dtoList.add(dto);
                 } else {
-                    ScanProjectHostEntity ph = phMap.get(subdomain.getHost());
-                    ph.setUpdateTime(now);
-                    updateList.add(ph);
+                    List<ScanProjectHostEntity> phs = phMap.get(subdomain.getHost());
+                    for (ScanProjectHostEntity ph : phs) {
+                        ph.setUpdateTime(now);
+                        updateList.add(ph);
+                    }
                     phMap.remove(subdomain.getHost());
                 }
             }
@@ -159,8 +162,12 @@ public class ScanService {
             }
             List<Long> delIds = new ArrayList<>();
             if (!CollectionUtils.isEmpty(phMap)) {
-                Collection<ScanProjectHostEntity> delList = phMap.values();
-                delIds = delList.stream().map(ScanProjectHostEntity::getId).collect(Collectors.toList());
+                Collection<ScanProjectHostEntity> delList = new ArrayList<>();
+                for (String key : phMap.keySet()) {
+                    List<ScanProjectHostEntity> list = phMap.get(key);
+                    List<Long> ids = list.stream().map(ScanProjectHostEntity::getId).collect(Collectors.toList());
+                    delIds.addAll(ids);
+                }
             }
             if (!CollectionUtils.isEmpty(updateList) || !CollectionUtils.isEmpty(delIds)) {
                 String lockKey = String.format(CacheConst.REDIS_LOCK_UPDATE_PROJECT_HOST, scanDto.getProjectId(), scanDto.getHost());

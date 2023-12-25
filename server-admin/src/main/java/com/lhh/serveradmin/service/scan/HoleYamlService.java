@@ -1,6 +1,7 @@
 package com.lhh.serveradmin.service.scan;
 
 import com.lhh.serveradmin.feign.scan.HoleYamlFeign;
+import com.lhh.serveradmin.feign.scan.HoleYamlFolderFeign;
 import com.lhh.serveradmin.feign.scan.ScanSecurityHoleFeign;
 import com.lhh.serveradmin.jwt.utils.PassJavaJwtTokenUtil;
 import com.lhh.serveradmin.service.FileService;
@@ -10,6 +11,7 @@ import com.lhh.serverbase.common.request.IPage;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.dto.FileInfoDTO;
 import com.lhh.serverbase.entity.HoleYamlEntity;
+import com.lhh.serverbase.entity.HoleYamlFolderEntity;
 import com.lhh.serverbase.entity.ScanSecurityHoleEntity;
 import com.lhh.serverbase.entity.SshResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,8 @@ public class HoleYamlService {
     @Autowired
     private HoleYamlFeign holeYamlFeign;
     @Autowired
+    private HoleYamlFolderFeign holeYamlFolderFeign;
+    @Autowired
     FileService fileService;
     @Autowired
     private PassJavaJwtTokenUtil jwtTokenUtil;
@@ -74,17 +78,45 @@ public class HoleYamlService {
         return R.ok(page);
     }
 
-    public R uploadFiles(List<MultipartFile> files, List<String> paths, Integer toolType){
+    public R uploadFiles(List<MultipartFile> files, List<String> paths, Integer toolType, Long folderId) {
+        List<HoleYamlFolderEntity> folderList = holeYamlFolderFeign.list(new HashMap<String, Object>(){{put("findId", folderId);}});
+        // 确保生成了第一个目录
+        if (CollectionUtils.isEmpty(folderList)) {
+            if (CollectionUtils.isEmpty(holeYamlFolderFeign.list(new HashMap<String, Object>(){{put("id", folderId);}}))) {
+                HoleYamlFolderEntity folder = HoleYamlFolderEntity.builder()
+                        .parentId(Const.LONG_0).label(Const.STR_CUSTOM.replace(Const.STR_SLASH, Const.STR_EMPTY))
+                        .ancestors(Const.STR_0).folder(Const.STR_CUSTOM)
+                        .build();
+                folder = holeYamlFolderFeign.save(folder);
+                folderList.add(folder);
+            }
+        }
+        Map<String, List<HoleYamlFolderEntity>> folderMap = folderList.stream().collect(Collectors.groupingBy(HoleYamlFolderEntity::getFolder));
         List<HoleYamlEntity> saveList = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
             String path = paths.get(i);
-            String [] folderList = path.split(Const.STR_SLASH);
-            List<String> newFolderList = new ArrayList<>();
-            for (int j = 1; j < folderList.length; j++) {
-                newFolderList.add(folderList[j]);
+            String [] folders = path.split(Const.STR_SLASH);
+            // newFolders 除custom的其他下级目录
+            List<String> newFolders = new ArrayList<>();
+            String folderPre = Const.STR_CUSTOM;
+            for (int j = 1; j < folders.length; j++) {
+                newFolders.add(folders[j]);
+                // 所有不同的目录
+                if (folders.length > 2 && !folderMap.containsKey(folderPre + Const.STR_SLASH + folders[j])) {
+                    //新增
+                    HoleYamlFolderEntity parent = folderMap.get(folderPre).get(0);
+                    HoleYamlFolderEntity folder = HoleYamlFolderEntity.builder()
+                            .parentId(parent.getId()).label(Const.STR_CUSTOM.replace(Const.STR_SLASH, Const.STR_EMPTY))
+                            .ancestors(Const.STR_0.equals(parent.getAncestors()) ? parent.getId().toString() : parent.getAncestors()+Const.STR_COMMA + parent.getId())
+                            .folder(Const.STR_CUSTOM + Const.STR_SLASH + folders[j])
+                            .build();
+                    folder = holeYamlFolderFeign.save(folder);
+                    folderMap.put(folder.getFolder(), Arrays.asList(folder));
+                    folderPre += Const.STR_SLASH + folders[j];
+                }
             }
-            String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolderList);
+            String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolders);
             FileInfoDTO dto = null;
             String[] arr = file.getOriginalFilename().split(Const.STR_SLASH);
             String fileName = arr[arr.length-1];

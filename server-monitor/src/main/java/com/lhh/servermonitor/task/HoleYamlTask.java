@@ -80,15 +80,15 @@ public class HoleYamlTask {
             for (HoleYamlEntity yaml : yamlList) {
                 String [] folderList = yaml.getFileUrl().split(Const.STR_SLASH);
                 List<String> newFolderList = new ArrayList<>();
-                for (int i = 1; i < folderList.length; i++) {
+                for (int i = 2; i < folderList.length; i++) {
                     newFolderList.add(folderList[i]);
                 }
                 String newPath = String.join(Const.STR_SLASH, newFolderList);
                 String path = newPath.replace(yaml.getFileName(), Const.STR_EMPTY);
                 path.split(Const.STR_SLASH);
                 mkdir(folder + Const.STR_SLASH + path);
-                String fileUrl = Const.STR_CUSTOM + yaml.getFileUrl();
-                minioUtils.uploadFileToTarget(yaml.getBucketName(), fileUrl, yaml.getFileName(), folder + Const.STR_SLASH + path);
+                log.info(yaml.getId().toString());
+                minioUtils.uploadFileToTarget(yaml.getBucketName(), yaml.getFileUrl(), yaml.getFileName(), folder + Const.STR_SLASH + path);
             }
         }
     }

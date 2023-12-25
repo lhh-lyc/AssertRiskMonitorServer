@@ -8,6 +8,7 @@ import com.lhh.serverbase.entity.ScanHostEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.controller.RedisLock;
+import com.lhh.servermonitor.dao.ScanProjectDao;
 import com.lhh.servermonitor.service.*;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,8 @@ public class ScanningIpListener {
     @Autowired
     TmpRedisService tmpRedisService;
     @Autowired
+    private ScanProjectDao scanProjectDao;
+    @Autowired
     HoleSender holeSender;
     @Autowired
     RedisLock redisLock;
@@ -61,6 +64,13 @@ public class ScanningIpListener {
         ScanParamDto dto = (ScanParamDto) SerializationUtils.deserialize(bytes);
         try {
             log.info("扫描ip端口：" + JSON.toJSONString(dto));
+            ScanProjectEntity oldProject = scanProjectDao.selectById(dto.getProjectId());
+            if (oldProject == null) {
+                redisLock.delDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp(), dto.getScanPorts());
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+                log.info("项目id=" + dto.getProjectId() + "已被删除,不处理ip端口" + dto.getSubIp());
+                return;
+            }
             String company = tmpRedisService.getHostInfo(dto.getSubIp()).getCompany();
             List<ScanHostEntity> exitIpList = scanHostService.getByIpList(Arrays.asList(IpLongUtils.ipToLong(dto.getSubIp())), dto.getSubIp());
             if (CollectionUtils.isEmpty(exitIpList)) {

@@ -34,11 +34,12 @@ public class HoleYamlController {
     @PostMapping("uploadFiles")
     public R uploadFiles(@RequestParam("files") List<MultipartFile> files,
                          @RequestParam("paths") List<String> paths,
-                         @RequestParam("toolType") Integer toolType){
+                         @RequestParam("toolType") Integer toolType,
+                         @RequestParam("folderId") Long folderId){
         if (CollectionUtils.isEmpty(files) || CollectionUtils.isEmpty(paths)) {
             return R.failed("文件不能为空");
         }
-        holeYamlService.uploadFiles(files, paths, toolType);
+        holeYamlService.uploadFiles(files, paths, toolType, folderId);
         return R.ok();
     }
 
