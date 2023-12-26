@@ -49,9 +49,10 @@ public class HoleYamlFolderEntity extends BaseEntity {
      */
     private String ancestors;
 
+    @TableField(exist = false)
     private String parentName;
 
     @TableField(exist = false)
-    private List<HoleYamlFolderEntity> children;
+    private List<HoleYamlFolderEntity> children = new ArrayList<>();
 
 }

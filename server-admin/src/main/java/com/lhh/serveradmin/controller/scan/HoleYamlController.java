@@ -2,6 +2,7 @@ package com.lhh.serveradmin.controller.scan;
 
 import com.lhh.serveradmin.service.scan.HoleYamlService;
 import com.lhh.serveradmin.utils.MinioUtils;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import io.minio.errors.*;
 import io.swagger.annotations.ApiOperation;
@@ -39,6 +40,7 @@ public class HoleYamlController {
         if (CollectionUtils.isEmpty(files) || CollectionUtils.isEmpty(paths)) {
             return R.failed("文件不能为空");
         }
+        folderId = folderId == null ? Const.LONG_1 : folderId;
         holeYamlService.uploadFiles(files, paths, toolType, folderId);
         return R.ok();
     }

@@ -65,13 +65,13 @@ public class HoleYamlService {
         IPage<HoleYamlEntity> page = holeYamlFeign.page(params);
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (HoleYamlEntity yaml : page.getRecords()) {
-                String [] folderList = yaml.getFileUrl().split(Const.STR_SLASH);
-                List<String> newFolderList = new ArrayList<>();
-                for (int j = 2; j < folderList.length; j++) {
-                    newFolderList.add(folderList[j]);
-                }
-                String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolderList);
-                String path = newPath.replace(yaml.getFileName(), Const.STR_EMPTY);
+//                String [] folderList = yaml.getFileUrl().split(Const.STR_SLASH);
+//                List<String> newFolderList = new ArrayList<>();
+//                for (int j = 2; j < folderList.length; j++) {
+//                    newFolderList.add(folderList[j]);
+//                }
+//                String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolderList);
+                String path = yaml.getFileUrl().replace(yaml.getFileName(), Const.STR_EMPTY);
                 yaml.setFilePath(path);
             }
         }
@@ -79,6 +79,7 @@ public class HoleYamlService {
     }
 
     public R uploadFiles(List<MultipartFile> files, List<String> paths, Integer toolType, Long folderId) {
+        HoleYamlFolderEntity initFolder = holeYamlFolderFeign.info(folderId);
         List<HoleYamlFolderEntity> folderList = holeYamlFolderFeign.list(new HashMap<String, Object>(){{put("findId", folderId);}});
         // 确保生成了第一个目录
         if (CollectionUtils.isEmpty(folderList)) {
@@ -87,10 +88,10 @@ public class HoleYamlService {
                         .parentId(Const.LONG_0).label(Const.STR_CUSTOM.replace(Const.STR_SLASH, Const.STR_EMPTY))
                         .ancestors(Const.STR_0).folder(Const.STR_CUSTOM)
                         .build();
-                folder = holeYamlFolderFeign.save(folder);
-                folderList.add(folder);
+                initFolder = holeYamlFolderFeign.save(folder);
             }
         }
+        folderList.add(initFolder);
         Map<String, List<HoleYamlFolderEntity>> folderMap = folderList.stream().collect(Collectors.groupingBy(HoleYamlFolderEntity::getFolder));
         List<HoleYamlEntity> saveList = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
@@ -98,31 +99,27 @@ public class HoleYamlService {
             String path = paths.get(i);
             String [] folders = path.split(Const.STR_SLASH);
             // newFolders 除custom的其他下级目录
-            List<String> newFolders = new ArrayList<>();
-            String folderPre = Const.STR_CUSTOM;
-            for (int j = 1; j < folders.length; j++) {
-                newFolders.add(folders[j]);
+            String folderPre = initFolder.getFolder();
+            for (int j = 1; j < folders.length-1; j++) {
                 // 所有不同的目录
                 if (folders.length > 2 && !folderMap.containsKey(folderPre + Const.STR_SLASH + folders[j])) {
                     //新增
                     HoleYamlFolderEntity parent = folderMap.get(folderPre).get(0);
                     HoleYamlFolderEntity folder = HoleYamlFolderEntity.builder()
-                            .parentId(parent.getId()).label(Const.STR_CUSTOM.replace(Const.STR_SLASH, Const.STR_EMPTY))
+                            .parentId(parent.getId()).label(folders[j])
                             .ancestors(Const.STR_0.equals(parent.getAncestors()) ? parent.getId().toString() : parent.getAncestors()+Const.STR_COMMA + parent.getId())
-                            .folder(Const.STR_CUSTOM + Const.STR_SLASH + folders[j])
+                            .folder(folderPre + Const.STR_SLASH + folders[j])
                             .build();
                     folder = holeYamlFolderFeign.save(folder);
                     folderMap.put(folder.getFolder(), Arrays.asList(folder));
-                    folderPre += Const.STR_SLASH + folders[j];
                 }
+                folderPre += Const.STR_SLASH + folders[j];
             }
-            String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolders);
             FileInfoDTO dto = null;
             String[] arr = file.getOriginalFilename().split(Const.STR_SLASH);
             String fileName = arr[arr.length-1];
-            String folder = newPath.replace(Const.STR_SLASH + fileName, Const.STR_EMPTY);
             try {
-                dto = fileService.uploadFile(defBucket, file.getInputStream(), fileName, Const.STR_CUSTOM + folder);
+                dto = fileService.uploadFile(defBucket, file.getInputStream(), fileName, folderPre);
             } catch (IOException e) {
                 e.printStackTrace();
             }

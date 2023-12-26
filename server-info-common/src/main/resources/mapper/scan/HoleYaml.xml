@@ -16,6 +16,9 @@
         <if test="params.toolType != null and params.toolType != ''">
             and t1.tool_type = #{params.toolType}
         </if>
+        <if test="params.folderName != null and params.folderName != ''">
+            and t1.file_url like CONCAT(#{params.folderName}, '%')
+        </if>
         <if test="params.fileName != null and params.fileName != ''">
             and t1.file_name like CONCAT('%',#{params.fileName},'%')
         </if>

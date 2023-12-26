@@ -21,6 +21,9 @@ public interface HoleYamlFolderFeign {
     @PostMapping("/hole/yaml/folder/list")
     List<HoleYamlFolderEntity> list(@RequestBody Map<String, Object> params);
 
+    @GetMapping("/hole/yaml/folder/info")
+    HoleYamlFolderEntity info(@RequestParam Long id);
+
     @PostMapping("/hole/yaml/folder/saveBatch")
     void saveBatch(@RequestBody List<HoleYamlFolderEntity> HoleYamlFolderEntityList);
 

@@ -7,14 +7,14 @@
         select
         t1.*, t2.label as parent_name
         from hole_yaml_folder t1
-        join hole_yaml_folder t2 on t2.id = t1.parent_id
-        where t1.del_flg = 0
+        left join hole_yaml_folder t2 on t2.id = t1.parent_id
         and t2.del_flg = 0
+        where t1.del_flg = 0
         <if test="id != null and id != ''">
             and t1.id = #{id}
         </if>
         <if test="findId != null and findId != ''">
-            and t1.id FIND_IN_SET(#{findId}, t1.ancestors)
+            and FIND_IN_SET(#{findId}, t1.ancestors)
         </if>
     </select>
 

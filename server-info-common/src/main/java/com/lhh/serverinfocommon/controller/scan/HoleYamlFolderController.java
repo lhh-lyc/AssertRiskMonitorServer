@@ -92,7 +92,7 @@ public class HoleYamlFolderController {
 
     @GetMapping("info")
     @ApiOperation(value = "详情")
-    public HoleYamlFolderEntity getInfo(Long id) {
+    public HoleYamlFolderEntity getInfo(@RequestParam Long id) {
         HoleYamlFolderEntity sysFiles = holeYamlFolderService.getById(id);
         return sysFiles;
     }
