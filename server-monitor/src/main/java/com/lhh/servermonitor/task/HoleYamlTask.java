@@ -4,7 +4,9 @@ import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.HoleYamlEntity;
 import com.lhh.serverbase.utils.DateUtils;
+import com.lhh.servermonitor.service.FileService;
 import com.lhh.servermonitor.service.HoleYamlService;
+import com.lhh.servermonitor.utils.ExecUtil;
 import com.lhh.servermonitor.utils.MinioUtils;
 import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 @RestController
 public class HoleYamlTask {
 
+    @Value("${my-config.upload.defBucket}")
+    private String defBucket;
     @Value("${my-config.file.nuclei-folder}")
     private String nucleiFolder;
     @Value("${my-config.file.afrog-folder}")
@@ -36,7 +40,7 @@ public class HoleYamlTask {
     @Autowired
     HoleYamlService holeYamlService;
     @Autowired
-    MinioUtils minioUtils;
+    FileService fileService;
 
     /**
      * 获取finger匹配的favicon hash值
@@ -87,8 +91,7 @@ public class HoleYamlTask {
                 String path = newPath.replace(yaml.getFileName(), Const.STR_EMPTY);
                 path.split(Const.STR_SLASH);
                 mkdir(folder + Const.STR_SLASH + path);
-                log.info(yaml.getId().toString());
-                minioUtils.uploadFileToTarget(yaml.getBucketName(), yaml.getFileUrl(), yaml.getFileName(), folder + Const.STR_SLASH + path);
+                fileService.uploadFileToTarget(yaml.getBucketName(), yaml.getFileUrl(), yaml.getFileName(), folder + Const.STR_SLASH + path);
             }
         }
     }
@@ -115,6 +118,57 @@ public class HoleYamlTask {
         if (!folder.exists()) {
             folder.mkdir();
         }
+    }
+
+    @Scheduled(cron = "0 0/20 * * * ? ")
+    @GetMapping("delHoleYaml")
+    public R delHoleYaml() {
+        log.info("yaml漏洞规则删除定时任务开始");
+        Map<String, Object> params = new HashMap<>();
+        params.put("createTime", DateUtils.getYMDHms(DateUtils.addDateHours(new Date(), -1)));
+        List<HoleYamlEntity> list = holeYamlService.delList(params);
+        try {
+            if (!CollectionUtils.isEmpty(list)) {
+                for (HoleYamlEntity yaml : list) {
+                    String fileUrl = yaml.getFileUrl();
+                    if ((nucleiFolder + Const.STR_SLASH + fileUrl).contains("/*") ||
+                            (afrogFolder + Const.STR_SLASH + fileUrl).contains("/*") ||
+                            (xrayFolder + Const.STR_SLASH + fileUrl).contains("/*")) {
+                        continue;
+                    }
+                    String [] folderList = fileUrl.split(Const.STR_SLASH);
+                    List<String> newFolderList = new ArrayList<>();
+                    for (int i = 2; i < folderList.length; i++) {
+                        newFolderList.add(folderList[i]);
+                    }
+                    String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolderList);
+                    if (Const.INTEGER_1.equals(yaml.getToolType())) {
+                        String cmd = String.format(Const.STR_DEL_HOLE_YAML, nucleiFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                    }
+                    if (Const.INTEGER_2.equals(yaml.getToolType())) {
+                        String cmd = String.format(Const.STR_DEL_HOLE_YAML, afrogFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                    }
+                    if (Const.INTEGER_3.equals(yaml.getToolType())) {
+                        String cmd = String.format(Const.STR_DEL_HOLE_YAML, xrayFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                    }
+                    if(yaml.getToolType() == null) {
+                        String cmd = String.format(Const.STR_DEL_HOLE_YAML, nucleiFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                        cmd = String.format(Const.STR_DEL_HOLE_YAML, afrogFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                        cmd = String.format(Const.STR_DEL_HOLE_YAML, xrayFolder + newPath);
+                        ExecUtil.runCommand(cmd);
+                    }
+                }
+            }
+            log.info("yaml漏洞规则删除定时任务结束");
+        } catch (IOException e) {
+            log.error("删除规则出错", e);
+        }
+        return R.ok();
     }
 
 }

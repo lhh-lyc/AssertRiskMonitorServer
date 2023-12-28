@@ -14,4 +14,15 @@
         order by t1.create_time
     </select>
 
+    <select id="queryDelList" resultType="com.lhh.serverbase.entity.HoleYamlEntity">
+        select
+        t1.*
+        from hole_yaml t1
+        where t1.del_flg = 1
+        <if test="params.createTime != null and params.createTime != ''">
+            and t1.create_time &gt; #{params.createTime}
+        </if>
+        order by t1.create_time
+    </select>
+
 </mapper>

@@ -24,4 +24,6 @@ public interface HoleYamlDao extends BaseMapper<HoleYamlEntity> {
      */
     List<HoleYamlEntity> queryList(@Param("params") Map<String, Object> params);
 
+    List<HoleYamlEntity> queryDelList(@Param("params") Map<String, Object> params);
+
 }

@@ -27,4 +27,9 @@ public class HoleYamlServiceImpl extends ServiceImpl<HoleYamlDao, HoleYamlEntity
         return holeYamlDao.queryList(params);
     }
 
+    @Override
+    public List<HoleYamlEntity> delList(Map<String, Object> params) {
+        return holeYamlDao.queryDelList(params);
+    }
+
 }

@@ -23,5 +23,7 @@ public interface HoleYamlService extends IService<HoleYamlEntity> {
     */
     List<HoleYamlEntity> list(Map<String, Object> params);
 
+    List<HoleYamlEntity> delList(Map<String, Object> params);
+
 }
 
