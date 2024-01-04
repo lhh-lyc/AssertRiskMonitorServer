@@ -156,6 +156,21 @@ public class Const {
 
     public static String STR_NMAP_SERVER = "nmap -p %s %s -sS -Pn";
 
+    /**
+     * 新建httpx批量扫描url  工具总目录  多条（域名+端口\n）字符串  （文件名）projectId+domain字符串
+     */
+    public static String STR_CREATE_HTTPX_URLS = "cd %s/httpscan&&./create_urls.sh %s %s.txt";
+
+    /**
+     * 新建httpx批量扫描url  工具总目录 （文件名）projectId+domain字符串
+     */
+    public static String STR_HTTPSCAN_URLS = "cd %s/httpscan&&python3 httpscan.py %s.txt";
+
+    /**
+     * 新建httpx批量扫描url  工具总目录  多条（域名+端口\n）字符串  （文件名）projectId+domain字符串
+     */
+    public static String STR_DEL_HTTPX_URLS = "cd %s/httpscan&&./del_urls.sh %s %s.txt";
+
     public static String STR_FINGER = "cd %s/Finger&&python3 Finger.py -u %s -o nothing";
 
     /**
