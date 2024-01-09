@@ -1,17 +1,13 @@
 package com.lhh.servermonitor.controller;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import com.alibaba.fastjson.JSON;
-import com.github.q120011676.xhttp.Response;
-import com.github.q120011676.xhttp.XHttp;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanHostPortEntity;
 import com.lhh.serverbase.entity.SshResponse;
-import com.lhh.serverbase.enums.ToolEnum;
 import com.lhh.serverbase.utils.DateUtils;
 import com.lhh.serverbase.utils.IpLongUtils;
 import com.lhh.servermonitor.service.ScanHoleService;
@@ -27,14 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("")

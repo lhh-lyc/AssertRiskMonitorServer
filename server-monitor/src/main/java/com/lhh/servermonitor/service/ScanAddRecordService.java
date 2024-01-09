@@ -1,7 +1,5 @@
 package com.lhh.servermonitor.service;
 
-import java.util.Map;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lhh.serverbase.entity.ScanAddRecordEntity;
@@ -31,6 +29,8 @@ public interface ScanAddRecordService extends IService<ScanAddRecordEntity> {
     * @return
     */
     List<ScanAddRecordEntity> list(Map<String, Object> params);
+
+    void saveBatch(List<ScanAddRecordEntity> list);
 
 }
 

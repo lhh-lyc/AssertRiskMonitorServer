@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lhh.serverbase.entity.ScanAddRecordEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 import java.util.Map;
@@ -34,5 +33,7 @@ public interface ScanAddRecordDao extends BaseMapper<ScanAddRecordEntity> {
      * @return
      */
     List<ScanAddRecordEntity> queryList(Map<String, Object> params);
+
+    void saveBatch(@Param("list") List<ScanAddRecordEntity> list);
 
 }

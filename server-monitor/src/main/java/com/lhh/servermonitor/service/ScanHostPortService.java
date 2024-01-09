@@ -70,10 +70,9 @@ public class ScanHostPortService {
                         urlList.add(domain + Const.STR_COLON + port);
                     }
                     String urls = String.join("\\\\" + "n", urlList);
-                    Long projectId = 1L;
-                    String createCmd = String.format(Const.STR_CREATE_HTTPX_URLS, toolDir, urls, projectId + Const.STR_UNDERLINE + domain);
-                    String cmd = String.format(Const.STR_HTTPSCAN_URLS, toolDir, projectId + Const.STR_UNDERLINE + domain);
-                    String delCmd = String.format(Const.STR_DEL_HTTPX_URLS, toolDir, toolDir, projectId + Const.STR_UNDERLINE + domain);
+                    String createCmd = String.format(Const.STR_CREATE_HTTPX_URLS, toolDir, urls, Const.STR_UNDERLINE + domain);
+                    String cmd = String.format(Const.STR_HTTPSCAN_URLS, toolDir, Const.STR_UNDERLINE + domain);
+                    String delCmd = String.format(Const.STR_DEL_HTTPX_URLS, toolDir, toolDir, Const.STR_UNDERLINE + domain);
                     SshResponse response;
                     try {
 //                        log.info("执行命令：" + createCmd);
