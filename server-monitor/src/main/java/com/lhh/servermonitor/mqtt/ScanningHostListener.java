@@ -119,7 +119,7 @@ public class ScanningHostListener {
             List<Long> ipLongList = ipList.stream().map(s -> IpLongUtils.ipToLong(s)).collect(Collectors.toList());
 
             String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, dto.getProjectId()));
-            ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
+            ScanProjectEntity redisProject = StringUtils.isEmpty(projectStr) ? new ScanProjectEntity() : JSON.parseObject(projectStr, ScanProjectEntity.class);
             String parentDomain = RexpUtil.getMajorDomain(dto.getHost());
             String company = tmpRedisService.getHostInfo(dto.getHost()).getCompany();
             List<ScanHostEntity> exitIpEntityList = scanHostService.getByIpList(ipLongList, dto.getSubDomain());
