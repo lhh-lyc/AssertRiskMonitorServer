@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverscanhole.dao.ScanPortDao">
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select ip_long, port
+        from scan_port
+        where ip_long = #{ipLong}
+    </select>
+
+    <select id="queryWebPortList" resultType="java.lang.Integer">
+        select DISTINCT t1.port from scan_port t1
+        join scan_host t2 on t2.ip_long = t1.ip_long
+        where t2.domain = #{domain}
+        AND t1.server_name IN
+        <foreach collection="serverNameList" item="serverName" index="index" separator="," close=")" open="(">
+                #{serverName}
+        </foreach>
+    </select>
+
+    <select id="queryPortList" resultType="java.lang.Integer">
+        select DISTINCT t1.port from scan_port t1
+        join scan_host t2 on t2.ip_long = t1.ip_long
+        where t2.domain = #{domain}
+    </select>
+
+    <select id="basicByIpList" resultType="com.lhh.serverbase.entity.ScanPortEntity">
+        select port_id, ip_long, port
+        from scan_port
+        where ip_long in
+        <foreach collection="ipList" item="ipLong" index="index" separator="," close=")" open="(">
+            #{ipLong}
+        </foreach>
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore into scan_port
+        (port_id, ip_long, port, server_name, create_id, create_time, update_id, update_time,del_flg)
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.ipLong},#{host.port},#{host.serverName},
+            #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update scan_port
+            <set >
+                <if test="item.serverName != null" >
+                    server_name = #{item.serverName,jdbcType=VARCHAR},
+                </if>
+                <if test="item.updateTime != null" >
+                    update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+                </if>
+            </set>
+            where port_id = #{item.portId,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <insert id="delBatch">
+        delete from scan_port
+        where port_id in
+        <foreach collection="idList" item="id" index="index" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </insert>
+
+</mapper>

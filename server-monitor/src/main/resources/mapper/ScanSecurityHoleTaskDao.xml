@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.servermonitor.dao.ScanSecurityHoleTaskDao">
+
+    <sql id="baseColumn">
+                    id,
+                    project_id,
+                    domain,
+                    sub_domain,
+                    scan_ports,
+                    type,
+                    create_id,h't't
+                    create_time,
+                    update_id,
+                    update_time,
+                    del_flg
+            </sql>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanSecurityHoleTaskEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_security_hole_task
+        where del_flg = 0
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanSecurityHoleTaskEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_security_hole_task
+        where del_flg = 0
+    </select>
+
+
+</mapper>

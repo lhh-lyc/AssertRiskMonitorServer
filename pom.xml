@@ -24,6 +24,7 @@
         <module>server-task</module>
         <module>server-refresh-data</module>
         <module>server-export</module>
+        <module>server-scan-hole</module>
     </modules>
 
     <properties>

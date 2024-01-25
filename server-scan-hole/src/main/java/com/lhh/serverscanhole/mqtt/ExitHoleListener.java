@@ -1,14 +1,14 @@
-package com.lhh.servermonitor.mqtt;
+package com.lhh.serverscanhole.mqtt;
 
 import com.alibaba.fastjson.JSON;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectEntity;
-import com.lhh.servermonitor.controller.RedisLock;
-import com.lhh.servermonitor.dao.ScanProjectDao;
-import com.lhh.servermonitor.service.ScanHoleService;
-import com.lhh.servermonitor.service.ScanHostPortService;
-import com.lhh.servermonitor.service.ScanPortInfoService;
-import com.lhh.servermonitor.service.SysDictService;
+import com.lhh.serverscanhole.controller.RedisLock;
+import com.lhh.serverscanhole.dao.ScanProjectDao;
+import com.lhh.serverscanhole.service.ScanHoleService;
+import com.lhh.serverscanhole.service.ScanHostPortService;
+import com.lhh.serverscanhole.service.ScanPortInfoService;
+import com.lhh.serverscanhole.service.SysDictService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -21,9 +21,9 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-//@RabbitListener(bindings = {@QueueBinding(
-//        value = @Queue(value = "exitHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
-//        exchange = @Exchange(name = "amp.topic"))})
+@RabbitListener(bindings = {@QueueBinding(
+        value = @Queue(value = "exitHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
+        exchange = @Exchange(name = "amp.topic"))})
 public class ExitHoleListener {
 
     @Autowired

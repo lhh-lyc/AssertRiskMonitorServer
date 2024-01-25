@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverscanhole.dao.ScanHostPortDao">
+
+    <sql id="baseColumn">
+                    id,
+                    domain,
+                    port,
+                    url,
+                    title,
+                    cms,
+                    create_id,
+                    create_time,
+                    update_id,
+                    update_time,
+                    del_flg
+            </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.serverbase.entity.ScanHostPortEntity" id="scanHostPortMap">
+                    <result property="id" column="id"/>
+                    <result property="domain" column="domain"/>
+                    <result property="port" column="port"/>
+                    <result property="url" column="url"/>
+                    <result property="title" column="title"/>
+                    <result property="cms" column="cms"/>
+                    <result property="createId" column="create_id"/>
+                    <result property="createTime" column="create_time"/>
+                    <result property="updateId" column="update_id"/>
+                    <result property="updateTime" column="update_time"/>
+                    <result property="delFlg" column="del_flg"/>
+            </resultMap>
+
+    <select id="queryPage" resultType="com.lhh.serverbase.entity.ScanHostPortEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host_port
+    </select>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.ScanHostPortEntity">
+        select
+        <include refid="baseColumn"/>
+        from scan_host_port
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore into scan_host_port
+        (id, domain, port, url, title, cms, create_id, create_time, update_id, update_time,del_flg)
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.domain},#{host.port},#{host.url},#{host.title},#{host.cms},
+            1,#{host.createTime},1,#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+    <insert id="delByDomain">
+        delete from scan_host_port
+        where domain = #{domain}
+    </insert>
+
+</mapper>

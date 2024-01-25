@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverscanhole.dao.CmsJsonDao">
+
+    <sql id="baseColumn">
+                    id,
+                    cms,
+                    method,
+                    location,
+                    keyword
+            </sql>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.lhh.serverbase.entity.CmsJsonEntity" id="cmsJsonMap">
+                    <result property="id" column="id"/>
+                    <result property="cms" column="cms"/>
+                    <result property="method" column="method"/>
+                    <result property="location" column="location"/>
+                    <result property="keyword" column="keyword"/>
+            </resultMap>
+
+    <select id="queryList" resultType="com.lhh.serverbase.entity.CmsJsonEntity">
+        select
+        <include refid="baseColumn"/>
+        from cms_json
+        where 1=1
+          <if test="method != null and method != ''">
+              and method = #{method}
+          </if>
+    </select>
+
+</mapper>

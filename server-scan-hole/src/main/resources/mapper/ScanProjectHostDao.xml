@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverscanhole.dao.ScanProjectHostDao">
+
+    <select id="queryByHost" resultType="com.lhh.serverbase.entity.ScanProjectHostEntity">
+        select id, host, is_scanning from scan_project_host
+        where del_flg = 0
+        and is_scanning = 1
+        and host = #{domain}
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore into scan_project_host
+        (id, project_id, parent_domain, host, is_scanning, create_id, create_time, update_id, update_time,del_flg)
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.projectId},#{host.parentDomain},#{host.host},#{host.isScanning},
+            1,#{host.createTime},1,#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update scan_project_host
+            <set >
+                <if test="item.updateTime != null" >
+                    update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+                </if>
+            </set>
+            where id = #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+</mapper>

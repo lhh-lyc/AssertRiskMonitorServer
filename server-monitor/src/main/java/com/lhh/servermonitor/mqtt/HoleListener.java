@@ -21,9 +21,9 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-@RabbitListener(bindings = {@QueueBinding(
-        value = @Queue(value = "scanningHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
-        exchange = @Exchange(name = "amp.topic"))})
+//@RabbitListener(bindings = {@QueueBinding(
+//        value = @Queue(value = "scanningHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
+//        exchange = @Exchange(name = "amp.topic"))})
 public class HoleListener {
 
     @Autowired

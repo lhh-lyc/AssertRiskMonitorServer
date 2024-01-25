@@ -1,13 +1,13 @@
-package com.lhh.servermonitor.task;
+package com.lhh.serverscanhole.task;
 
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.HoleYamlEntity;
 import com.lhh.serverbase.utils.DateUtils;
-import com.lhh.servermonitor.service.FileService;
-import com.lhh.servermonitor.service.HoleYamlService;
-import com.lhh.servermonitor.utils.ExecUtil;
-import com.lhh.servermonitor.utils.MinioUtils;
+import com.lhh.serverscanhole.service.FileService;
+import com.lhh.serverscanhole.service.HoleYamlService;
+import com.lhh.serverscanhole.utils.ExecUtil;
+import com.lhh.serverscanhole.utils.MinioUtils;
 import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +120,7 @@ public class HoleYamlTask {
         }
     }
 
-//    @Scheduled(cron = "0 0/20 * * * ? ")
+    @Scheduled(cron = "0 0/20 * * * ? ")
     @GetMapping("delHoleYaml")
     public R delHoleYaml() {
         log.info("yaml漏洞规则删除定时任务开始");

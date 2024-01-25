@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhh.serverscanhole.dao.ScanHostDao">
+
+    <select id="getByParentDomainList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select domain, ip_long, parent_domain
+        from scan_host
+        where parent_domain in
+        <foreach item="host" collection="hostList" open="(" separator="," close=")">
+            #{host}
+        </foreach>
+    </select>
+
+    <select id="getByIpList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select *
+        from scan_host
+        where del_flg = 0
+        and domain = #{domain}
+        and ip_long in
+        <foreach item="ipLong" collection="ipLongList" open="(" separator="," close=")">
+            #{ipLong}
+        </foreach>
+    </select>
+
+    <select id="getIpByIpList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select host_id, ip_long, scan_ports
+        from scan_host
+        where ip_long in
+        <foreach item="ipLong" collection="ipLongList" open="(" separator="," close=")">
+            #{ipLong}
+        </foreach>
+    </select>
+
+    <select id="getEndScanDomain" resultType="java.lang.String">
+        select t.domain
+        from (
+                 select domain, sum(is_scanning) as sum
+                 from scan_host
+                 where del_flg = 0
+                   and domain in (
+                     select domain from scan_host
+                     WHERE del_flg = 0
+                   and ip_long = #{ipLong})
+                 group by domain
+                 having sum = 0) t
+    </select>
+
+    <select id="getEndScanMajor" resultType="java.lang.String">
+        select t.parent_domain
+        from (
+        select parent_domain, sum(is_scanning) as sum
+        from scan_host
+        where del_flg = 0
+        and domain in (
+        select domain from scan_host
+        WHERE del_flg = 0
+        and ip_long = #{ipLong})
+        group by parent_domain
+        having sum = 0) t
+    </select>
+
+    <select id="basicList" resultType="com.lhh.serverbase.entity.ScanHostEntity">
+        select ip_long, scan_ports
+        from scan_host
+        where ip_long = #{ipLong}
+    </select>
+
+    <insert id="saveBatch">
+        insert ignore into scan_host
+        (host_id, parent_domain, domain, ip_long, scan_ports, company, type, is_major, is_domain, is_scanning, create_id, create_time, update_id, update_time,del_flg)
+        values
+        <foreach collection="list" item="host" index="index" separator=",">
+            (null,#{host.parentDomain},#{host.domain},#{host.ipLong},#{host.scanPorts},#{host.company}
+            ,#{host.type},#{host.isMajor},#{host.isDomain},#{host.isScanning},
+            #{host.createId},#{host.createTime},#{host.updateId},#{host.updateTime},0)
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update scan_host
+            <set >
+                <if test="item.updateTime != null" >
+                    update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+                </if>
+            </set>
+            where host_id = #{item.hostId,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+</mapper>
