@@ -100,8 +100,8 @@ public interface ScanSecurityHoleFeign {
     @GetMapping("/scan/security/hole/getHomeNum")
     HomeNumDto getHomeNum(@RequestParam Map<String, Object> params);
 
-    @GetMapping("/scan/security/hole/queryHoleNum")
-    List<HoleNumDto> queryHoleNum(@RequestParam Map<String, Object> params);
+    @PostMapping("/scan/security/hole/queryHoleNum")
+    List<HoleNumDto> queryHoleNum(@RequestBody Map<String, Object> params);
 
 }
 

@@ -133,8 +133,8 @@ public class ScanSecurityHoleController {
         return dto;
     }
 
-    @GetMapping("queryHoleNum")
-    public List<HoleNumDto> queryHoleNum(@RequestParam Map<String, Object> params) {
+    @PostMapping("queryHoleNum")
+    public List<HoleNumDto> queryHoleNum(@RequestBody Map<String, Object> params) {
         List<HoleNumDto> list = scanSecurityHoleService.queryHoleNum(params);
         return list;
     }

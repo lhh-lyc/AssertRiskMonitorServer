@@ -217,7 +217,7 @@
         where del_flg = 0
         <if test="params.projectIdList != null and params.projectIdList.size() > 0">
             and project_id IN
-            <foreach collection="projectIdList" item="projectId" index="index" separator="," close=")" open="(">
+            <foreach collection="params.projectIdList" item="projectId" index="index" separator="," close=")" open="(">
                 #{projectId}
             </foreach>
         </if>
