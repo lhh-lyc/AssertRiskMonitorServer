@@ -5,6 +5,7 @@ import com.lhh.serveradmin.feign.scan.*;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
 import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
+import com.lhh.serverbase.dto.HoleNumDto;
 import com.lhh.serverbase.entity.NetErrorDataEntity;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.serverbase.utils.DateUtils;
@@ -38,6 +39,8 @@ public class TaskService {
     CmsJsonFeign cmsJsonFeign;
     @Autowired
     ScanProjectFeign scanProjectFeign;
+    @Autowired
+    ScanSecurityHoleFeign scanSecurityHoleFeign;
 
     public void checkProject() {
         scanProjectContentFeign.updateEndScanContent();
@@ -112,11 +115,20 @@ public class TaskService {
                 Integer portNum = CollectionUtils.isEmpty(portNumList) ? Const.INTEGER_0 : portNumList.get(0).getPortNum();
                 List<ScanProjectEntity> urlNumList = scanProjectFeign.getProjectUrlNum(projectIdList);
                 Integer urlNum = CollectionUtils.isEmpty(urlNumList) ? Const.INTEGER_0 : urlNumList.get(0).getUrlNum();
+                Map<String, Object> params = new HashMap<>();
+                params.put("projectIdList", projectIdList);
+                List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
+                Integer mediumNum = CollectionUtils.isEmpty(holeList) ? Const.INTEGER_0 : holeList.get(0).getMediumNum();
+                Integer highNum = CollectionUtils.isEmpty(holeList) ? Const.INTEGER_0 : holeList.get(0).getHighNum();
+                Integer criticalNum = CollectionUtils.isEmpty(holeList) ? Const.INTEGER_0 : holeList.get(0).getCriticalNum();
 
                 Map<String, Object> result = new HashMap<>();
                 result.put("projectName", project.getName());
                 result.put("portNum", portNum);
                 result.put("urlNum", urlNum);
+                result.put("mediumNum", mediumNum);
+                result.put("highNum", highNum);
+                result.put("criticalNum", criticalNum);
                 result.put("time", DateUtils.getYMDHms(new Date()));
                 stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_PROJECT_STATISTICS_NUM, project.getId()), JSON.toJSONString(result));
             }

@@ -120,31 +120,20 @@ public class ScanProjectService {
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
         IPage<ScanProjectEntity> page = scanProjectFeign.basicPage(params);
         List<Long> projectIdList = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
-        Map<Long, HoleNumDto> holeMap = new HashMap<>();
-        if (!CollectionUtils.isEmpty(projectIdList)) {
-            params.put("projectIds", projectIdList);
-            List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
-            holeMap = holeList.stream().collect(Collectors.toMap(HoleNumDto::getProjectId, obj -> obj, (key1, key2) -> key1));
-        }
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
                 String statisticsStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_PROJECT_STATISTICS_NUM, project.getId()));
                 Map<String, Object> statisticsMap = JSON.parseObject(statisticsStr, Map.class);
                 Integer portNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "portNum");
                 Integer urlNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "urlNum");
+                Integer mediumNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "mediumNum");
+                Integer highNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "highNum");
+                Integer criticalNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "criticalNum");
                 project.setPortNum(portNum);
                 project.setUrlNum(urlNum);
-
-                HoleNumDto dto = holeMap.get(project.getId());
-                if (dto != null) {
-                    project.setMediumNum(dto.getMediumNum());
-                    project.setHighNum(dto.getHighNum());
-                    project.setCriticalNum(dto.getCriticalNum());
-                } else {
-                    project.setMediumNum(Const.INTEGER_0);
-                    project.setHighNum(Const.INTEGER_0);
-                    project.setCriticalNum(Const.INTEGER_0);
-                }
+                project.setMediumNum(mediumNum);
+                project.setHighNum(highNum);
+                project.setCriticalNum(criticalNum);
                 String projectStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, project.getId()));
                 if (!StringUtils.isEmpty(projectStr)) {
                     project.setIsCompleted(Const.INTEGER_0);
