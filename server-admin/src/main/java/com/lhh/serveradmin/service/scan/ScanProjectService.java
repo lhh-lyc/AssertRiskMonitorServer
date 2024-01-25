@@ -120,23 +120,20 @@ public class ScanProjectService {
     public IPage<ScanProjectEntity> page(Map<String, Object> params) {
         IPage<ScanProjectEntity> page = scanProjectFeign.basicPage(params);
         List<Long> projectIdList = page.getRecords().stream().map(ScanProjectEntity::getId).collect(Collectors.toList());
-        Map<Long, Integer> portNumMap = new HashMap<>();
-        Map<Long, Integer> urlNumMap = new HashMap<>();
-        Map<Long, List<ScanProjectContentEntity>> contentMap = new HashMap<>();
         Map<Long, HoleNumDto> holeMap = new HashMap<>();
         if (!CollectionUtils.isEmpty(projectIdList)) {
-            List<ScanProjectEntity> portNumList = scanProjectFeign.getProjectPortNum(projectIdList);
-            portNumMap = portNumList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getPortNum));
-            List<ScanProjectEntity> urlNumList = scanProjectFeign.getProjectUrlNum(projectIdList);
-            urlNumMap = urlNumList.stream().collect(Collectors.toMap(ScanProjectEntity::getId, ScanProjectEntity::getUrlNum));
             params.put("projectIds", projectIdList);
             List<HoleNumDto> holeList = scanSecurityHoleFeign.queryHoleNum(params);
             holeMap = holeList.stream().collect(Collectors.toMap(HoleNumDto::getProjectId, obj -> obj, (key1, key2) -> key1));
         }
         if (!CollectionUtils.isEmpty(page.getRecords())) {
             for (ScanProjectEntity project : page.getRecords()) {
-                project.setPortNum(portNumMap.get(project.getId()));
-                project.setUrlNum(urlNumMap.get(project.getId()));
+                String statisticsStr = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_PROJECT_STATISTICS_NUM, project.getId()));
+                Map<String, Object> statisticsMap = JSON.parseObject(statisticsStr, Map.class);
+                Integer portNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "portNum");
+                Integer urlNum = CollectionUtils.isEmpty(statisticsMap) ? Const.INTEGER_0 : MapUtil.getInt(statisticsMap, "urlNum");
+                project.setPortNum(portNum);
+                project.setUrlNum(urlNum);
 
                 HoleNumDto dto = holeMap.get(project.getId());
                 if (dto != null) {

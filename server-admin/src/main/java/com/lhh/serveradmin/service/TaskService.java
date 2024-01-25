@@ -1,12 +1,13 @@
 package com.lhh.serveradmin.service;
 
-import com.lhh.serveradmin.feign.scan.HostCompanyFeign;
-import com.lhh.serveradmin.feign.scan.ScanHostFeign;
-import com.lhh.serveradmin.feign.scan.ScanProjectContentFeign;
-import com.lhh.serveradmin.feign.scan.ScanningChangeFeign;
+import com.alibaba.fastjson.JSON;
+import com.lhh.serveradmin.feign.scan.*;
 import com.lhh.serveradmin.feign.sys.CmsJsonFeign;
+import com.lhh.serverbase.common.constant.CacheConst;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.entity.NetErrorDataEntity;
+import com.lhh.serverbase.entity.ScanProjectEntity;
+import com.lhh.serverbase.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,8 @@ public class TaskService {
     HostCompanyFeign hostCompanyFeign;
     @Autowired
     CmsJsonFeign cmsJsonFeign;
+    @Autowired
+    ScanProjectFeign scanProjectFeign;
 
     public void checkProject() {
         scanProjectContentFeign.updateEndScanContent();
@@ -97,6 +100,26 @@ public class TaskService {
         }
         if (!CollectionUtils.isEmpty(delIds)) {
             scanningChangeFeign.delErrorData(delIds);
+        }
+    }
+
+    public void statisticsProjectNum() {
+        List<ScanProjectEntity> list = scanProjectFeign.list(new HashMap<>());
+        if (!CollectionUtils.isEmpty(list)) {
+            for (ScanProjectEntity project : list) {
+                List<Long> projectIdList = Arrays.asList(project.getId());
+                List<ScanProjectEntity> portNumList = scanProjectFeign.getProjectPortNum(projectIdList);
+                Integer portNum = CollectionUtils.isEmpty(portNumList) ? Const.INTEGER_0 : portNumList.get(0).getPortNum();
+                List<ScanProjectEntity> urlNumList = scanProjectFeign.getProjectUrlNum(projectIdList);
+                Integer urlNum = CollectionUtils.isEmpty(urlNumList) ? Const.INTEGER_0 : urlNumList.get(0).getUrlNum();
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("projectName", project.getName());
+                result.put("portNum", portNum);
+                result.put("urlNum", urlNum);
+                result.put("time", DateUtils.getYMDHms(new Date()));
+                stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_PROJECT_STATISTICS_NUM, project.getId()), JSON.toJSONString(result));
+            }
         }
     }
 

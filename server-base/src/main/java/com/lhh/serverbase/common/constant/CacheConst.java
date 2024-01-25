@@ -195,4 +195,9 @@ public class CacheConst {
      */
     public final static String REDIS_SERVER_NAMES = "SERVER_NAMES";
 
+    /**
+     * redis key: 扫描漏洞服务名
+     */
+    public final static String REDIS_PROJECT_STATISTICS_NUM = "ARMS:PROJECT_STATISTICS_NUM:%S";
+
 }
