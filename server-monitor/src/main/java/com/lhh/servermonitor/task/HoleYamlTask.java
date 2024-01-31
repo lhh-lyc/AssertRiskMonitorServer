@@ -121,7 +121,7 @@ public class HoleYamlTask {
         }
     }
 
-//    @Scheduled(cron = "0 0/20 * * * ? ")
+    @Scheduled(cron = "0 0/20 * * * ? ")
     @GetMapping("delHoleYaml")
     public R delHoleYaml() {
         log.info("yaml漏洞规则删除定时任务开始");
