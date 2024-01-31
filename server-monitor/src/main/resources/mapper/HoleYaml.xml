@@ -19,10 +19,10 @@
         t1.*
         from hole_yaml t1
         where t1.del_flg = 1
-        <if test="params.createTime != null and params.createTime != ''">
-            and t1.create_time &gt; #{params.createTime}
+        <if test="params.updateTime != null and params.updateTime != ''">
+            and t1.update_time &gt; #{params.updateTime}
         </if>
-        order by t1.create_time
+        order by t1.update_time
     </select>
 
 </mapper>

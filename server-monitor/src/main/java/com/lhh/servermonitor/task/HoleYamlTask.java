@@ -3,6 +3,7 @@ package com.lhh.servermonitor.task;
 import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.common.response.R;
 import com.lhh.serverbase.entity.HoleYamlEntity;
+import com.lhh.serverbase.entity.SshResponse;
 import com.lhh.serverbase.utils.DateUtils;
 import com.lhh.servermonitor.service.FileService;
 import com.lhh.servermonitor.service.HoleYamlService;
@@ -125,7 +126,7 @@ public class HoleYamlTask {
     public R delHoleYaml() {
         log.info("yaml漏洞规则删除定时任务开始");
         Map<String, Object> params = new HashMap<>();
-        params.put("createTime", DateUtils.getYMDHms(DateUtils.addDateHours(new Date(), -1)));
+        params.put("updateTime", DateUtils.getYMDHms(DateUtils.addDateHours(new Date(), -1)));
         List<HoleYamlEntity> list = holeYamlService.delList(params);
         try {
             if (!CollectionUtils.isEmpty(list)) {
@@ -144,6 +145,7 @@ public class HoleYamlTask {
                     String newPath = Const.STR_SLASH + String.join(Const.STR_SLASH, newFolderList);
                     if (Const.INTEGER_1.equals(yaml.getToolType())) {
                         String cmd = String.format(Const.STR_DEL_HOLE_YAML, nucleiFolder + newPath);
+                        log.info("执行命令:" + cmd);
                         ExecUtil.runCommand(cmd);
                     }
                     if (Const.INTEGER_2.equals(yaml.getToolType())) {

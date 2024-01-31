@@ -127,6 +127,7 @@ public class HoleYamlService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            log.info(dto.getFileName() + "--规则上传成功!");
             Long userId = Long.valueOf(jwtTokenUtil.getUserId());
             HoleYamlEntity yaml = HoleYamlEntity.builder()
                     .bucketName(dto.getBucketName()).toolType(toolType)
@@ -178,7 +179,6 @@ public class HoleYamlService {
         if (!CollectionUtils.isEmpty(list)) {
             List<String> fileUrlList = list.stream().map(HoleYamlEntity::getFileUrl).collect(Collectors.toList());
             fileService.deleteFile(defBucket, fileUrlList);
-            holeYamlFeign.deleteBatch(ids);
         }
         holeYamlFeign.deleteBatch(ids);
         return R.ok();
