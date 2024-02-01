@@ -31,7 +31,7 @@ public class HoleSender {
 
     public void sendHoleToMqtt(ScanParamDto dto) {
         try {
-            log.info(dto.getSubDomain() + "漏洞子域名开始投递");
+            log.info(dto.getSubDomain() + Const.STR_COLON + dto.getPort() + "漏洞子域名端口开始投递");
             CorrelationData correlationId = new CorrelationData(dto.getProjectId() + Const.STR_COLON + dto.getSubDomain());
             rabbitTemplate.convertAndSend(exchange, holeRouteKey, SerializationUtils.serialize(dto), correlationId);
         } catch (Exception e) {

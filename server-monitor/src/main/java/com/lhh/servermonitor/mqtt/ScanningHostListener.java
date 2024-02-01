@@ -203,11 +203,17 @@ public class ScanningHostListener {
             // 扫描url、title、cms
             scanHostPortService.scanSingleHostPortList(dto.getSubDomain());
             if (Const.INTEGER_1.equals(redisProject.getNucleiFlag()) || Const.INTEGER_1.equals(redisProject.getAfrogFlag()) || Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
-                ScanParamDto holeDto = ScanParamDto.builder()
-                        .projectId(dto.getProjectId()).domain(dto.getHost())
-                        .subDomain(dto.getSubDomain()).scanPorts(dto.getScanPorts())
-                        .build();
-                holeSender.sendHoleToMqtt(holeDto);
+                List<Integer> portList = scanPortService.queryPortList(dto.getSubDomain());
+                if (!CollectionUtils.isEmpty(portList)) {
+                    for (Integer port : portList) {
+                        ScanParamDto holeDto = ScanParamDto.builder()
+                                .projectId(dto.getProjectId()).domain(dto.getHost())
+                                .subDomain(dto.getSubDomain()).scanPorts(dto.getScanPorts())
+                                .port(port)
+                                .build();
+                        holeSender.sendHoleToMqtt(holeDto);
+                    }
+                }
             } else {
                 redisLock.delDomainRedis(dto.getProjectId(), dto.getHost(), dto.getSubDomain(), dto.getScanPorts());
             }

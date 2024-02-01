@@ -57,6 +57,8 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
     @Autowired
     ScanService scanService;
     @Autowired
+    ScanPortService scanPortService;
+    @Autowired
     RedisLock redisLock;
     @Autowired
     IpSender mqIpSender;
@@ -134,12 +136,19 @@ public class ScanProjectServiceImpl extends ServiceImpl<ScanProjectDao, ScanProj
                     saveProjectHostList.add(projectHost);
 
                     if (Const.INTEGER_1.equals(project.getNucleiFlag()) || Const.INTEGER_1.equals(project.getAfrogFlag()) || Const.INTEGER_1.equals(project.getXrayFlag())) {
+                        List<Integer> portList = scanPortService.queryPortList(subDomain);
                         String ports = RexpUtil.isIP(subDomain) ? tmpRedisService.getHostInfo(subDomain).getScanPorts() : tmpRedisService.getHostInfo(domain).getScanPorts();
-                        ScanParamDto dto = ScanParamDto.builder()
-                                .projectId(project.getId()).domain(domain).subDomain(subDomain).scanPorts(ports)
-                                .build();
-                        // 已扫描的域名或ip重新扫描漏洞
-                        sendHoleList.add(dto);
+                        if (!CollectionUtils.isEmpty(portList)) {
+                            for (Integer port : portList) {
+                                ScanParamDto dto = ScanParamDto.builder()
+                                        .projectId(project.getId()).domain(domain)
+                                        .subDomain(subDomain).scanPorts(ports)
+                                        .port(port)
+                                        .build();
+                                // 已扫描的域名或ip重新扫描漏洞
+                                sendHoleList.add(dto);
+                            }
+                        }
                     }
                 }
             }

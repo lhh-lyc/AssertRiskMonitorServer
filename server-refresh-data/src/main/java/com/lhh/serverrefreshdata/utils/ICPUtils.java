@@ -162,7 +162,9 @@ public class ICPUtils {
                 }
             }
         }
-        return StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+        company = StringUtils.isEmpty(company) ? Const.STR_CROSSBAR : company;
+        log.info("domian:" + domain + "查询备案信息, 企业名称为" + company);
+        return company;
     }
 
 }

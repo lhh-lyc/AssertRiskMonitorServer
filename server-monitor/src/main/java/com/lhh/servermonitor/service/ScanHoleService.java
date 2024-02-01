@@ -74,6 +74,27 @@ public class ScanHoleService {
         }
     }
 
+    /**
+     * 扫描漏洞
+     *
+     */
+    public void scanHoleSingle(Long projectId, String domain, Integer port) {
+        String requestUrl = domain + Const.STR_COLON + port;
+        String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, projectId));
+        ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
+        if (!StringUtils.isEmpty(redisProject)) {
+            if (Const.INTEGER_1.equals(redisProject.getNucleiFlag())) {
+                nucleiSingleScan(projectId, domain, requestUrl, ToolEnum.nuclei.getToolType(), redisProject.getNucleiParams());
+            }
+            if (Const.INTEGER_1.equals(redisProject.getAfrogFlag())) {
+                nucleiSingleScan(projectId, domain, requestUrl, ToolEnum.afrog.getToolType(), redisProject.getAfrogParams());
+            }
+            if (Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
+                xraySingleScan(projectId, domain, port, ToolEnum.xray.getToolType(), redisProject.getXrayParams());
+            }
+        }
+    }
+
     public void nucleiSingleScan(Long projectId, String domain, String requestUrl, Integer tool, String param) {
         log.info("项目" + projectId + Const.STR_COLON + requestUrl + "---nuclei漏洞扫描开始");
         String query = "-s";
@@ -379,6 +400,23 @@ public class ScanHoleService {
         map.put("param", result);
         map.put("levelList", levelList);
         return map;
+    }
+
+    public void xraySingleScan(Long projectId, String domain, Integer port, Integer tool, String param) {
+        log.info("项目" + projectId + Const.STR_COLON + domain + Const.STR_COLON + port + "---xray漏洞扫描开始");
+        String requestUrl;
+        requestUrl = domain + Const.STR_COLON + port;
+        log.info("项目" + projectId + Const.STR_COLON + domain + "-xray扫描对象：" + requestUrl);
+        SshResponse response = null;
+        String cmd = String.format(Const.STR_XRAY, toolDir, requestUrl, param);
+        try {
+            response = ExecUtil.runCommand(cmd);
+        } catch (IOException e) {
+            log.error("项目" + projectId + Const.STR_COLON + requestUrl + "扫描参数异常，输入参数：" + e);
+        }
+        String outStr = RexpUtil.removeColor(response.getOut());
+        xrayScan(projectId, domain, tool, outStr, cmd);
+        log.info("项目" + projectId + Const.STR_COLON + domain + Const.STR_COLON + port + "---xray漏洞扫描结束");
     }
 
     public void xrayAllScan(Long projectId, String domain, List<Integer> portList, Integer tool, String param) {

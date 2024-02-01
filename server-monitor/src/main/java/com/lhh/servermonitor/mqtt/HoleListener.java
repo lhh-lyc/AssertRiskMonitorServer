@@ -1,6 +1,7 @@
 package com.lhh.servermonitor.mqtt;
 
 import com.alibaba.fastjson.JSON;
+import com.lhh.serverbase.common.constant.Const;
 import com.lhh.serverbase.dto.ScanParamDto;
 import com.lhh.serverbase.entity.ScanProjectEntity;
 import com.lhh.servermonitor.controller.RedisLock;
@@ -21,9 +22,9 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-//@RabbitListener(bindings = {@QueueBinding(
-//        value = @Queue(value = "scanningHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
-//        exchange = @Exchange(name = "amp.topic"))})
+@RabbitListener(bindings = {@QueueBinding(
+        value = @Queue(value = "scanningHoleData", durable = "true", autoDelete = "false", exclusive = "false"),
+        exchange = @Exchange(name = "amp.topic"))})
 public class HoleListener {
 
     @Autowired
@@ -51,7 +52,8 @@ public class HoleListener {
                 log.info("项目id=" + dto.getProjectId() + "已被删除,不处理漏洞" + dto.getSubDomain());
                 return;
             }
-            scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
+//            scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
+            scanHoleService.scanHoleSingle(dto.getProjectId(), dto.getSubDomain(), dto.getPort());
             log.info("漏洞扫描完成，删除key:" + dto.getProjectId() + "_" + dto.getSubDomain());
             redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);

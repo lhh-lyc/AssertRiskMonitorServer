@@ -49,6 +49,8 @@ public class ScanningIpListener {
     @Autowired
     TmpRedisService tmpRedisService;
     @Autowired
+    ScanPortService scanPortService;
+    @Autowired
     private ScanProjectDao scanProjectDao;
     @Autowired
     HoleSender holeSender;
@@ -109,11 +111,17 @@ public class ScanningIpListener {
             String projectStr = stringRedisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_PROJECT, dto.getProjectId()));
             ScanProjectEntity redisProject = JSON.parseObject(projectStr, ScanProjectEntity.class);
             if (Const.INTEGER_1.equals(redisProject.getNucleiFlag()) || Const.INTEGER_1.equals(redisProject.getAfrogFlag()) || Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
-                ScanParamDto holeDto = ScanParamDto.builder()
-                        .projectId(dto.getProjectId()).domain(dto.getSubIp())
-                        .subDomain(dto.getSubIp()).scanPorts(dto.getScanPorts())
-                        .build();
-                holeSender.sendHoleToMqtt(holeDto);
+                List<Integer> portList = scanPortService.queryPortList(dto.getSubIp());
+                if (!CollectionUtils.isEmpty(portList)) {
+                    for (Integer port : portList) {
+                        ScanParamDto holeDto = ScanParamDto.builder()
+                                .projectId(dto.getProjectId()).domain(dto.getSubIp())
+                                .subDomain(dto.getSubIp()).scanPorts(dto.getScanPorts())
+                                .port(port)
+                                .build();
+                        holeSender.sendHoleToMqtt(holeDto);
+                    }
+                }
             } else {
                 redisLock.delDomainRedis(dto.getProjectId(), dto.getSubIp(), dto.getSubIp(), dto.getScanPorts());
             }

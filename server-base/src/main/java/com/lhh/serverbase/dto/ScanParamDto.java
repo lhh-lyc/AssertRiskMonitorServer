@@ -30,6 +30,8 @@ public class ScanParamDto implements Serializable {
 
     private String subIp;
 
+    private Integer port;
+
     private String allPorts;
 
     private String scanPorts;
