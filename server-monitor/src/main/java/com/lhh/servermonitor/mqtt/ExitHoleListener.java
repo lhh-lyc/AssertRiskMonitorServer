@@ -46,13 +46,13 @@ public class ExitHoleListener {
             log.info("已存扫描漏洞入参：" + JSON.toJSONString(dto));
             ScanProjectEntity oldProject = scanProjectDao.selectById(dto.getProjectId());
             if (oldProject == null) {
-                redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
+                redisLock.delDomainPortRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts(), dto.getPort());
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
                 log.info("项目id=" + dto.getProjectId() + "已被删除,不处理漏洞" + dto.getSubDomain());
                 return;
             }
             scanHoleService.scanHoleList(dto.getProjectId(), dto.getSubDomain());
-            redisLock.delDomainRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts());
+            redisLock.delDomainPortRedis(dto.getProjectId(), dto.getDomain(), dto.getSubDomain(), dto.getScanPorts(), dto.getPort());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
         } catch (Exception e) {
             try {

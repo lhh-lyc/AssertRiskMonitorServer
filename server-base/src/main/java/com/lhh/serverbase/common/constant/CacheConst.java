@@ -13,6 +13,11 @@ public class CacheConst {
     public final static String REDIS_LOCK_DOMAIN = "LOCK_DOMAIN:%s";
 
     /**
+     * redis key: 域名扫描
+     */
+    public final static String REDIS_LOCK_DOMAIN_PORT = "LOCK_DOMAIN_PORT:%s";
+
+    /**
      * redis key: LOCK_SUBDOMAIN:
      */
     public final static String REDIS_LOCK_SUBDOMAIN = "LOCK_SUBDOMAIN:%s";
@@ -81,6 +86,11 @@ public class CacheConst {
      * redis key: SCANNING_DOMAIN:projectId:domain
      */
     public final static String REDIS_SCANNING_DOMAIN = "SCANNING_DOMAIN:%s:%s";
+
+    /**
+     * redis key: SCANNING_DOMAIN_PORT:projectId:domain
+     */
+    public final static String REDIS_SCANNING_DOMAIN_PORT = "SCANNING_DOMAIN_PORT:%s:%s:%s";
 
     /**
      * redis key: SCANNING_SUB_DOMAIN:

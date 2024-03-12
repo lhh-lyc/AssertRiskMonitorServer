@@ -27,7 +27,7 @@
         select
         <include refid="baseColumn"/>
         from host_company
-        where 1=1
+        where del_flg = 0
         <if test="hostList != null and hostList.size() > 0">
             and host IN
             <foreach collection="hostList" item="host" index="index" separator="," close=")" open="(">

@@ -147,4 +147,31 @@ public class RedisLock {
         }
     }
 
+    public void delDomainPortRedis(Long projectId, String domain, String subDomain, String scanPorts, Integer port) {
+        String lockKey = String.format(CacheConst.REDIS_LOCK_DOMAIN_PORT, subDomain);
+        RLock lock = redisson.getLock(lockKey);
+        try {
+            lock.lock();
+            String ports = redisTemplate.opsForValue().get(String.format(CacheConst.REDIS_SCANNING_DOMAIN_PORT, projectId, domain, subDomain));
+            if (!StringUtils.isEmpty(ports)) {
+                List<String> list = new ArrayList<>(Arrays.asList(ports.split(Const.STR_COMMA)));
+                list.remove(port.toString());
+                if (CollectionUtils.isEmpty(list)) {
+                    redisTemplate.delete(String.format(CacheConst.REDIS_SCANNING_DOMAIN_PORT, projectId, domain, subDomain));
+                    delDomainRedis(projectId, domain, subDomain, scanPorts);
+                } else {
+                    redisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN_PORT, projectId, domain, subDomain),  String.join(Const.STR_COMMA, list));
+                }
+            }
+        } catch (Exception e) {
+            log.error("redis主域名删除子域名报错" + domain + "-" + subDomain, e);
+        } finally {
+            // 判断当前线程是否持有锁
+            if (lock.isHeldByCurrentThread()) {
+                //释放当前锁
+                lock.unlock();
+            }
+        }
+    }
+
 }

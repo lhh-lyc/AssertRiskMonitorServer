@@ -205,6 +205,8 @@ public class ScanningHostListener {
             if (Const.INTEGER_1.equals(redisProject.getNucleiFlag()) || Const.INTEGER_1.equals(redisProject.getAfrogFlag()) || Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
                 List<Integer> portList = scanPortService.queryPortList(dto.getSubDomain());
                 if (!CollectionUtils.isEmpty(portList)) {
+                    String portStr = String.join(Const.STR_COMMA, portList.stream().map(String::valueOf).collect(Collectors.toList()));
+                    stringRedisTemplate.opsForValue().set(String.format(CacheConst.REDIS_SCANNING_DOMAIN_PORT, dto.getProjectId(), dto.getHost(), dto.getSubDomain()), portStr);
                     for (Integer port : portList) {
                         ScanParamDto holeDto = ScanParamDto.builder()
                                 .projectId(dto.getProjectId()).domain(dto.getHost())
