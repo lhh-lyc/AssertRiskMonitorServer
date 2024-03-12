@@ -87,7 +87,7 @@ public class ScanHoleService {
                 nucleiSingleScan(projectId, domain, requestUrl, ToolEnum.nuclei.getToolType(), redisProject.getNucleiParams());
             }
             if (Const.INTEGER_1.equals(redisProject.getAfrogFlag())) {
-                nucleiSingleScan(projectId, domain, requestUrl, ToolEnum.afrog.getToolType(), redisProject.getAfrogParams());
+                afrogSingleScan(projectId, domain, requestUrl, ToolEnum.afrog.getToolType(), redisProject.getAfrogParams());
             }
             if (Const.INTEGER_1.equals(redisProject.getXrayFlag())) {
                 xraySingleScan(projectId, domain, port, ToolEnum.xray.getToolType(), redisProject.getXrayParams());
